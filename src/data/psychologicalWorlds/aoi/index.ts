@@ -32,8 +32,10 @@ const layer1: PsychLayerData = {
       deepMessage: '照片裡的笑容是真的。但照片不會說話，也不會吵架。小葵有時會盯著照片很久，好像在確認那個曾經存在過。',
       insight: '家庭照片記錄的是快樂的瞬間，但瞬間不能代替日常。',
       reflectionChoices: [
-        { text: '這個家曾經也有過快樂的時候。', insight: false },
-        { text: '照片裡的笑容，和現在的沉默，都是真的。', insight: true },
+        { text: '凝固', insight: false },
+        { text: '碎片', insight: true },
+        { text: '鏡像', insight: false },
+        { text: '形狀', insight: false },
       ],
     },
     {
@@ -46,8 +48,10 @@ const layer1: PsychLayerData = {
       deepMessage: '她的身體縮得很小，像是在試圖讓自己消失。每當父母的聲音提高一點，她的肩膀就會抖一下。',
       insight: '她不是不想說話，是怕說錯話會讓事情更糟。',
       reflectionChoices: [
-        { text: '她不需要消失。她在這裡，就已經夠了。', insight: true },
-        { text: '角落是一個暫時安全的地方。', insight: false },
+        { text: '消失', insight: false },
+        { text: '重量', insight: true },
+        { text: '影子', insight: false },
+        { text: '回聲', insight: false },
       ],
     },
     {
@@ -60,8 +64,10 @@ const layer1: PsychLayerData = {
       deepMessage: '他們不是壞人。只是兩個人在一起時，會變成另一種樣子。小葵知道這一點，所以她從不選邊站。',
       insight: '父母的爭吵不是小葵的錯，但小葵把它當成了自己的責任。',
       reflectionChoices: [
-        { text: '他們的爭吵，不是因為你不夠好。', insight: false },
-        { text: '兩個大人的問題，不應該由孩子來承擔。', insight: true },
+        { text: '邊界', insight: true },
+        { text: '碎片', insight: false },
+        { text: '回聲', insight: false },
+        { text: '形狀', insight: false },
       ],
     },
     {
@@ -74,8 +80,10 @@ const layer1: PsychLayerData = {
       deepMessage: '那聲音像是一個句號。每次摔門之後，家裡就會安靜很久。小葵會數自己的呼吸，直到數到一百，確認不會再有聲音。',
       insight: '摔門聲是結束，但也是下一場緊張的開始。',
       reflectionChoices: [
-        { text: '那個聲音很嚇人。但你可以不用數呼吸了。', insight: true },
-        { text: '門關上了，但這不代表世界結束了。', insight: false },
+        { text: '回聲', insight: true },
+        { text: '循環', insight: false },
+        { text: '沉默', insight: false },
+        { text: '痕跡', insight: false },
       ],
     },
     {
@@ -88,8 +96,10 @@ const layer1: PsychLayerData = {
       deepMessage: '小葵曾經試過說學校的事來打破沉默。但爸爸和媽媽都只是點頭，然後繼續吃飯。現在她不再試了。',
       insight: '一個孩子試過用分享來修復家庭，但發現自己做不到。',
       reflectionChoices: [
-        { text: '你試過了。這已經很勇敢了。', insight: true },
-        { text: '沉默的餐桌不是你的錯。', insight: false },
+        { text: '沉默', insight: true },
+        { text: '形狀', insight: false },
+        { text: '消失', insight: false },
+        { text: '重量', insight: false },
       ],
     },
   ],
@@ -132,8 +142,10 @@ const layer2: PsychLayerData = {
       deepMessage: '小葵曾經喜歡這束光。它讓她覺得自己是主角。但現在，這束光只讓她覺得自己被暴露在所有爭吵面前。',
       insight: '舞台的光既是榮耀也是審判。',
       reflectionChoices: [
-        { text: '那束光曾經讓你覺得被看見。', insight: false },
-        { text: '你不需要為了讓光繼續亮著，而一直跳舞。', insight: true },
+        { text: '光', insight: true },
+        { text: '重量', insight: false },
+        { text: '形狀', insight: false },
+        { text: '邊界', insight: false },
       ],
     },
     {
@@ -146,8 +158,10 @@ const layer2: PsychLayerData = {
       deepMessage: '觀眾席中有些人轉過頭，看向爭吵的聲音。小葵看到了他們的表情——困惑、同情、甚至不耐煩。她知道，從這一刻開始，「跳舞」和「丟臉」會永遠連在一起。',
       insight: '在所有人面前發生的爭吵，讓羞恥感變成了公共的。',
       reflectionChoices: [
-        { text: '那些觀眾看到的不是你的錯。', insight: false },
-        { text: '丟臉的是爭吵，不是你的舞。', insight: true },
+        { text: '邊界', insight: true },
+        { text: '碎片', insight: false },
+        { text: '回聲', insight: false },
+        { text: '光', insight: false },
       ],
     },
     {
@@ -160,8 +174,10 @@ const layer2: PsychLayerData = {
       deepMessage: '他們為什麼要在這裡吵架？這是我的發表會。這是我的一天。\n小葵沒有說出口。她只是繼續跳，但舞步已經亂了。',
       insight: '孩子的重要時刻，被成人的衝突徹底摧毀。',
       reflectionChoices: [
-        { text: '這一天本來應該是屬於你的。', insight: true },
-        { text: '他們的爭吵奪走了你的舞台。這不公平。', insight: false },
+        { text: '碎片', insight: true },
+        { text: '形狀', insight: false },
+        { text: '光', insight: false },
+        { text: '回聲', insight: false },
       ],
     },
     {
@@ -174,8 +190,10 @@ const layer2: PsychLayerData = {
       deepMessage: '小葵的腳還記得動作，但心已經跑掉了。她一直在想：他們在吵什麼？是我跳錯了嗎？還是我不應該跳舞？',
       insight: '當創傷在重要時刻發生，那個時刻會被永遠污染。',
       reflectionChoices: [
-        { text: '你沒有跳錯。舞是對的，錯的是時機。', insight: false },
-        { text: '你的腳還記得。心也會慢慢記回來。', insight: true },
+        { text: '痕跡', insight: true },
+        { text: '形狀', insight: false },
+        { text: '回聲', insight: false },
+        { text: '光', insight: false },
       ],
     },
     {
@@ -188,8 +206,10 @@ const layer2: PsychLayerData = {
       deepMessage: '小葵再也沒有穿過這雙鞋。她把它藏在衣櫃最裡面，以為看不見就不會難過。但偶爾打開衣櫃，紅色還是會跳出來。',
       insight: '放棄的不是舞鞋，是允許自己快樂的權利。',
       reflectionChoices: [
-        { text: '紅色很漂亮。你不需要為了它道歉。', insight: true },
-        { text: '鞋還在。想穿的時候，可以重新繫鞋帶。', insight: false },
+        { text: '顏色', insight: true },
+        { text: '重量', insight: false },
+        { text: '消失', insight: false },
+        { text: '形狀', insight: false },
       ],
     },
   ],
@@ -232,8 +252,10 @@ const layer3: PsychLayerData = {
       deepMessage: '小葵站在鞦韆旁邊，但沒有坐上去。她已經忘記了鞦韆是來玩的。她只記得，如果她太快樂，家裡就會出事。',
       insight: '鞦韆不只是玩具，是「允許自己無所事事」的象徵。',
       reflectionChoices: [
-        { text: '你可以坐上去。不需要晃動。', insight: true },
-        { text: '鞦韆不會要求你表現好。', insight: false },
+        { text: '靜止', insight: true },
+        { text: '重量', insight: false },
+        { text: '形狀', insight: false },
+        { text: '光', insight: false },
       ],
     },
     {
@@ -246,8 +268,10 @@ const layer3: PsychLayerData = {
       deepMessage: '書包是小葵的「正常」偽裝。她會準時上學、準時寫功課、準時回家。沒有人知道她在公園裡坐多久。',
       insight: '孩子用「正常」來保護自己，但正常不等於沒事。',
       reflectionChoices: [
-        { text: '書包裡的課本不是你的全部。', insight: false },
-        { text: '你可以帶著書包，也可以放下它。', insight: true },
+        { text: '重量', insight: true },
+        { text: '形狀', insight: false },
+        { text: '碎片', insight: false },
+        { text: '光', insight: false },
       ],
     },
     {
@@ -260,8 +284,10 @@ const layer3: PsychLayerData = {
       deepMessage: '小葵把舞鞋帶到公園，然後丟掉了。她以為這樣就不會再難過。但現在她站在鞦韆旁邊，看著那雙鞋，不知道該不該撿回來。',
       insight: '放棄快樂不能阻止爭吵。它只是讓孩子變得更孤單。',
       reflectionChoices: [
-        { text: '那雙鞋很漂亮。你可以把它撿回來。', insight: true },
-        { text: '丟掉鞋不能讓家變好。但這不是你的錯。', insight: false },
+        { text: '顏色', insight: true },
+        { text: '泥土', insight: false },
+        { text: '碎片', insight: false },
+        { text: '形狀', insight: false },
       ],
     },
     {
@@ -274,8 +300,10 @@ const layer3: PsychLayerData = {
       deepMessage: '小葵已經不需要再聽了。她知道爭吵的內容永遠不會改變。她只是把錄音筆帶在身上，像一個她不願意打開的護身符。',
       insight: '反覆聆聽創傷，是一種試圖控制不可控之物的掙扎。',
       reflectionChoices: [
-        { text: '你不需要再聽了。你已經聽得夠多了。', insight: true },
-        { text: '錄音筆可以關掉。爭吵不是你的責任。', insight: false },
+        { text: '回聲', insight: true },
+        { text: '重量', insight: false },
+        { text: '形狀', insight: false },
+        { text: '循環', insight: false },
       ],
     },
   ],
