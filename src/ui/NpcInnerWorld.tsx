@@ -466,7 +466,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     return { unlockedLayers: [...new Set(unlocked)].sort(), layers };
   }, [understandingByLayer, discoveredByLayer, completedLayers, safeStress, psychLayers]);
 
-  const syncToStore = useCallback(() => { syncInnerWorldState(buildInnerWorldSave()); }, [buildInnerWorldSave, syncInnerWorldState]);
+  const syncToStore = useCallback(() => { syncInnerWorldState(buildInnerWorldSave(), npcId); }, [buildInnerWorldSave, syncInnerWorldState, npcId]);
 
   useEffect(() => { syncToStore(); }, [syncToStore, understandingByLayer, discoveredByLayer]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -503,11 +503,10 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   }, [phase, understanding, layerNum]);
   const handleCloseInsight = useCallback(() => setPhase({ type: 'exploring' }), []);
   const handleLayerComplete = useCallback(() => {
-    // 只在最後一層時才在此標記完成（因為沒有下一層可進入）
-    // 非最後層的完成標記移至 handleEnter（玩家實際按下「進入XXXX」時）
+    // 標記當前層完成（無論是否最後一層）
+    if (onAdvanceLayer) onAdvanceLayer(layerNum);
+    setCompletedLayers(prev => new Set([...prev, layerNum]));
     if (isLast) {
-      if (onAdvanceLayer) onAdvanceLayer(layerNum);
-      setCompletedLayers(prev => new Set([...prev, layerNum]));
       setPhase({ type: 'arc_complete' });
       return;
     }
@@ -525,7 +524,8 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
 
   const insightCount = understanding.insightIds.length;
   const insightFragments = getInsightFragments(understanding);
-  const showLayerCompleteBtn = (phase.type === 'exploring' || phase.type === 'observing' || phase.type === 'reflecting' || phase.type === 'insight_revealed') && (thresholdMet || (isLast && insightCount >= layer.interactables.length));
+  const allCollected = insightCount >= layer.interactables.length;
+  const showLayerCompleteBtn = (phase.type === 'exploring' || phase.type === 'observing' || phase.type === 'reflecting' || phase.type === 'insight_revealed') && (thresholdMet || allCollected);
   const isModalOpen = phase.type !== 'exploring' && phase.type !== 'entering' && phase.type !== 'layer_complete' && phase.type !== 'arc_complete';
 
   // 弧線失敗
@@ -718,7 +718,8 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                 const stressUnlocked = isLayerUnlockedByStress(num, safeStress);
                 const isCompleted = completedLayers.has(num);
                 const isAtOrBelowCurrent = num <= layerNum;
-                const understandingMet = num > 1 ? completedLayers.has(num - 1) || (thresholdMet && num === layerNum + 1) : true;
+                const currentLayerAllCollected = (understandingByLayer[layerNum]?.insightIds.length ?? 0) >= layer.interactables.length;
+                const understandingMet = num > 1 ? completedLayers.has(num - 1) || (num === layerNum + 1 && (thresholdMet || currentLayerAllCollected)) : true;
                 const canSwitch = isCompleted || isAtOrBelowCurrent || (understandingMet && num > layerNum);
                 const isLocked = !stressUnlocked || !canSwitch;
                 return (
@@ -727,7 +728,8 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                     if (!understandingMet) { setLayerLockMessage(`需要第${CH[num-2]}層的理解深度達標才能進入第${CH[num-1]}層。`); return; }
                     if (isLocked) { setLayerLockMessage(`請先完成第${CH[completedLayers.size]}層的探索，才能進入更深層。`); return; }
                     setLayerLockMessage(null);
-                    if (thresholdMet && num === layerNum + 1 && !completedLayers.has(layerNum)) { setPhase({ type:'layer_complete' }); return; }
+                    const currentLayerAllCollected = (understandingByLayer[layerNum]?.insightIds.length ?? 0) >= layer.interactables.length;
+                    if ((thresholdMet || currentLayerAllCollected) && num === layerNum + 1 && !completedLayers.has(layerNum)) { setPhase({ type:'layer_complete' }); return; }
                     setLayerNum(num as number);
                     markLayerVisited(num);
                     setPhase({ type: visitedLayers.has(num) ? 'exploring' : 'entering' });

@@ -260,6 +260,7 @@ const layer1: PsychLayerData = {
 - **避免使用完整的判斷句或詳細解釋**（例如：不要寫「你應該接受自己的空白」或「這不是你的錯」）
 - 4 個選項中只有 1 個是 `insight: true`（正確選項），其餘 3 個為 `insight: false`
 - 正確選項的關鍵詞應該與該 NPC 的核心創傷主題產生隱晦共鳴，而不是直接說出答案
+- 選項是隨機排列（是hardcode而不是每次session都random）
 
 ```ts
 reflectionChoices: [
