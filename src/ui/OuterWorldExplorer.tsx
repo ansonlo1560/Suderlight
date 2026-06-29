@@ -55,6 +55,7 @@ const CLUE_IMAGE_MAP: Partial<Record<ClueId, string>> = {
   brush: brushImage,
   newspaper: newspaperImage,
   sketchbook: sketchbookImage,
+  accident_report: newspaperImage,
   muddy_dance_shoes: aoiClueImage,
   recording_pen: aoiClueImage,
   spinning_cube: aoiClueImage,
@@ -246,7 +247,7 @@ export default function OuterWorldExplorer({
       }
       list.push({ id: 'gallery_door', label: '畫廊大門', type: 'clue', pos: { x: 18.0, y: 7.0 }, color: '#ec407a', icon: '門' });
       // 傳送到公園
-      list.push({ id: 'park_portal', label: '公園 · 傳送點', type: 'clue', pos: { x: 22, y: 18 }, color: '#66bb6a', icon: '傳' });
+      list.push({ id: 'park_portal', label: '公園 · 傳送點', type: 'clue', pos: { x: 22, y: 18 }, color: '#66bb6a', icon: '🧭' });
     }
     if (save.currentLocation === 'park') {
       // aoi 實體
@@ -254,7 +255,7 @@ export default function OuterWorldExplorer({
         list.push({ id: 'aoi', label: '小葵', type: 'npc', pos: { x: 12, y: 12 }, color: aoiState.ending === 'success' ? '#7acc7a' : '#ffaa33', icon: aoiState.ending === 'success' ? '光' : '葵' });
       }
       // 傳送回天橋
-      list.push({ id: 'skybridge_portal', label: '天橋 · 傳送點', type: 'clue', pos: { x: 14, y: 16 }, color: '#ffaa33', icon: '返' });
+      list.push({ id: 'skybridge_portal', label: '天橋 · 傳送點', type: 'clue', pos: { x: 14, y: 16 }, color: '#ffaa33', icon: '🧭' });
     }
     ALL_CLUE_ORDER.forEach(clueId => {
       const clue = (ALL_CLUES as Record<string, { locationId: string; pos: Point; label: string; color: string; icon: string }>)[clueId];
@@ -443,7 +444,7 @@ export default function OuterWorldExplorer({
           const isImg = entity.type === 'clue' && Boolean(cImg);
           const isPtr = entity.id === 'painter';
           const isTC = entity.id === 'torn_canvas';
-          const isPill = !isImg && !isPtr && !isTC && (isGDoor || entity.id === 'brush' || entity.id === 'newspaper' || entity.id === 'sketchbook' || entity.id === 'accident_report');
+          const isPill = !isImg && !isPtr && !isTC && (isGDoor || entity.id === 'park_portal' || entity.id === 'skybridge_portal' || entity.id === 'brush' || entity.id === 'newspaper' || entity.id === 'sketchbook' || entity.id === 'accident_report');
           const bw = isTC ? 82 : (isImg ? 88 : (isPill ? 94 : (entity.type === 'npc' ? 64 : 48)));
           const bh = isTC ? 82 : (isImg ? 112 : (isPill ? 36 : (entity.type === 'npc' ? 84 : 48)));
           return (
