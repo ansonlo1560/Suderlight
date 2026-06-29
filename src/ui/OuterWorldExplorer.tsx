@@ -7,7 +7,7 @@ import type { GameSave } from '../systems/saveSystem';
 import { getWorldForLocation, getBoundsForLocation } from '../data/outerWorlds';
 import type { OuterWorldModule } from '../data/outerWorlds';
 import {
-  isoToScreen, worldToScreen, distance, clamp, lerp, getOffsetPos,
+  isoToScreen, worldToScreen, distance, clamp, lerp,
 } from '../data/outerWorlds/bridgePainter';
 import brushImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_49_08.png';
 import newspaperImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_50_17.png';
@@ -86,7 +86,28 @@ function getNpcStateForLocation(locationId: LocationId, save: GameSave) {
 
 // ---- 等角建築渲染 ----
 type WindowDef = { side: 'left' | 'right'; x: number; y: number; w: number; h: number };
-type Building = { id: string; name: string; locationId: string; pos: Point; size: { x: number; y: number }; tall: number; baseColor: string; windows?: WindowDef[]; decorations?: (isRepaired: boolean) => React.ReactNode };
+type Building = {
+  id: string;
+  name: string;
+  pos: Point;
+  size: { x: number; y: number };
+  tall: number;
+  baseColor: string;
+  windows?: WindowDef[];
+  decorations?: (ctx: {
+    isRepaired: boolean;
+    points: {
+      s0: { left: number; top: number };
+      s1: { left: number; top: number };
+      s2: { left: number; top: number };
+      s3: { left: number; top: number };
+      t0: { left: number; top: number };
+      t1: { left: number; top: number };
+      t2: { left: number; top: number };
+      t3: { left: number; top: number };
+    };
+  }) => React.ReactNode;
+};
 
 function getSurfacePoint(side: 'left' | 'right', rX: number, rY: number, s1: { left: number; top: number }, s2: { left: number; top: number }, s3: { left: number; top: number }, t1: { left: number; top: number }, t2: { left: number; top: number }, t3: { left: number; top: number }) {
   const bSide = side === 'left' ? s3 : s2;
@@ -144,7 +165,13 @@ function IsometricBuilding({ building, isRepaired, mapWidth, mapHeight }: { buil
         {knob && <circle cx={knob.left} cy={knob.top} r={2.3} fill={isRepaired ? '#ffdca8' : '#8a8a92'} stroke={isRepaired ? 'rgba(120,74,22,0.7)' : 'rgba(25,25,28,0.9)'} strokeWidth="0.8" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 5px rgba(255,212,140,0.45))' : 'none' }} />}
       </svg>
       <div style={{ position: 'absolute', left: s2.left, top: s0.top - building.tall - 20, transform: 'translateX(-50%)', color: isRepaired ? '#fff' : '#888', fontSize: 11, padding: '2px 6px', background: isRepaired ? 'rgba(30,40,50,0.85)' : 'rgba(0,0,0,0.65)', border: `1px solid ${isRepaired ? '#ffe082' : '#444'}`, borderRadius: 4, boxShadow: isRepaired ? '0 0 10px rgba(255,224,130,0.3)' : 'none', pointerEvents: 'auto', userSelect: 'none' }}>{building.name}</div>
-      {building.decorations?.(isRepaired)}
+      {building.decorations?.({
+        isRepaired,
+        points: {
+          s0, s1, s2, s3,
+          t0, t1, t2, t3,
+        },
+      })}
     </div>
   );
 }
@@ -259,15 +286,9 @@ export default function OuterWorldExplorer({
     ALL_CLUE_ORDER.forEach(clueId => {
       const clue = (ALL_CLUES as Record<string, { locationId: string; pos: Point; label: string; color: string; icon: string }>)[clueId];
       if (!clue) return;
-      const isVisible = save.currentLocation === 'skybridge'
-        ? (clue.locationId === 'skybridge' || clue.locationId === 'newsstand')
-        : clue.locationId === save.currentLocation;
+      const isVisible = clue.locationId === save.currentLocation;
       if (isVisible && !save.collectedClues.includes(clueId as ClueId)) {
-        let ap = clue.pos;
-        if (save.currentLocation === 'skybridge' && clue.locationId === 'newsstand') {
-          ap = getOffsetPos(clue.locationId, clue.pos);
-        }
-        list.push({ id: clueId as ClueId, label: clue.label, type: 'clue', pos: ap, color: clue.color, icon: clue.icon });
+        list.push({ id: clueId as ClueId, label: clue.label, type: 'clue', pos: clue.pos, color: clue.color, icon: clue.icon });
       }
     });
 
@@ -342,6 +363,18 @@ export default function OuterWorldExplorer({
       return;
     }
 
+    // NPC 實體：開啟對話
+    if (entity?.type === 'npc') {
+      onSwitchNpc?.(npcId);
+      onOpenConversation();
+      return;
+    }
+
+    // 撕碎畫布：不應被拾取
+    if (targetId === 'torn_canvas') {
+      return;
+    }
+
     // 通用線索處理
     const result = collectClue(targetId as ClueId);
     const clue = (ALL_CLUES as Record<string, { content: string; dictionaryHint: string; label: string }>)[targetId as string];
@@ -359,7 +392,6 @@ export default function OuterWorldExplorer({
   interactRef.current = interact;
 
   useEffect(() => { focusCameraOnPlayer(playerPos); window.addEventListener('resize', () => focusCameraOnPlayer(playerPos)); return () => window.removeEventListener('resize', () => focusCameraOnPlayer(playerPos)); }, []);
-  useEffect(() => { if (save.currentLocation === 'newsstand') { const ol = save.currentLocation; setCurrentLocation('skybridge'); const ns = getOffsetPos(ol, locations[ol].spawn); setPlayerPos(ns); focusCameraOnPlayer(ns); } }, [save.currentLocation, setCurrentLocation]);
   useEffect(() => {
     const hkd = (e: KeyboardEvent) => { if (e.key === 'Escape' && modal) { setModal(null); return; } if (modal) return; if (['w','a','s','d','arrowup','arrowleft','arrowdown','arrowright'].includes(e.key.toLowerCase())) { e.preventDefault(); keys.current.add(e.key.toLowerCase()); } if ((e.key === 'e' || e.key === ' ') && nearbyEntity) { e.preventDefault(); interactRef.current(nearbyEntity.id); } };
     const hku = (e: KeyboardEvent) => keys.current.delete(e.key.toLowerCase());
@@ -386,10 +418,7 @@ export default function OuterWorldExplorer({
             const checkCol = (pt: Point) => {
               if (pt.x < 1 || pt.x > maxX || pt.y < 1 || pt.y > maxY) return true;
               const bc = world.buildings.some(b => {
-                let ap = b.pos;
-                if (save.currentLocation === 'skybridge' && (b.locationId !== 'skybridge' && b.locationId !== 'newsstand')) return false;
-                if (save.currentLocation === 'skybridge' && b.locationId !== 'skybridge') ap = getOffsetPos(b.locationId, b.pos);
-                return pt.x >= ap.x - buffer && pt.x <= ap.x + b.size.x + buffer && pt.y >= ap.y - buffer && pt.y <= ap.y + b.size.y + buffer;
+                return pt.x >= b.pos.x - buffer && pt.x <= b.pos.x + b.size.x + buffer && pt.y >= b.pos.y - buffer && pt.y <= b.pos.y + b.size.y + buffer;
               });
               if (bc) return true;
               if (collisionZone) {
@@ -424,20 +453,28 @@ export default function OuterWorldExplorer({
   const traumaFilter = save.ghosts.length > 0 ? 'grayscale(0.22) contrast(0.95)' : 'none';
 
   // 可見建築物
-  const visibleBuildings = useMemo(() => {
-    return world.buildings.filter(b => {
-      if (save.currentLocation === 'skybridge') return b.locationId === 'skybridge' || b.locationId === 'newsstand';
-      return b.locationId === save.currentLocation;
-    });
-  }, [world, save.currentLocation]);
+  const visibleBuildings = useMemo(() => world.buildings, [world]);
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', cursor: isDragging ? 'grabbing' : 'grab', background: '#080a0d', filter: traumaFilter }} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
       <GlassPanel title="提燈筆記" variant="dark" style={{ position: 'absolute', top: 20, left: 20, zIndex: 100, width: 270 }} contentStyle={{ display: 'grid', gap: 12, padding: 16 }}>
         <div style={{ fontSize: 13, lineHeight: 1.7, color: '#bbb' }}>
-          {npcState?.innerWorldUnlocked ? '天橋盡頭出現了微弱的門縫光。' : '雨聲仍很密，故事還沒有拼合。'}<br />
-          {npcState?.ending === 'success' && <span style={{ color: '#b8ffd6' }}>畫家終於聽見了雨聲。</span>}
-          {npcState?.ending === 'failed' && <span style={{ color: '#ffd0d0' }}>天橋上只剩下一張被撕碎的空白畫布。</span>}
+          {npcState?.innerWorldUnlocked
+            ? (npcId === 'aoi' ? '公園的鞦韆旁出現了微弱的門縫光。' : '天橋盡頭出現了微弱的門縫光。')
+            : (npcId === 'aoi' ? '公園裡很安靜，故事還沒有拼合。' : '雨聲仍很密，故事還沒有拼合。')}
+          <br />
+          {npcState?.ending === 'success' && (
+            <span style={{ color: '#b8ffd6' }}>
+              {npcId === 'aoi' ? '她終於聽見了風聲。' : '畫家終於聽見了雨聲。'}
+            </span>
+          )}
+          {npcState?.ending === 'failed' && (
+            <span style={{ color: '#ffd0d0' }}>
+              {npcId === 'aoi'
+                ? '公園裡只剩下一雙被遺棄的紅舞鞋。'
+                : '天橋上只剩下一張被撕碎的空白畫布。'}
+            </span>
+          )}
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 10 }}>
           <div style={{ color: '#eee', fontSize: 13, marginBottom: 8 }}>線索</div>
@@ -471,17 +508,9 @@ export default function OuterWorldExplorer({
           <div style={{ color: 'rgba(255,255,255,0.16)', fontSize: 28, letterSpacing: 8, fontWeight: 'bold' }}>{displayLoc.name}</div>
           <div style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13, lineHeight: 1.7, marginTop: 10 }}>{displayLoc.description}</div>
         </div>
-        {visibleBuildings.map(b => {
-          let ab = b;
-          if (save.currentLocation === 'skybridge' && b.locationId === 'newsstand') {
-            const mp = getOffsetPos(b.locationId, b.pos);
-            ab = { ...b, pos: mp };
-            if (b.id === 'news_cabin') {
-              ab = { ...ab, windows: [{ side: 'left' as const, x: 0.2, y: 0.3, w: 0.6, h: 0.4 }], decorations: (isR: boolean) => { const sc = isoToScreen({ x: ab.pos.x + 1.5, y: ab.pos.y + 3.0 }); return <div style={{ position: 'absolute', left: sc.left, top: sc.top - 12, width: 48, height: 18, background: isR ? 'linear-gradient(90deg, #ffb300, #ff8f00)' : '#444', border: '1px solid #ffe082', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 'bold', boxShadow: isR ? '0 0 12px #ff8f00' : 'none', transform: 'skewY(-15deg)', transition: 'all 1.5s', pointerEvents: 'none' }}>OPEN</div>; } };
-            }
-          }
-          return <IsometricBuilding key={ab.id} building={ab} isRepaired={isRepaired} mapWidth={world.mapWidth} mapHeight={world.mapHeight} />;
-        })}
+        {visibleBuildings.map(b => (
+          <IsometricBuilding key={b.id} building={b} isRepaired={isRepaired} mapWidth={world.mapWidth} mapHeight={world.mapHeight} />
+        ))}
         {entities.map(entity => {
           const es = isoToScreen(entity.pos); const s = { left: es.left, top: es.top - world.getElevation(entity.pos) };
           const isNear = nearbyEntity?.id === entity.id;

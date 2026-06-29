@@ -525,18 +525,36 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
 
   const insightCount = understanding.insightIds.length;
   const insightFragments = getInsightFragments(understanding);
-  const showLayerCompleteBtn = (phase.type === 'exploring' || phase.type === 'observing' || phase.type === 'reflecting' || phase.type === 'insight_revealed') && (thresholdMet || (isLast && insightCount >= 3));
+  const showLayerCompleteBtn = (phase.type === 'exploring' || phase.type === 'observing' || phase.type === 'reflecting' || phase.type === 'insight_revealed') && (thresholdMet || (isLast && insightCount >= layer.interactables.length));
   const isModalOpen = phase.type !== 'exploring' && phase.type !== 'entering' && phase.type !== 'layer_complete' && phase.type !== 'arc_complete';
 
   // 弧線失敗
   if (arcFailure) {
+    const failureTexts: Record<NpcId, { subtitle: string; mid: string; bottom: string }> = {
+      bridge_artist: {
+        subtitle: 'Trust never built · Stress at threshold · Connection severed',
+        mid: '從懷疑到恐懼，從恐懼到崩潰。\n他沒有等到那個能走進他內心所有房間的人。',
+        bottom: '天橋的雨還在落。他帶著最後一筆未完成的鉛筆線，走進雨夜最深處。\n恐懼值達到臨界，信任從未真正建立。\n空白畫布上的名字被雨水沖淡——城市的這一部分，繼續黯淡無光。',
+      },
+      aoi: {
+        subtitle: 'Trust never built · Stress at threshold · Connection severed',
+        mid: '從懷疑到恐懼，從恐懼到崩潰。\n她沒有等到那個能走進她內心所有房間的人。',
+        bottom: '公園的風還在吹。她帶著那雙沾滿泥土的紅舞鞋，走進夜色最深處。\n恐懼值達到臨界，信任從未真正建立。\n鞦韆上的鏈條被風吹動——城市的這一部分，繼續安靜無聲。',
+      },
+      victor: {
+        subtitle: 'Trust never built · Stress at threshold · Connection severed',
+        mid: '從懷疑到恐懼，從恐懼到崩潰。\n他沒有等到那個能走進他內心所有房間的人。',
+        bottom: '連接在臨界點斷裂。信任從未真正建立。',
+      },
+    };
+    const ft = failureTexts[npcId] ?? failureTexts.bridge_artist;
     return (
       <GuiFrame tone="inner">
         <div style={{ position:'relative',zIndex:2,height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:48 }}>
-          <GlassPanel title="情感弧線 — 斷裂" subtitle="Trust never built · Stress at threshold · Connection severed" variant="paper" style={{ maxWidth:600,width:'100%',textAlign:'center' }}>
+          <GlassPanel title="情感弧線 — 斷裂" subtitle={ft.subtitle} variant="paper" style={{ maxWidth:600,width:'100%',textAlign:'center' }}>
             <div style={{ color:'#3a2a14',fontSize:20,fontWeight:600,lineHeight:2,marginBottom:8 }}>你沒能走完{npcDef.characterCard.displayName}的情感弧線。</div>
-            <div style={{ color:'#5a4328',fontSize:15,lineHeight:2.2,fontStyle:'italic',whiteSpace:'pre-line',marginBottom:8 }}>從懷疑到恐懼，從恐懼到崩潰。{'\n'}他沒有等到那個能走進他內心所有房間的人。</div>
-            <div style={{ color:'#4a3620',fontSize:14,lineHeight:1.9,marginBottom:24,padding:'12px 16px',borderRadius:10,background:'rgba(214,163,94,0.1)',border:'1px solid rgba(214,163,94,0.15)' }}>天橋的雨還在落。他帶著最後一筆未完成的鉛筆線，走進雨夜最深處。{'\n'}恐懼值達到臨界，信任從未真正建立。{'\n'}空白畫布上的名字被雨水沖淡——城市的這一部分，繼續黯淡無光。</div>
+            <div style={{ color:'#5a4328',fontSize:15,lineHeight:2.2,fontStyle:'italic',whiteSpace:'pre-line',marginBottom:8 }}>{ft.mid}</div>
+            <div style={{ color:'#4a3620',fontSize:14,lineHeight:1.9,marginBottom:24,padding:'12px 16px',borderRadius:10,background:'rgba(214,163,94,0.1)',border:'1px solid rgba(214,163,94,0.15)' }}>{ft.bottom}</div>
             <GlimmerButton tone="primary" onClick={onOpenReport} fullWidth>查看心靈餘波匯報</GlimmerButton>
           </GlassPanel>
         </div>
@@ -594,13 +612,28 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   }
 
   if (phase.type === 'arc_complete') {
+    const completeTexts: Record<NpcId, { mid: string; bottom: string }> = {
+      bridge_artist: {
+        mid: '從榮耀的囚籠，到創傷的雨夜，\n從身分的崩解，到空白中的接納。',
+        bottom: '他的畫框始終是空白的——但現在你知道，那不是空缺，那是完成。',
+      },
+      aoi: {
+        mid: '從爭吵的單位，到破碎的舞台，\n從靜止的鞦韆，到無所事事的接納。',
+        bottom: '她的鞦韆始終是靜止的——但現在你知道，那不是放棄，那是開始。',
+      },
+      victor: {
+        mid: '情感弧線已完成。',
+        bottom: '連接已建立。',
+      },
+    };
+    const ct = completeTexts[npcId] ?? completeTexts.bridge_artist;
     return (
       <GuiFrame tone="inner">
         <div style={{ position:'relative',zIndex:2,height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:48 }}>
           <GlassPanel title="情感弧線完成" subtitle={`Completed ${maxLayer} Layers`} variant="paper" style={{ maxWidth:600,width:'100%',textAlign:'center' }}>
             <div style={{ color:'#3a2a14',fontSize:20,fontWeight:600,lineHeight:2,marginBottom:8 }}>你走完了{npcDef.characterCard.displayName}的整個情感弧線。</div>
-            <div style={{ color:'#5a4328',fontSize:15,lineHeight:2.2,fontStyle:'italic',whiteSpace:'pre-line',marginBottom:8 }}>從榮耀的囚籠，到創傷的雨夜，{'\n'}從身分的崩解，到空白中的接納。</div>
-            <div style={{ color:'#4a3620',fontSize:14,lineHeight:1.9,marginBottom:24,padding:'12px 16px',borderRadius:10,background:'rgba(214,163,94,0.1)',border:'1px solid rgba(214,163,94,0.15)' }}>他的畫框始終是空白的——但現在你知道，那不是空缺，那是完成。</div>
+            <div style={{ color:'#5a4328',fontSize:15,lineHeight:2.2,fontStyle:'italic',whiteSpace:'pre-line',marginBottom:8 }}>{ct.mid}</div>
+            <div style={{ color:'#4a3620',fontSize:14,lineHeight:1.9,marginBottom:24,padding:'12px 16px',borderRadius:10,background:'rgba(214,163,94,0.1)',border:'1px solid rgba(214,163,94,0.15)' }}>{ct.bottom}</div>
             <GlimmerButton tone="primary" onClick={handleArcComplete} fullWidth>返回表世界</GlimmerButton>
           </GlassPanel>
         </div>

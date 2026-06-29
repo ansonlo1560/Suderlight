@@ -6,6 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import DevtoolsPanel from './devtools/DevtoolsPanel';
 import { getAllPsychLayers } from './data/psychologicalWorlds/index';
 import type { NpcId } from './data/verticalSlice';
+import type { LocationId } from './data/locations';
 import {
   AftermathReport,
   NpcInnerWorld,
@@ -19,6 +20,11 @@ import {
 } from './ui';
 
 type Screen = 'title' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
+
+function getNpcIdForLocation(locationId: LocationId): NpcId {
+  if (locationId === 'park') return 'aoi';
+  return 'bridge_artist';
+}
 
 export default function App() {
   const save = useGameStore(state => state.save);
@@ -37,24 +43,29 @@ export default function App() {
   const [returnScreen, setReturnScreen] = useState<Screen>('city');
   const [arcFailureActive, setArcFailureActive] = useState(false);
   const [currentNpcId, setCurrentNpcId] = useState<NpcId>('bridge_artist');
+  const [devtoolsNpcId, setDevtoolsNpcId] = useState<NpcId>('bridge_artist');
 
   const currentNpc = save.npcs[currentNpcId];
 
   // ---- Devtools callbacks ----
+  // F7 / F9 / S+F9 等熱鍵針對「Devtools Panel 中選中的角色」執行，
+  // 與畫面上主要互動的 NPC 解耦，方便在測試時靈活切換檢查對象。
   const onForceUnlock = useCallback(() => {
-    forceUnlockInnerWorld(currentNpcId);
-  }, [forceUnlockInnerWorld, currentNpcId]);
+    forceUnlockInnerWorld(devtoolsNpcId);
+  }, [forceUnlockInnerWorld, devtoolsNpcId]);
 
   const onEnterInnerWorld = useCallback(() => {
+    setCurrentNpcId(devtoolsNpcId);
     setReturnScreen(screen === 'innerWorld' ? 'city' : screen);
     setScreen('innerWorld');
-  }, [screen]);
+  }, [screen, devtoolsNpcId]);
 
   const onSelectChapter = useCallback((depth: number) => {
-    setInnerWorldDepth(depth - 1, currentNpcId);
+    setCurrentNpcId(devtoolsNpcId);
+    setInnerWorldDepth(depth - 1, devtoolsNpcId);
     setReturnScreen(screen === 'innerWorld' ? 'city' : screen);
     setScreen('innerWorld');
-  }, [screen, setInnerWorldDepth, currentNpcId]);
+  }, [screen, setInnerWorldDepth, devtoolsNpcId]);
 
   // ---- Devtools: hotkeys + QA panel ----
   const { active: devtoolsActive, demoMode } = useDevtoolsHotkeys({
@@ -180,7 +191,10 @@ export default function App() {
         onOpenDictionary={() => openScreenWithReturn('dictionary')}
         onOpenTavern={() => openScreenWithReturn('tavern')}
         onOpenReport={() => openScreenWithReturn('aftermath')}
-        onEnterInnerWorld={() => setScreen('innerWorld')}
+        onEnterInnerWorld={() => {
+          setCurrentNpcId(getNpcIdForLocation(save.currentLocation));
+          setScreen('innerWorld');
+        }}
         addFlagToNpc={addFlagToNpc}
         onOpenArcFailure={() => {
           setArcFailureActive(true);
@@ -197,7 +211,11 @@ export default function App() {
 
       {/* Devtools QA Panel (整合版) */}
       {isPlaytestEnabled() && devtoolsActive && !demoMode && (
-        <DevtoolsPanel currentScreen={screen} />
+        <DevtoolsPanel
+          currentScreen={screen}
+          selectedNpcId={devtoolsNpcId}
+          onSelectNpcId={setDevtoolsNpcId}
+        />
       )}
 
       {/* Chapter Selector Modal (Shift+F9) */}
