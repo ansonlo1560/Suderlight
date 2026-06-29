@@ -8,11 +8,14 @@ import type { NpcDefinition } from './types';
 import { bridgePainterDefinition } from './bridgePainter';
 import { victorDefinition } from './victor/index';
 
+import { aoiDefinition } from './aoi';
+
 // ---- 登記表 ----
 
 const npcRegistry: Record<NpcId, NpcDefinition> = {
   bridge_artist: bridgePainterDefinition,
   victor: victorDefinition,
+  aoi: aoiDefinition,
 };
 
 // ---- 通用入口 ----

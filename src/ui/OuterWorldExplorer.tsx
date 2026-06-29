@@ -1,6 +1,6 @@
 import { MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { GlimmerButton, GlassPanel } from '../components';
-import { bridgeArtistClues, clueOrder, locations, type ClueId, type LocationId, type NpcId } from '../data/verticalSlice';
+import { ALL_CLUES, clueOrder, locations, type ClueId, type LocationId, type NpcId } from '../data/verticalSlice';
 import { getPlayerAuthHeaders } from '../lib/playerId';
 import type { CollectClueResult } from '../store/gameStore';
 import type { GameSave } from '../systems/saveSystem';
@@ -20,7 +20,7 @@ import {
 
 // ---- 型別 ----
 type Point = { x: number; y: number };
-type EntityId = 'painter' | 'gallery_door' | 'torn_canvas' | ClueId;
+type EntityId = 'painter' | 'gallery_door' | 'torn_canvas' | 'aoi' | 'skybridge_portal' | 'park_portal' | ClueId;
 type ModalAction = { label: string; tone?: 'primary' | 'danger' | 'ghost'; onClick: () => void };
 type ModalState = { title: string; content: string; actions?: ModalAction[]; discoveryContent?: string; discoveryTitle?: string; discoveryDesc?: string } | null;
 
@@ -46,6 +46,7 @@ type OuterWorldExplorerProps = {
   addFlagToNpc: (npcId: NpcId, flag: string) => void;
   onOpenArcFailure: () => void;
   npcId?: NpcId;
+  onSwitchNpc?: (npcId: NpcId) => void;
 };
 
 // ---- 工具 ----
@@ -56,7 +57,7 @@ const CLUE_IMAGE_MAP: Partial<Record<ClueId, string>> = {
 };
 
 function clueName(clueId: ClueId) {
-  return (bridgeArtistClues as Record<string, { label: string }>)[clueId]?.label ?? clueId;
+  return (ALL_CLUES as Record<string, { label: string }>)[clueId]?.label ?? clueId;
 }
 
 function adjustColorBrightness(hex: string, percent: number) {
@@ -206,7 +207,7 @@ function IsometricRoads({ locationId, isRepaired }: { locationId: LocationId; is
 
 // ============================================================
 export default function OuterWorldExplorer({
-  save, collectClue, setCurrentLocation, resetSave, onOpenConversation, onOpenDictionary, onOpenTavern, onOpenReport, onEnterInnerWorld, addFlagToNpc, onOpenArcFailure, npcId: _npcId,
+  save, collectClue, setCurrentLocation, resetSave, onOpenConversation, onOpenDictionary, onOpenTavern, onOpenReport, onEnterInnerWorld, addFlagToNpc, onOpenArcFailure, npcId: _npcId, onSwitchNpc,
 }: OuterWorldExplorerProps) {
   const [playerPos, setPlayerPos] = useState<Point>(locations[save.currentLocation].spawn);
   const [isDragging, setIsDragging] = useState(false);
@@ -221,10 +222,14 @@ export default function OuterWorldExplorer({
     if (save.currentLocation === 'skybridge') {
       return { id: 'skybridge' as LocationId, name: '表世界', subtitle: '街道、報攤與公園', description: '天橋、報攤與公園，這些在白晝下失色的微光之處，正透過漫長的道路和臺階連接在一起。往事在這裡延伸，等待著你去探索。', ambient: '雨後的車流低鳴、舊報紙的油墨味、潮濕泥土與落葉的微光', spawn: locations['skybridge'].spawn };
     }
+    if (save.currentLocation === 'park') {
+      return { id: 'park' as LocationId, name: '公園', subtitle: '失修的城市公園', description: locations['park'].description, ambient: locations['park'].ambient, spawn: locations['park'].spawn };
+    }
     return locations[save.currentLocation];
   }, [save.currentLocation]);
 
   const bridgeArtist = save.npcs.bridge_artist;
+  const aoiState = save.npcs.aoi;
 
   const entities = useMemo<Entity[]>(() => {
     const list: Entity[] = [];
@@ -235,9 +240,19 @@ export default function OuterWorldExplorer({
         list.push({ id: 'painter', label: '天橋畫家', type: 'npc', pos: { x: 13, y: 9 }, color: bridgeArtist.ending === 'success' ? '#7acc7a' : '#ffaa33', icon: bridgeArtist.ending === 'success' ? '光' : '畫' });
       }
       list.push({ id: 'gallery_door', label: '畫廊大門', type: 'clue', pos: { x: 18.0, y: 7.0 }, color: '#ec407a', icon: '門' });
+      // 傳送到公園
+      list.push({ id: 'park_portal', label: '公園 · 傳送點', type: 'clue', pos: { x: 22, y: 18 }, color: '#66bb6a', icon: '傳' });
+    }
+    if (save.currentLocation === 'park') {
+      // aoi 實體
+      if (aoiState) {
+        list.push({ id: 'aoi', label: '小葵', type: 'npc', pos: { x: 12, y: 12 }, color: aoiState.ending === 'success' ? '#7acc7a' : '#ffaa33', icon: aoiState.ending === 'success' ? '光' : '葵' });
+      }
+      // 傳送回天橋
+      list.push({ id: 'skybridge_portal', label: '天橋 · 傳送點', type: 'clue', pos: { x: 14, y: 16 }, color: '#ffaa33', icon: '返' });
     }
     clueOrder.forEach(clueId => {
-      const clue = (bridgeArtistClues as Record<string, { locationId: string; pos: Point; label: string; color: string; icon: string }>)[clueId];
+      const clue = (ALL_CLUES as Record<string, { locationId: string; pos: Point; label: string; color: string; icon: string }>)[clueId];
       if (!clue) return;
       const isVisible = save.currentLocation === 'skybridge' ? (clue.locationId === 'skybridge' || clue.locationId === 'newsstand' || clue.locationId === 'park') : clue.locationId === save.currentLocation;
       if (isVisible && !save.collectedClues.includes(clueId as ClueId)) {
@@ -246,7 +261,7 @@ export default function OuterWorldExplorer({
       }
     });
     return list;
-  }, [bridgeArtist.ending, save.collectedClues, save.currentLocation]);
+  }, [bridgeArtist.ending, save.collectedClues, save.currentLocation, aoiState?.ending]);
 
   const nearbyEntity = entities.find(e => distance(e.pos, playerPos) <= 1.35);
 
@@ -263,6 +278,18 @@ export default function OuterWorldExplorer({
   };
 
   const interact = (targetId: EntityId) => {
+    if (targetId === 'park_portal') {
+      setCurrentLocation('park');
+      setPlayerPos(locations['park'].spawn);
+      focusCameraOnPlayer(locations['park'].spawn);
+      return;
+    }
+    if (targetId === 'skybridge_portal') {
+      setCurrentLocation('skybridge');
+      setPlayerPos(locations['skybridge'].spawn);
+      focusCameraOnPlayer(locations['skybridge'].spawn);
+      return;
+    }
     if (targetId === 'gallery_door') {
       if (bridgeArtist.innerWorldUnlocked && bridgeArtist.ending === 'none') {
         setModal({ title: '進入心理世界', content: '你站在失色畫廊沉重的雕花橡木門前。\n\n此時你已解鎖了心理世界的存取權，大門正散發著玄妙的心智波動。\n\n是否推開大門，潛入畫家的心理世界（第一層：榮耀美術館）進行探索？', actions: [{ label: '潛入心理世界', tone: 'primary', onClick: () => { setModal(null); onEnterInnerWorld(); } }, { label: '留在外面', onClick: () => setModal(null) }] });
@@ -275,13 +302,18 @@ export default function OuterWorldExplorer({
       if (bridgeArtist.ending === 'success') { setModal({ title: '成功結局：雨聲仍在', content: '他沒有重新看見色彩，也沒有立刻變好。\n\n但他終於放下畫筆，坐在失色畫廊的地上，聽見雨聲從遠處回來。\n\n「原來……不畫畫的時候，我也還在。」', actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: onOpenReport }] }); return; }
       onOpenConversation(); return;
     }
+    if (targetId === 'aoi') {
+      if (aoiState && aoiState.ending === 'success') { setModal({ title: '成功結局：靜止的鞦韆', content: '她沒有重新開始跳舞，也沒有立刻變好。\n\n但她終於坐在鞦韆上，沒有晃動，只是靜靜地待著。\n\n「原來……不做事的時候，我也還在。」', actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: onOpenReport }] }); return; }
+      if (onSwitchNpc) onSwitchNpc('aoi');
+      onOpenConversation(); return;
+    }
     if (targetId === 'torn_canvas') {
       const interacted = bridgeArtist.flags.includes('torn_canvas_first_interaction');
       if (interacted) { setModal({ title: '被撕碎的空白畫布', content: '碎布還在原地。雨水繼續浸透它們。\n你注意到最大那塊碎片上的鉛筆線——\n它是一筆從畫框中央向外拖出去的長線，\n在撕裂處戛然而止。\n像一段話，說到一半就斷了。\n\n「連這最後的......空白......你都不肯......留給我嗎？」\n\n你感覺天橋的風變冷了一些。', actions: [{ label: '走向終章', tone: 'primary', onClick: () => { setModal(null); onOpenArcFailure(); } }] }); } else { setModal({ title: '被撕碎的空白畫布', content: '你蹲下身，手指觸到濕透的帆布邊緣。\n纖維在水裡泡得發軟，觸感像死去的皮膚。\n你試著把碎片拼回原來的形狀——但它們已經泡皺了，\n再也無法對齊。\n雨水從你的指縫流過，把撕裂的邊緣沖得更碎。\n\n「連這最後的空白，你都不肯留給我嗎？」\n\n（稍後再來看看它吧。）'}); addFlagToNpc('bridge_artist', 'torn_canvas_first_interaction'); }
       return;
     }
     const result = collectClue(targetId as ClueId);
-    const clue = (bridgeArtistClues as Record<string, { content: string; dictionaryHint: string; label: string }>)[targetId as string];
+    const clue = (ALL_CLUES as Record<string, { content: string; dictionaryHint: string; label: string }>)[targetId as string];
     maybeTriggerGhost();
     const buildContent = () => { let c = `${clue.content}`; if (result.unlockedNow) c += '\n\n天橋盡頭傳來一聲很輕的門軸聲。某個通往內心深處的入口，似乎鬆動了。'; return c; };
     const openCm = (extra?: { title?: string; desc?: string }) => { const hint = `情緒詞典浮現：${clue?.dictionaryHint ?? ''}`; setModal({ title: `獲得線索：${result.label}`, content: buildContent(), discoveryContent: hint, discoveryTitle: extra?.title, discoveryDesc: extra?.desc }); };
@@ -293,7 +325,7 @@ export default function OuterWorldExplorer({
   };
 
   useEffect(() => { focusCameraOnPlayer(playerPos); window.addEventListener('resize', () => focusCameraOnPlayer(playerPos)); return () => window.removeEventListener('resize', () => focusCameraOnPlayer(playerPos)); }, []);
-  useEffect(() => { if (save.currentLocation === 'newsstand' || save.currentLocation === 'park') { const ol = save.currentLocation; setCurrentLocation('skybridge'); const ns = getOffsetPos(ol, locations[ol].spawn); setPlayerPos(ns); focusCameraOnPlayer(ns); } }, [save.currentLocation, setCurrentLocation]);
+  useEffect(() => { if (save.currentLocation === 'newsstand') { const ol = save.currentLocation; setCurrentLocation('skybridge'); const ns = getOffsetPos(ol, locations[ol].spawn); setPlayerPos(ns); focusCameraOnPlayer(ns); } }, [save.currentLocation, setCurrentLocation]);
   useEffect(() => {
     const hkd = (e: KeyboardEvent) => { if (e.key === 'Escape' && modal) { setModal(null); return; } if (modal) return; if (['w','a','s','d','arrowup','arrowleft','arrowdown','arrowright'].includes(e.key.toLowerCase())) { e.preventDefault(); keys.current.add(e.key.toLowerCase()); } if ((e.key === 'e' || e.key === ' ') && nearbyEntity) { e.preventDefault(); interact(nearbyEntity.id); } };
     const hku = (e: KeyboardEvent) => keys.current.delete(e.key.toLowerCase());

@@ -4,6 +4,8 @@ import { useDevtoolsHotkeys, isPlaytestEnabled } from './hooks/useDevtoolsHotkey
 import { useDevtoolsStore } from './store/devtoolsStore';
 import ErrorBoundary from './components/ErrorBoundary';
 import DevtoolsPanel from './devtools/DevtoolsPanel';
+import { getAllPsychLayers } from './data/psychologicalWorlds/index';
+import type { NpcId } from './data/verticalSlice';
 import {
   AftermathReport,
   NpcInnerWorld,
@@ -34,11 +36,14 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('title');
   const [returnScreen, setReturnScreen] = useState<Screen>('city');
   const [arcFailureActive, setArcFailureActive] = useState(false);
+  const [currentNpcId, setCurrentNpcId] = useState<NpcId>('bridge_artist');
+
+  const currentNpc = save.npcs[currentNpcId];
 
   // ---- Devtools callbacks ----
   const onForceUnlock = useCallback(() => {
-    forceUnlockInnerWorld();
-  }, [forceUnlockInnerWorld]);
+    forceUnlockInnerWorld(currentNpcId);
+  }, [forceUnlockInnerWorld, currentNpcId]);
 
   const onEnterInnerWorld = useCallback(() => {
     setReturnScreen(screen === 'innerWorld' ? 'city' : screen);
@@ -46,10 +51,10 @@ export default function App() {
   }, [screen]);
 
   const onSelectChapter = useCallback((depth: number) => {
-    setInnerWorldDepth(depth - 1);
+    setInnerWorldDepth(depth - 1, currentNpcId);
     setReturnScreen(screen === 'innerWorld' ? 'city' : screen);
     setScreen('innerWorld');
-  }, [screen, setInnerWorldDepth]);
+  }, [screen, setInnerWorldDepth, currentNpcId]);
 
   // ---- Devtools: hotkeys + QA panel ----
   const { active: devtoolsActive, demoMode } = useDevtoolsHotkeys({
@@ -59,11 +64,9 @@ export default function App() {
   });
   const chapterSelectorOpen = useDevtoolsStore((s) => s.chapterSelectorOpen);
 
-  const bridgeArtist = save.npcs.bridge_artist;
-
   const openScreenWithReturn = (nextScreen: Screen) => {
     if (nextScreen === 'aftermath') {
-      const ending = save.npcs.bridge_artist.ending;
+      const ending = currentNpc.ending;
       if (ending === 'none') return;
     }
     setReturnScreen(screen);
@@ -100,23 +103,25 @@ export default function App() {
     }
 
     if (screen === 'conversation') {
+      const maxLayer = getAllPsychLayers(currentNpcId).length;
+      const layerNumbers = Array.from({ length: maxLayer }, (_, i) => i + 1);
       return (
         <OuterWorldConversation
           inventory={save.collectedClues}
-          innerWorldDepth={bridgeArtist.innerWorldDepth}
-          npcState={bridgeArtist}
-          npcId="bridge_artist"
+          innerWorldDepth={currentNpc.innerWorldDepth}
+          npcState={currentNpc}
+          npcId={currentNpcId}
           onClose={() => {
-            const layers = save.npcs.bridge_artist.innerWorld?.layers;
-            const allLayersComplete = layers && [1, 2, 3, 4].every(l => layers[l]?.completed);
-            if (allLayersComplete && bridgeArtist.ending === 'none') {
-              completeNpcSuccess('bridge_artist');
+            const layers = currentNpc.innerWorld?.layers;
+            const allLayersComplete = layers && layerNumbers.every(l => layers[l]?.completed);
+            if (allLayersComplete && currentNpc.ending === 'none') {
+              completeNpcSuccess(currentNpcId);
               setScreen('aftermath');
             } else {
               setScreen('city');
             }
           }}
-          onBackendNpcStateApplied={(state) => applyBackendNpcState('bridge_artist', state)}
+          onBackendNpcStateApplied={(state) => applyBackendNpcState(currentNpcId, state)}
           onEnterInnerWorld={() => setScreen('innerWorld')}
           onEndingTriggered={() => setScreen('aftermath')}
         />
@@ -126,17 +131,17 @@ export default function App() {
     if (screen === 'innerWorld') {
       return (
         <NpcInnerWorld
-          npcId="bridge_artist"
+          npcId={currentNpcId}
           arcFailure={arcFailureActive}
           onOpenReport={() => {
             setArcFailureActive(false);
             openScreenWithReturn('aftermath');
           }}
           onReturnToSurface={(depth) => {
-            setInnerWorldDepth(depth);
+            setInnerWorldDepth(depth, currentNpcId);
             setScreen('conversation');
           }}
-          onAdvanceLayer={(layer) => advancePsychLayer(layer)}
+          onAdvanceLayer={(layer) => advancePsychLayer(layer, currentNpcId)}
         />
       );
     }
@@ -181,6 +186,7 @@ export default function App() {
           setArcFailureActive(true);
           setScreen('innerWorld');
         }}
+        onSwitchNpc={setCurrentNpcId}
       />
     );
   })();

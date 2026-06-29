@@ -133,6 +133,24 @@ export function createBridgeArtistState(): NpcRuntimeState {
   };
 }
 
+export function createAoiState(): NpcRuntimeState {
+  return {
+    id: 'aoi',
+    name: '學童 小葵',
+    trust: 10,
+    stress: 90,
+    knowledge: 0,
+    knowledgeRequired: 80,
+    trustRequired: 50,
+    innerWorldUnlocked: false,
+    ending: 'none',
+    flags: [],
+    innerWorldDepth: 0,
+    innerWorldLayer: 0,
+    innerWorld: createDefaultInnerWorldSave('aoi'),
+  };
+}
+
 export function createVictorState(): NpcRuntimeState {
   return {
     id: 'victor',

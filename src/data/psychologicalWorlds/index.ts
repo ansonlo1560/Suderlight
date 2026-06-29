@@ -6,7 +6,7 @@
 import type { NpcId } from '../verticalSlice';
 import { ALL_PSYCH_LAYERS } from './bridgePainter/index';
 import { victorPsychLayers } from './victor/index';
-import type { PsychLayerData } from './bridgePainter/index';
+import type { PsychLayerData, PsychInteractable, UnderstandingReward } from './bridgePainter/index';
 
 // 向後相容：保留 ALL_PSYCH_LAYERS re-export
 export { ALL_PSYCH_LAYERS } from './bridgePainter/index';
@@ -20,16 +20,17 @@ export type {
   PsychLayerData,
   UnderstandingReward,
 } from './bridgePainter/index';
+// 保留 bridgePainter 的舊版函數（向後相容）
 export {
   getPsychLayer,
-  getUnderstandingReward,
-  getInteractable,
-  getLayerInteractables,
 } from './bridgePainter/index';
+
+import { aoiPsychLayers } from './aoi/index';
 
 const psychWorldRegistry: Record<NpcId, PsychLayerData[]> = {
   bridge_artist: ALL_PSYCH_LAYERS,
   victor: victorPsychLayers,
+  aoi: aoiPsychLayers,
 };
 
 /**
@@ -45,4 +46,50 @@ export function getAllPsychLayers(npcId: NpcId): PsychLayerData[] {
  */
 export function getPsychLayerForNpc(npcId: NpcId, layerNumber: number): PsychLayerData | undefined {
   return getAllPsychLayers(npcId).find(l => l.layerNumber === layerNumber);
+}
+
+/**
+ * 通用：根據互動物件 ID 取得理解度獎勵（搜索所有 NPC 資料）
+ */
+export function getUnderstandingReward(
+  interactableId: string,
+  choseInsight: boolean,
+  layerNumber?: number,
+): UnderstandingReward | null {
+  if (!choseInsight) return null;
+  const allLayers = Object.values(psychWorldRegistry).flat();
+  const layers = layerNumber ? allLayers.filter(l => l.layerNumber === layerNumber) : allLayers;
+  for (const layer of layers) {
+    const obj = layer.interactables.find((o) => o.id === interactableId);
+    if (obj) {
+      return {
+        interactableId: obj.id,
+        amount: obj.understandingReward,
+        reason: obj.insight,
+        layerId: layer.layerId,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * 通用：根據 ID 取得互動物件（搜索所有 NPC 資料）
+ */
+export function getInteractable(id: string): PsychInteractable | undefined {
+  const allLayers = Object.values(psychWorldRegistry).flat();
+  for (const layer of allLayers) {
+    const obj = layer.interactables.find((o) => o.id === id);
+    if (obj) return obj;
+  }
+  return undefined;
+}
+
+/**
+ * 通用：根據層級編號取得所有互動物件（搜索所有 NPC 資料）
+ */
+export function getLayerInteractables(layerNumber: number): PsychInteractable[] {
+  const allLayers = Object.values(psychWorldRegistry).flat();
+  const layer = allLayers.find(l => l.layerNumber === layerNumber);
+  return layer?.interactables ?? [];
 }

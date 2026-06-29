@@ -9,7 +9,7 @@ import {
   useNarrativePlaytestStore,
   CHAPTERS,
 } from '../store/narrativePlaytestStore';
-import { bridgeArtistClues } from '../data/verticalSlice';
+import { ALL_CLUES } from '../data/verticalSlice';
 import type { ClueId } from '../data/verticalSlice';
 import type { NpcRuntimeState } from '../systems/npcStateEngine';
 
@@ -199,7 +199,7 @@ export default function NarrativePlaytestDashboard({ currentScreen }: Props) {
   const toggle = useNarrativePlaytestStore((s) => s.toggle);
 
   const npc = save.npcs.bridge_artist;
-  const allClueIds: ClueId[] = ['brush', 'newspaper', 'sketchbook', 'accident_report'];
+  const allClueIds: ClueId[] = Object.keys(ALL_CLUES) as ClueId[];
   const branches = useMemo(() => computeBranches(save.collectedClues), [save.collectedClues]);
   const completedCount = innerWorldEvents.filter((e) => e.completed).length;
 
@@ -573,7 +573,7 @@ export default function NarrativePlaytestDashboard({ currentScreen }: Props) {
           <div style={{ color: '#4caf50', fontSize: 9.5, marginBottom: 3, letterSpacing: 0.5 }}>▸ 已收集 ({save.collectedClues.length})</div>
           {save.collectedClues.length === 0 && <div style={{ color: '#556', fontSize: 10 }}>  (無)</div>}
           {save.collectedClues.map((cid) => {
-            const clue = bridgeArtistClues[cid];
+            const clue = ALL_CLUES[cid];
             return (
               <div key={cid} style={{ fontSize: 10, color: '#8c9', padding: '1px 0', display: 'flex', justifyContent: 'space-between' }}>
                 <span>  {clue?.icon ?? '📦'} {clue?.shortLabel ?? cid}</span>
@@ -585,7 +585,7 @@ export default function NarrativePlaytestDashboard({ currentScreen }: Props) {
         <div style={{ marginTop: 4 }}>
           <div style={{ color: '#ff9800', fontSize: 9.5, marginBottom: 3, letterSpacing: 0.5 }}>▸ 未收集</div>
           {allClueIds.filter((c) => !save.collectedClues.includes(c)).map((cid) => {
-            const clue = bridgeArtistClues[cid];
+            const clue = ALL_CLUES[cid];
             return (
               <div key={cid} style={{ fontSize: 10, color: '#876', padding: '1px 0' }}>
                 <span>  {clue?.icon ?? '?'} {clue?.shortLabel ?? cid}</span>

@@ -11,7 +11,7 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { useNarrativeDebugStore } from '../store/narrativeDebugStore';
-import { bridgeArtistClues } from '../data/verticalSlice';
+import { ALL_CLUES } from '../data/verticalSlice';
 import type { ClueId } from '../data/verticalSlice';
 import type { NpcRuntimeState } from '../systems/npcStateEngine';
 
@@ -164,7 +164,7 @@ export default function NarrativeDebugOverlay({ currentScreen }: Props) {
   const toggle = useNarrativeDebugStore((s) => s.toggle);
 
   const npc = save.npcs.bridge_artist;
-  const allClueIds: ClueId[] = ['brush', 'newspaper', 'sketchbook', 'accident_report'];
+  const allClueIds: ClueId[] = Object.keys(ALL_CLUES) as ClueId[];
   const branches = useMemo(() => computeBranches(save.collectedClues), [save.collectedClues]);
   const completedCount = innerWorldEvents.filter((e) => e.completed).length;
 
@@ -279,7 +279,7 @@ export default function NarrativeDebugOverlay({ currentScreen }: Props) {
           </div>
           {save.collectedClues.length === 0 && <div style={{ color: '#556', fontSize: 10.5 }}>  (none yet)</div>}
           {save.collectedClues.map((cid) => {
-            const clue = bridgeArtistClues[cid];
+            const clue = ALL_CLUES[cid];
             return (
               <div key={cid} style={{ fontSize: 10.5, color: '#8c9', padding: '1px 0', display: 'flex', justifyContent: 'space-between' }}>
                 <span>  {clue?.icon ?? '📦'} {clue?.shortLabel ?? cid}</span>
@@ -295,7 +295,7 @@ export default function NarrativeDebugOverlay({ currentScreen }: Props) {
             ▸ Missed Memories
           </div>
           {allClueIds.filter((c) => !save.collectedClues.includes(c)).map((cid) => {
-            const clue = bridgeArtistClues[cid];
+            const clue = ALL_CLUES[cid];
             return (
               <div key={cid} style={{ fontSize: 10.5, color: '#876', padding: '1px 0' }}>
                 <span>  {clue?.icon ?? '?'} {clue?.shortLabel ?? cid}</span>

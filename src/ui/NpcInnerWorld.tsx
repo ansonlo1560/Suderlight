@@ -47,23 +47,25 @@ type Props = {
   npcId?: NpcId;
 };
 
-const STRESS_UNLOCK_BY_LAYER: Record<1 | 2 | 3 | 4, number> = {
+const STRESS_UNLOCK_BY_LAYER: Record<number, number> = {
   1: 100,
   2: 75,
   3: 55,
   4: 35,
+  5: 20,
 };
 
 function getLayerStressRequirement(layer: number): number {
-  return STRESS_UNLOCK_BY_LAYER[layer as 1 | 2 | 3 | 4] ?? 100;
+  return STRESS_UNLOCK_BY_LAYER[layer] ?? 100;
 }
 
 function isLayerUnlockedByStress(layer: number, stress: number): boolean {
   return stress <= getLayerStressRequirement(layer);
 }
 
-function getMaxUnlockedLayerByStress(stress: number): number {
-  const unlocked = [1, 2, 3, 4].filter(layer => isLayerUnlockedByStress(layer, stress));
+function getMaxUnlockedLayerByStress(stress: number, maxLayer: number): number {
+  const layers = Array.from({ length: maxLayer }, (_, i) => i + 1);
+  const unlocked = layers.filter(layer => isLayerUnlockedByStress(layer, stress));
   return unlocked.length > 0 ? Math.max(...unlocked) : 1;
 }
 
@@ -86,6 +88,7 @@ type LayerPhase =
 type SchemeColors = ReturnType<typeof getSchemeColors>;
 
 function getSchemeColors(scheme: LayerColorScheme) {
+  if (typeof scheme === 'object') return scheme;
   const map = {
     gold:   { accent:'#d4a35e', text:'#d8c29b', sub:'#b0a58b', cellEmpty:'rgba(255,255,255,0.12)', cellNorm:'rgba(255,255,255,0.08)', cellDisc:'rgba(255,255,255,0.10)', cellInsight:'linear-gradient(135deg, rgba(214,163,94,0.16), rgba(138,91,45,0.1))', border:'rgba(214,163,94,0.12)', gridBg:'radial-gradient(ellipse at center, rgba(45,36,22,0.5), rgba(18,14,10,0.85))' },
     cold:  { accent:'#6b9ec4', text:'#b0c8dd', sub:'#7a8fa0', cellEmpty:'rgba(160,180,200,0.14)', cellNorm:'rgba(160,180,200,0.10)', cellDisc:'rgba(160,180,200,0.12)', cellInsight:'linear-gradient(135deg, rgba(107,158,196,0.16), rgba(60,110,150,0.1))', border:'rgba(107,158,196,0.12)', gridBg:'radial-gradient(ellipse at center, rgba(12,22,35,0.5), rgba(4,8,14,0.88))' },
@@ -153,12 +156,25 @@ function InteractivePin({ icon, name, isCollected, isDiscovered, onClick, style 
 
 // ---- Visual 組件（bridgePainter 原版；其他 NPC → Coming Soon）----
 
+function GenericInnerWorldVisual({ layer, colors, floatingTextsByLayer, children }: { layer: PsychLayerData; colors: SchemeColors; floatingTextsByLayer: Record<number, string[]>; children: React.ReactNode }) {
+  return (
+    <div style={{ width: 'min(95vw, 100%)', height: 'min(95vh, 100%)', borderRadius: 20, background: colors.gridBg as string, border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.8)', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 30%, rgba(255,255,255,0.04), transparent 60%)', pointerEvents: 'none' }} />
+      {children}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }}>
+        <FloatingComments layerNum={layer.layerNumber} floatingTextsByLayer={floatingTextsByLayer} />
+      </div>
+    </div>
+  );
+}
+
 function ComingSoonVisual({ layerNum, npcId }: { layerNum: number; npcId: NpcId }) {
+  const cn = ['一','二','三','四','五','六','七','八'];
   return (
     <div style={{ width: 'min(95vw, 100%)', height: 'min(95vh, 100%)', borderRadius: 20, background: 'rgba(12,12,20,0.95)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-      <div style={{ textAlign: 'center', color: '#888' }}>
+        <div style={{ textAlign: 'center', color: '#888' }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>🚧</div>
-        <div style={{ fontSize: 18, color: '#aaa' }}>第{['一','二','三','四'][layerNum-1]}層</div>
+        <div style={{ fontSize: 18, color: '#aaa' }}>第{cn[layerNum-1]}層</div>
         <div style={{ fontSize: 13, marginTop: 8, color: '#666' }}>（{npcId} 的心理世界尚未開放）</div>
       </div>
     </div>
@@ -285,6 +301,9 @@ function getIcon(id: string): string {
     shattered_windshield:'🪟',accident_newspaper:'📰',color_test_chart:'🔬',broken_brush_scene:'🖌️',bridge_railing:'🌉',
     fading_canvas_series:'🖼️',unsent_withdrawal_letter:'✉️',cracked_mirror:'🪞',empty_tubes_pile:'🎨',last_fan_letter:'💌',
     the_empty_frame:'🖼️',echo_trophy:'✨',echo_broken_brush:'✨',new_canvas:'🖌️',
+    family_photo:'🖼️',corner_aoi:'👧',arguing_parents:'💢',slammed_door:'🚪',cold_dinner_table:'🍽️',
+    stage_spotlight:'🔦',audience_seats:'👥',parents_arguing_silhouette:'💔',faltering_dance_steps:'💃',red_dance_shoes_scene:'👠',
+    static_swing:'🎠',school_bag:'🎒',muddy_shoes:'👠',recording_pen_scene:'🎙️',
   };
   return m[id]??'📦';
 }
@@ -328,15 +347,16 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   const syncInnerWorldState = useGameStore(s => s.syncInnerWorldState);
   const stress = save?.npcs?.[npcId]?.stress ?? 100;
   const safeStress = Math.max(0, Math.min(100, stress));
-  const maxUnlockedLayer = getMaxUnlockedLayerByStress(safeStress);
-  const isAllLayersUnlocked = maxUnlockedLayer >= 4;
+  const maxLayer = psychLayers.length;
+  const maxUnlockedLayer = getMaxUnlockedLayerByStress(safeStress, maxLayer);
+  const isAllLayersUnlocked = maxUnlockedLayer >= maxLayer;
   const [layerLockMessage, setLayerLockMessage] = useState<string | null>(null);
 
   const VISITED_KEY = `sud_${npcId}_inner_visited`;
   function loadVisitedLayers(): Set<number> {
     try {
       const raw = localStorage.getItem(VISITED_KEY);
-      if (raw) { const arr: number[] = JSON.parse(raw); return new Set(arr.filter(n => n >= 1 && n <= 4)); }
+      if (raw) { const arr: number[] = JSON.parse(raw); return new Set(arr.filter(n => n >= 1 && n <= maxLayer)); }
     } catch { /* ignore */ }
     return new Set<number>();
   }
@@ -346,14 +366,14 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     const layers = save?.npcs?.[npcId]?.innerWorld?.layers;
     if (!layers) return 0;
     let count = 0;
-    for (let l = 1; l <= 4; l++) { if (layers[l]?.completed) count++; }
+    for (let l = 1; l <= maxLayer; l++) { if (layers[l]?.completed) count++; }
     return count;
   }
   const completedCountInit = countCompletedFromSave();
   const nextLayerInit = completedCountInit + 1;
   // 基于存档数据决定起始层：已完成层数>0则从下一层开始，否则从第1层开始
   const initialLayerNum = completedCountInit > 0
-    ? (nextLayerInit <= 4 ? nextLayerInit : Math.max(1, completedCountInit))
+    ? (nextLayerInit <= maxLayer ? nextLayerInit : Math.max(1, completedCountInit))
     : 1;
   const [layerNum, setLayerNum] = useState<number>(initialLayerNum);
   // 修复：基于存档中该层是否已完成来决定初始 phase，而非依赖可能被污染的 localStorage
@@ -382,21 +402,23 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   const prevSyncIdRef = useRef<number>(0);
 
   function loadUnderstandingFromSave(): Record<number, UnderstandingState> {
-    const result: Record<number, UnderstandingState> = { 1: { insightIds: [] }, 2: { insightIds: [] }, 3: { insightIds: [] }, 4: { insightIds: [] } };
+    const result: Record<number, UnderstandingState> = {};
+    for (let i = 1; i <= maxLayer; i++) { result[i] = { insightIds: [] }; }
     if (savedInnerWorld?.layers) {
       for (const [layer, state] of Object.entries(savedInnerWorld.layers)) {
         const lNum = Number(layer);
-        if (lNum >= 1 && lNum <= 4) result[lNum] = { insightIds: state.understoodItems.map(item => item.id) };
+        if (lNum >= 1 && lNum <= maxLayer) result[lNum] = { insightIds: state.understoodItems.map(item => item.id) };
       }
     }
     return result;
   }
   function loadDiscoveredFromSave(): Record<number, string[]> {
-    const result: Record<number, string[]> = { 1: [], 2: [], 3: [], 4: [] };
+    const result: Record<number, string[]> = {};
+    for (let i = 1; i <= maxLayer; i++) { result[i] = []; }
     if (savedInnerWorld?.layers) {
       for (const [layer, state] of Object.entries(savedInnerWorld.layers)) {
         const lNum = Number(layer);
-        if (lNum >= 1 && lNum <= 4) result[lNum] = [...state.discoveredItems];
+        if (lNum >= 1 && lNum <= maxLayer) result[lNum] = [...state.discoveredItems];
       }
     }
     return result;
@@ -427,7 +449,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
 
   const buildInnerWorldSave = useCallback((): InnerWorldSave => {
     const layers: Record<number, InnerWorldLayerState> = {};
-    for (let l = 1; l <= 4; l++) {
+    for (let l = 1; l <= maxLayer; l++) {
       const layerData = psychLayers.find(ld => ld.layerNumber === l);
       layers[l] = {
         completed: completedLayers.has(l),
@@ -439,8 +461,8 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
         discoveredItems: discoveredByLayer[l] ?? [],
       };
     }
-    const unlocked = [1, 2, 3, 4].filter(l => isLayerUnlockedByStress(l, safeStress));
-    for (let l = 1; l <= 4; l++) { if (completedLayers.has(l) && l + 1 <= 4) { if (!unlocked.includes(l + 1)) unlocked.push(l + 1); } }
+    const unlocked = Array.from({ length: maxLayer }, (_, i) => i + 1).filter(l => isLayerUnlockedByStress(l, safeStress));
+    for (let l = 1; l <= maxLayer; l++) { if (completedLayers.has(l) && l + 1 <= maxLayer) { if (!unlocked.includes(l + 1)) unlocked.push(l + 1); } }
     return { unlockedLayers: [...new Set(unlocked)].sort(), layers };
   }, [understandingByLayer, discoveredByLayer, completedLayers, safeStress, psychLayers]);
 
@@ -457,7 +479,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   const colors = useMemo(() => getSchemeColors(layer?.colorScheme ?? 'gold'), [layer]);
   const score = useMemo(() => getCurrentLayerUnderstanding(understanding, layerNum), [understanding, layerNum]);
   const thresholdMet = layer && score >= layer.nextLayerThreshold && layer.nextLayerThreshold > 0;
-  const isLast = layerNum >= 4;
+  const isLast = layerNum >= maxLayer;
 
   const handleEnter = useCallback(() => {
     markLayerVisited(layerNum);
@@ -492,14 +514,14 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     const nextL = layerNum + 1;
     if (!isLayerUnlockedByStress(nextL, safeStress)) {
       const required = getLayerStressRequirement(nextL);
-      setLayerLockMessage(`第${['一','二','三','四'][nextL-1]}層尚未解鎖：需要恐懼值≤ ${required}（當前 ${safeStress}）。`);
+      setLayerLockMessage(`第${CH[nextL-1]}層尚未解鎖：需要恐懼值≤ ${required}（當前 ${safeStress}）。`);
       return;
     }
     setLayerNum(nextL);
     setPhase({ type: 'entering' });
   }, [layerNum, isLast, onAdvanceLayer, safeStress]);
-  const handleArcComplete = useCallback(() => { if (onAdvanceLayer) onAdvanceLayer(4); onReturnToSurface(3); }, [onReturnToSurface, onAdvanceLayer]);
-  const handleReturn = useCallback(() => { const cnt = completedLayers.size; return onReturnToSurface(Math.min(cnt, 3)); }, [completedLayers, onReturnToSurface]);
+  const handleArcComplete = useCallback(() => { if (onAdvanceLayer) onAdvanceLayer(maxLayer); onReturnToSurface(maxLayer - 1); }, [onReturnToSurface, onAdvanceLayer, maxLayer]);
+  const handleReturn = useCallback(() => { const cnt = completedLayers.size; return onReturnToSurface(Math.min(cnt, maxLayer - 1)); }, [completedLayers, onReturnToSurface, maxLayer]);
 
   const insightCount = understanding.insightIds.length;
   const insightFragments = getInsightFragments(understanding);
@@ -512,8 +534,8 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
       <GuiFrame tone="inner">
         <div style={{ position:'relative',zIndex:2,height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:48 }}>
           <GlassPanel title="情感弧線 — 斷裂" subtitle="Trust never built · Stress at threshold · Connection severed" variant="paper" style={{ maxWidth:600,width:'100%',textAlign:'center' }}>
-            <div style={{ color:'#3a2a14',fontSize:20,fontWeight:600,lineHeight:2,marginBottom:8 }}>你沒能走完天橋畫家的情感弧線。</div>
-            <div style={{ color:'#5a4328',fontSize:15,lineHeight:2.2,fontStyle:'italic',whiteSpace:'pre-line',marginBottom:8 }}>從懷疑到恐懼，從恐懼到崩潰。{'\n'}他沒有等到那個能走進他內心四個房間的人。</div>
+            <div style={{ color:'#3a2a14',fontSize:20,fontWeight:600,lineHeight:2,marginBottom:8 }}>你沒能走完{npcDef.characterCard.displayName}的情感弧線。</div>
+            <div style={{ color:'#5a4328',fontSize:15,lineHeight:2.2,fontStyle:'italic',whiteSpace:'pre-line',marginBottom:8 }}>從懷疑到恐懼，從恐懼到崩潰。{'\n'}他沒有等到那個能走進他內心所有房間的人。</div>
             <div style={{ color:'#4a3620',fontSize:14,lineHeight:1.9,marginBottom:24,padding:'12px 16px',borderRadius:10,background:'rgba(214,163,94,0.1)',border:'1px solid rgba(214,163,94,0.15)' }}>天橋的雨還在落。他帶著最後一筆未完成的鉛筆線，走進雨夜最深處。{'\n'}恐懼值達到臨界，信任從未真正建立。{'\n'}空白畫布上的名字被雨水沖淡——城市的這一部分，繼續黯淡無光。</div>
             <GlimmerButton tone="primary" onClick={onOpenReport} fullWidth>查看心靈餘波匯報</GlimmerButton>
           </GlassPanel>
@@ -536,8 +558,8 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     );
   }
 
-  const CH = ['一','二','三','四'];
-  const layerAtmoText = (n:number) => { switch(n){case 1:return '金色燈光照亮空蕩的大廳。\n所有的榮耀都像被保鮮膜包著——完美，但無法觸碰。';case 2:return '灰色的雨，永遠下著。\n空氣中沒有色彩——只剩下深淺不一的灰。';case 3:return '灰塵在光線中懸浮。\n畫布上的顏色，正一點一點地消失。';case 4:return '純白的虛空。沒有邊界，沒有重力——只有寂靜與完成。';default:return '';} };
+  const CH = ['一','二','三','四','五','六','七','八'];
+  const layerAtmoText = (n:number) => psychLayers[n-1]?.atmosphere ?? '';
 
   if (phase.type === 'entering') {
     return (
@@ -575,8 +597,8 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     return (
       <GuiFrame tone="inner">
         <div style={{ position:'relative',zIndex:2,height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:48 }}>
-          <GlassPanel title="情感弧線完成" subtitle="Success → Trauma → Identity Collapse → Acceptance" variant="paper" style={{ maxWidth:600,width:'100%',textAlign:'center' }}>
-            <div style={{ color:'#3a2a14',fontSize:20,fontWeight:600,lineHeight:2,marginBottom:8 }}>你走完了天橋畫家的整個情感弧線。</div>
+          <GlassPanel title="情感弧線完成" subtitle={`Completed ${maxLayer} Layers`} variant="paper" style={{ maxWidth:600,width:'100%',textAlign:'center' }}>
+            <div style={{ color:'#3a2a14',fontSize:20,fontWeight:600,lineHeight:2,marginBottom:8 }}>你走完了{npcDef.characterCard.displayName}的整個情感弧線。</div>
             <div style={{ color:'#5a4328',fontSize:15,lineHeight:2.2,fontStyle:'italic',whiteSpace:'pre-line',marginBottom:8 }}>從榮耀的囚籠，到創傷的雨夜，{'\n'}從身分的崩解，到空白中的接納。</div>
             <div style={{ color:'#4a3620',fontSize:14,lineHeight:1.9,marginBottom:24,padding:'12px 16px',borderRadius:10,background:'rgba(214,163,94,0.1)',border:'1px solid rgba(214,163,94,0.15)' }}>他的畫框始終是空白的——但現在你知道，那不是空缺，那是完成。</div>
             <GlimmerButton tone="primary" onClick={handleArcComplete} fullWidth>返回表世界</GlimmerButton>
@@ -596,13 +618,13 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
               {layer.nextLayerThreshold > 0 && (<div style={{ marginTop:4 }}><div style={{ display:'flex',justifyContent:'space-between',fontSize:11,color:colors.sub,marginBottom:4 }}><span>理解深度</span><span>{score}/{layer.nextLayerThreshold}</span></div><div style={{ width:'100%',height:4,borderRadius:2,background:colors.cellEmpty,overflow:'hidden' }}><div style={{ width:`${Math.min(100,(score/layer.nextLayerThreshold)*100)}%`,height:'100%',borderRadius:2,background:`linear-gradient(90deg, ${colors.accent}, ${colors.accent}88)`,transition:'width 0.5s ease' }}/></div></div>)}
               {isLast && (<div style={{ marginTop:4 }}><div style={{ display:'flex',justifyContent:'space-between',fontSize:11,color:colors.sub,marginBottom:4 }}><span>理解深度</span><span>{insightCount}/{layer.interactables.length} 個片段</span></div><div style={{ width:'100%',height:4,borderRadius:2,background:colors.cellEmpty,overflow:'hidden' }}><div style={{ width:`${Math.min(100,(insightCount/layer.interactables.length)*100)}%`,height:'100%',borderRadius:2,background:`linear-gradient(90deg, ${colors.accent}, ${colors.accent}88)`,transition:'width 0.5s ease' }}/></div></div>)}
               <div style={{ display:'flex',gap:6,justifyContent:'center',marginTop:4 }}>
-                {[1,2,3,4].map(n => (<div key={n} style={{ width:10,height:10,borderRadius:'50%',background:n===layerNum?colors.accent:n<layerNum?`${colors.accent}55`:colors.cellEmpty,border:n===layerNum?`2px solid ${colors.accent}`:`1px solid ${colors.accent}33`,transition:'all 0.3s ease' }} title={`Layer ${n}`}/>))}
+                {Array.from({ length: maxLayer }, (_, i) => i + 1).map(n => (<div key={n} style={{ width:10,height:10,borderRadius:'50%',background:n===layerNum?colors.accent:n<layerNum?`${colors.accent}55`:colors.cellEmpty,border:n===layerNum?`2px solid ${colors.accent}`:`1px solid ${colors.accent}33`,transition:'all 0.3s ease' }} title={`Layer ${n}`}/>))}
               </div>
             </GlassPanel>
             <GlassPanel title="心理狀態" subtitle={npcDef.characterCard.displayName} variant="dark" style={{ flexShrink:0 }} contentStyle={{ display:'flex',flexDirection:'column',gap:8 }}>
               <div style={{ display:'flex',justifyContent:'space-between',fontSize:11,color:colors.sub }}><span>當前恐懼值</span><span style={{ color:stressColor(safeStress),fontWeight:'bold' }}>{safeStress}</span></div>
               <div style={{ width:'100%',height:6,borderRadius:3,background:colors.cellEmpty,overflow:'hidden' }}><div style={{ width:`${safeStress}%`,height:'100%',borderRadius:3,background:stressColor(safeStress),transition:'width 0.5s ease' }}/></div>
-              <div style={{ fontSize:11,color:'#7a7a7a',marginTop:4,lineHeight:1.5 }}>{isAllLayersUnlocked?'✨當前最高可進入第四層。':`當前最高可進入第${CH[maxUnlockedLayer-1]}層。門檻：第2層≤75，第3層≤55，第4層≤35。`}</div>
+              <div style={{ fontSize:11,color:'#7a7a7a',marginTop:4,lineHeight:1.5 }}>{isAllLayersUnlocked?`✨當前最高可進入第${CH[maxLayer-1]}層。`:`當前最高可進入第${CH[maxUnlockedLayer-1]}層。門檻：${Array.from({length: maxLayer-1}, (_, i) => i + 2).map(l => `第${CH[l-1]}層≤${getLayerStressRequirement(l)}`).join('，')}。`}</div>
             </GlassPanel>
             {insightCount > 0 && (<GlassPanel title="理解碎片" subtitle={`${insightCount} 個片段`} variant="paper" style={{ flexShrink:0 }} contentStyle={{ display:'flex',flexDirection:'column',gap:10 }}>{insightFragments.map((f,i) => (<div key={i} style={{ padding:'10px 12px',borderRadius:8,background:'rgba(214,163,94,0.1)',border:'1px solid rgba(214,163,94,0.18)',color:'#4a3620',fontSize:13,lineHeight:1.7,fontStyle:'italic' }}>「{f}」</div>))}</GlassPanel>)}
           </aside>
@@ -614,7 +636,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
 
         <main style={{ display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,opacity:isModalOpen?0.3:1,pointerEvents:isModalOpen?'none':'auto',transition:'opacity 0.3s ease',height:'100%',overflow:'hidden',flex:1 }}>
           <div style={{ position:'relative',width:'100%',flex:1,display:'flex',alignItems:'center',justifyContent:'center' }}>
-            {/* bridgePainter 特定 Visuals；其他 NPC → Coming Soon */}
+            {/* bridgePainter 特定 Visuals；aoi → 通用視覺；其他 NPC → Coming Soon */}
             {npcId === 'bridge_artist' ? (
               <>
                 {layerNum === 1 && (
@@ -645,6 +667,10 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                   </GlowingCanvasVisual>
                 )}
               </>
+            ) : npcId === 'aoi' ? (
+              <GenericInnerWorldVisual layer={layer} colors={colors} floatingTextsByLayer={floatingTextsByLayer}>
+                {layer.interactables.map(obj => { const coord = pinCoordinates[obj.id] || { top:'50%',left:'50%' }; const isDisc = discoveredIds.includes(obj.id); const hasIn = hasInsight(understanding, obj.id); return (<InteractivePin key={obj.id} icon={getIcon(obj.id)} name={obj.name} isCollected={hasIn} isDiscovered={isDisc} onClick={() => handleClickObject(obj)} style={{ top:coord.top,left:coord.left,transform:'translate(-50%, -50%)' }} />); })}
+              </GenericInnerWorldVisual>
             ) : (
               <ComingSoonVisual layerNum={layerNum} npcId={npcId} />
             )}
@@ -655,7 +681,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
             {layerLockMessage && (<div style={{ marginBottom:2,display:'flex',flexDirection:'column',gap:8,alignItems:'center' }}><div style={{ fontSize:13,color:'#b71c1c',textAlign:'center',fontWeight:600,textShadow:'0 0 8px rgba(183,28,28,0.3)' }}>⚠ {layerLockMessage}</div></div>)}
             {isLast && showLayerCompleteBtn && (<><style>{`@keyframes insightPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.03); } }`}</style><div style={{ marginBottom:4,fontSize:14,color:'#ffd54f',textAlign:'center',fontWeight:600,textShadow:'0 0 10px rgba(255,213,79,0.4)',animation:'insightPulse 1.5s ease-in-out infinite' }}>✨ 理解已達成 — 請點擊左側「理解達成」按鈕完成這一層</div></>)}
             <div style={{ display:'flex',gap:16,width:'100%',justifyContent:'center' }}>
-              {[1,2,3,4].map(num => {
+              {Array.from({ length: maxLayer }, (_, i) => i + 1).map(num => {
                 const stressUnlocked = isLayerUnlockedByStress(num, safeStress);
                 const isCompleted = completedLayers.has(num);
                 const isAtOrBelowCurrent = num <= layerNum;
