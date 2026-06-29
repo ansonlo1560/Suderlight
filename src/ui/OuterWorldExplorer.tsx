@@ -377,10 +377,22 @@ export default function OuterWorldExplorer({
 
     // 通用線索處理
     const result = collectClue(targetId as ClueId);
-    const clue = (ALL_CLUES as Record<string, { content: string; dictionaryHint: string; label: string }>)[targetId as string];
+    const clue = (ALL_CLUES as Record<string, { content: string; dictionaryHint: string; label: string; insightTitle?: string; insightDesc?: string }>)[targetId as string];
     maybeTriggerGhost();
     const buildContent = () => { let c = `${clue.content}`; if (result.unlockedNow) c += '\n\n天橋盡頭傳來一聲很輕的門軸聲。某個通往內心深處的入口，似乎鬆動了。'; return c; };
-    const openCm = (extra?: { title?: string; desc?: string }) => { const hint = `情緒詞典浮現：${clue?.dictionaryHint ?? ''}`; setModal({ title: `獲得線索：${result.label}`, content: buildContent(), discoveryContent: hint, discoveryTitle: extra?.title, discoveryDesc: extra?.desc }); };
+    const openCm = (extra?: { title?: string; desc?: string }) => {
+      const hint = `情緒詞典浮現：${clue?.dictionaryHint ?? ''}`;
+      // 如果 API 没有返回詞典條目，使用線索的 insightTitle/insightDesc 作為 fallback
+      const fallbackTitle = !extra?.title && !extra?.desc ? clue?.insightTitle : undefined;
+      const fallbackDesc = !extra?.title && !extra?.desc ? clue?.insightDesc : undefined;
+      setModal({
+        title: `獲得線索：${result.label}`,
+        content: buildContent(),
+        discoveryContent: hint,
+        discoveryTitle: extra?.title ?? fallbackTitle,
+        discoveryDesc: extra?.desc ?? fallbackDesc,
+      });
+    };
     if (!result.alreadyCollected) {
       getPlayerAuthHeaders().then(h => fetch('/api/investigation/collect', { method: 'POST', headers: { 'Content-Type': 'application/json', ...h }, body: JSON.stringify({ clueId: targetId }) }).then(r => r.json()).then(data => { const unlocked = Array.isArray(data.unlockedEntries) ? data.unlockedEntries : Array.isArray(data.newlyUnlockedDictionary) ? data.newlyUnlockedDictionary : []; if (unlocked.length === 0) { openCm(); return; } fetch('/api/dictionary').then(r => r.json()).then(dict => { const entry = (dict.entries as Array<{ id: string; name: string; description?: string }>).find(item => unlocked.includes(item.id)); openCm(entry ? { title: entry.name, desc: entry.description ?? clue?.dictionaryHint } : undefined); }).catch(() => openCm()); }).catch(() => openCm()));
       return;

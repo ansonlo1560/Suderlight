@@ -110,7 +110,7 @@ export function createDefaultInnerWorldSave(npcId: NpcId = 'bridge_artist'): Inn
     layers[1] = { completed: false, understandingScore: 0, understoodItems: [], discoveredItems: [] };
   }
   return {
-    unlockedLayers: [1], // Layer 1 預設解鎖
+    unlockedLayers: [], // 初始為空，第一次進入後由 handleEnter 記錄
     layers,
   };
 }

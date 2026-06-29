@@ -47,6 +47,10 @@ export type ClueDefinition = {
   icon: string;
   content: string;
   dictionaryHint: string;
+  /** 線索收集後金色 box 的標題（如果 API 沒有返回詞典條目） */
+  insightTitle?: string;
+  /** 線索收集後金色 box 的描述（如果 API 沒有返回詞典條目） */
+  insightDesc?: string;
 };
 
 // ---- Lorebook ----

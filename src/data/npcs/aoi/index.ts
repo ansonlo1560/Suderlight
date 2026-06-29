@@ -16,6 +16,8 @@ export const aoiClues: Record<AoiClueId, ClueDefinition> = {
     pos: { x: 6, y: 9 }, color: '#ff6b6b', icon: '鞋',
     content: '一雙紅色的舞鞋被丟在公園角落，鞋面上沾滿乾掉的泥土。鞋帶鬆開，像一雙被遺棄的手。',
     dictionaryHint: '她曾經最愛跳舞，但自從父母在她的發表會上大吵後，她再也不敢穿上它。',
+    insightTitle: '被遺棄的快樂',
+    insightDesc: '她曾經最愛跳舞，但自從父母在她的發表會上大吵後，她再也不敢穿上它。快樂不再是她的權利，而是危險的導火線。',
   },
   recording_pen: {
     id: 'recording_pen', label: '錄音筆', shortLabel: '錄音筆', knowledge: 15,
@@ -23,6 +25,8 @@ export const aoiClues: Record<AoiClueId, ClueDefinition> = {
     pos: { x: 14, y: 16 }, color: '#a0a0a0', icon: '筆',
     content: '一支舊款錄音筆，外殼有幾道刮痕。裡面錄下了父母激烈的爭吵聲，背景中能聽到一個孩子微弱、急促的呼吸聲。',
     dictionaryHint: '她反覆聆聽爭吵，試圖從中找到「解決方案」。',
+    insightTitle: '反覆聆聽的創傷',
+    insightDesc: '她反覆聆聽爭吵，試圖從中找到「解決方案」。但爭吵的內容永遠不會改變，她只是在試圖控制不可控之物。',
   },
   spinning_cube: {
     id: 'spinning_cube', label: '旋轉的魔方色塊', shortLabel: '魔方', knowledge: 15,
@@ -30,6 +34,8 @@ export const aoiClues: Record<AoiClueId, ClueDefinition> = {
     pos: { x: 8, y: 14 }, color: '#ffd93d', icon: '方',
     content: '一個老舊的魔方，其中一面已經剝落。剩下的色塊仍然鮮豔，但無論怎麼轉，都無法讓它恢復完整的樣子。',
     dictionaryHint: '她相信只要自己夠聰明、夠小心，就能讓一切恢復秩序。',
+    insightTitle: '無法恢復的秩序',
+    insightDesc: '她相信只要自己夠聰明、夠小心，就能讓一切恢復秩序。但魔方的色塊已經剝落，有些混亂無法被轉回去。',
   },
   static_swing_chain: {
     id: 'static_swing_chain', label: '靜止的鞦韆鏈條', shortLabel: '鞦韆', knowledge: 15,
@@ -37,6 +43,8 @@ export const aoiClues: Record<AoiClueId, ClueDefinition> = {
     pos: { x: 14, y: 14 }, color: '#6bcb77', icon: '鏈',
     content: '一架鞦韆靜止不動，鏈條上沒有使用痕跡。旁邊放著一個書包，沒有大人，沒有爭吵聲，很安靜。',
     dictionaryHint: '她可以只是坐著，不必解決任何問題。',
+    insightTitle: '允許無所事事的權利',
+    insightDesc: '她終於來到一個沒有爭吵的地方，但她已經忘記了如何允許自己快樂。鞦韆靜止不動，她連坐上去都不敢。',
   },
 };
 

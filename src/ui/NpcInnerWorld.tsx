@@ -352,6 +352,12 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   const isAllLayersUnlocked = maxUnlockedLayer >= maxLayer;
   const [layerLockMessage, setLayerLockMessage] = useState<string | null>(null);
 
+  const savedInnerWorld = save?.npcs?.[npcId]?.innerWorld;
+  const savedInnerWorldRef = useRef(savedInnerWorld);
+  savedInnerWorldRef.current = savedInnerWorld;
+  const innerWorldSyncId = save?.npcs?.[npcId]?.innerWorldSyncId ?? 0;
+  const prevSyncIdRef = useRef<number>(0);
+
   const VISITED_KEY = `sud_${npcId}_inner_visited`;
   function loadVisitedLayers(): Set<number> {
     try {
@@ -376,10 +382,10 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     ? (nextLayerInit <= maxLayer ? nextLayerInit : Math.max(1, completedCountInit))
     : 1;
   const [layerNum, setLayerNum] = useState<number>(initialLayerNum);
-  // 修复：基于存档中该层是否已完成来决定初始 phase，而非依赖可能被污染的 localStorage
+  // 基於 innerWorld.unlockedLayers 決定初始 phase：若該層已訪問過則直接 exploring，否則 entering
   const [phase, setPhase] = useState<LayerPhase>(() => {
-    const layerCompletedInSave = save?.npcs?.[npcId]?.innerWorld?.layers?.[initialLayerNum]?.completed ?? false;
-    return layerCompletedInSave ? { type: 'exploring' } : { type: 'entering' };
+    const layerEntered = savedInnerWorld?.unlockedLayers?.includes(initialLayerNum) ?? false;
+    return layerEntered ? { type: 'exploring' } : { type: 'entering' };
   });
 
   const markLayerVisited = useCallback((l: number) => {
@@ -396,10 +402,6 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     // 初始化时标记当前层为已访问
     markLayerVisited(layerNum);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const savedInnerWorld = save?.npcs?.[npcId]?.innerWorld;
-  const innerWorldSyncId = save?.npcs?.[npcId]?.innerWorldSyncId ?? 0;
-  const prevSyncIdRef = useRef<number>(0);
 
   function loadUnderstandingFromSave(): Record<number, UnderstandingState> {
     const result: Record<number, UnderstandingState> = {};
@@ -461,8 +463,13 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
         discoveredItems: discoveredByLayer[l] ?? [],
       };
     }
-    const unlocked = Array.from({ length: maxLayer }, (_, i) => i + 1).filter(l => isLayerUnlockedByStress(l, safeStress));
+    // 第一層不自動基於 stress 解鎖，避免第一次進入時跳過 entering
+    const unlocked = Array.from({ length: maxLayer }, (_, i) => i + 1).filter(l => l > 1 && isLayerUnlockedByStress(l, safeStress));
     for (let l = 1; l <= maxLayer; l++) { if (completedLayers.has(l) && l + 1 <= maxLayer) { if (!unlocked.includes(l + 1)) unlocked.push(l + 1); } }
+    // 保留 savedInnerWorld 中已解鎖/已訪問的層（避免 handleEnter 保存後被 syncToStore 覆蓋）
+    for (const l of (savedInnerWorldRef.current?.unlockedLayers ?? [])) {
+      if (!unlocked.includes(l)) unlocked.push(l);
+    }
     return { unlockedLayers: [...new Set(unlocked)].sort(), layers };
   }, [understandingByLayer, discoveredByLayer, completedLayers, safeStress, psychLayers]);
 
@@ -489,8 +496,12 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
       if (onAdvanceLayer) onAdvanceLayer(layerNum - 1);
       setCompletedLayers(prev => new Set([...prev, layerNum - 1]));
     }
+    // 將當前層加入 unlockedLayers（記錄已訪問）
+    const currentSave = buildInnerWorldSave();
+    const nextUnlocked = [...new Set([...currentSave.unlockedLayers, layerNum])].sort();
+    syncInnerWorldState({ ...currentSave, unlockedLayers: nextUnlocked }, npcId);
     setPhase({ type: 'exploring' });
-  }, [layerNum, completedLayers, onAdvanceLayer, markLayerVisited]);
+  }, [layerNum, completedLayers, onAdvanceLayer, markLayerVisited, buildInnerWorldSave, syncInnerWorldState, npcId]);
   const handleClickObject = useCallback((obj: PsychInteractable) => { setDiscoveredByLayer(prev => { const current = prev[layerNum] ?? []; if (current.includes(obj.id)) return prev; return { ...prev, [layerNum]: [...current, obj.id] }; }); setPhase({ type: 'observing', target: obj, showDeep: false }); }, [layerNum]);
   const handleLookCloser = useCallback(() => { if (phase.type === 'observing') setPhase({ type: 'observing', target: phase.target, showDeep: true }); }, [phase]);
   const handleStartReflection = useCallback(() => { if (phase.type === 'observing') setPhase({ type: 'reflecting', target: phase.target }); }, [phase]);
@@ -732,7 +743,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                     if ((thresholdMet || currentLayerAllCollected) && num === layerNum + 1 && !completedLayers.has(layerNum)) { setPhase({ type:'layer_complete' }); return; }
                     setLayerNum(num as number);
                     markLayerVisited(num);
-                    setPhase({ type: visitedLayers.has(num) ? 'exploring' : 'entering' });
+                    setPhase({ type: (savedInnerWorld?.unlockedLayers?.includes(num) || visitedLayers.has(num)) ? 'exploring' : 'entering' });
                   }} style={{ fontSize:15,padding:'10px 32px',minHeight:44,borderRadius:10,flex:1,maxWidth:160,opacity:isLocked?0.45:1 }}>
                     第{CH[num-1]}層{isLocked?'🔒':''}
                   </GlimmerButton>
