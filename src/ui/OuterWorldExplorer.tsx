@@ -7,6 +7,7 @@ import type { GameSave } from '../systems/saveSystem';
 import brushImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_49_08.png';
 import newspaperImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_50_17.png';
 import sketchbookImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_51_17.png';
+import aoiClueImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_38_45.png';
 import painterImage from '../../images/character/IMG_3556.png';
 import painterUnlockedImage from '../../images/character/IMG_3562.png';
 
@@ -54,6 +55,10 @@ const CLUE_IMAGE_MAP: Partial<Record<ClueId, string>> = {
   brush: brushImage,
   newspaper: newspaperImage,
   sketchbook: sketchbookImage,
+  muddy_dance_shoes: aoiClueImage,
+  recording_pen: aoiClueImage,
+  spinning_cube: aoiClueImage,
+  static_swing_chain: aoiClueImage,
 };
 
 function clueName(clueId: ClueId) {
@@ -254,9 +259,9 @@ export default function OuterWorldExplorer({
     ALL_CLUE_ORDER.forEach(clueId => {
       const clue = (ALL_CLUES as Record<string, { locationId: string; pos: Point; label: string; color: string; icon: string }>)[clueId];
       if (!clue) return;
-      const isVisible = save.currentLocation === 'skybridge' ? (clue.locationId === 'skybridge' || clue.locationId === 'newsstand' || clue.locationId === 'park') : clue.locationId === save.currentLocation;
+      const isVisible = save.currentLocation === 'skybridge' ? (clue.locationId === 'skybridge' || clue.locationId === 'newsstand') : clue.locationId === save.currentLocation;
       if (isVisible && !save.collectedClues.includes(clueId as ClueId)) {
-        let ap = save.currentLocation === 'skybridge' ? getOffsetPos(clue.locationId, clue.pos) : clue.pos;
+        let ap = save.currentLocation === 'skybridge' && clue.locationId === 'newsstand' ? getOffsetPos(clue.locationId, clue.pos) : clue.pos;
         list.push({ id: clueId as ClueId, label: clue.label, type: 'clue', pos: ap, color: clue.color, icon: clue.icon });
       }
     });
@@ -349,7 +354,7 @@ export default function OuterWorldExplorer({
             const maxX = save.currentLocation === 'skybridge' ? 28 : 22, maxY = save.currentLocation === 'skybridge' ? 22 : 18;
             const checkCol = (pt: Point) => {
               if (pt.x < 1 || pt.x > maxX || pt.y < 1 || pt.y > maxY) return true;
-              const bc = buildings.some(b => { let ap = b.pos; if (save.currentLocation === 'skybridge' && (b.locationId !== 'skybridge' && b.locationId !== 'newsstand' && b.locationId !== 'park')) return false; if (save.currentLocation === 'skybridge' && b.locationId !== 'skybridge') ap = getOffsetPos(b.locationId, b.pos); return pt.x >= ap.x - buffer && pt.x <= ap.x + b.size.x + buffer && pt.y >= ap.y - buffer && pt.y <= ap.y + b.size.y + buffer; });
+              const bc = buildings.some(b => { let ap = b.pos; if (save.currentLocation === 'skybridge' && (b.locationId !== 'skybridge' && b.locationId !== 'newsstand')) return false; if (save.currentLocation === 'skybridge' && b.locationId !== 'skybridge') ap = getOffsetPos(b.locationId, b.pos); return pt.x >= ap.x - buffer && pt.x <= ap.x + b.size.x + buffer && pt.y >= ap.y - buffer && pt.y <= ap.y + b.size.y + buffer; });
               if (bc) return true;
               if (save.currentLocation === 'skybridge') {
                 const inB = pt.x >= 4.5 && pt.x <= 19.0 && pt.y >= 8.5 && pt.y <= 10.0;
@@ -425,9 +430,9 @@ export default function OuterWorldExplorer({
           <div style={{ color: 'rgba(255,255,255,0.16)', fontSize: 28, letterSpacing: 8, fontWeight: 'bold' }}>{displayLoc.name}</div>
           <div style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13, lineHeight: 1.7, marginTop: 10 }}>{displayLoc.description}</div>
         </div>
-        {buildings.filter(b => save.currentLocation === 'skybridge' ? (b.locationId === 'skybridge' || b.locationId === 'newsstand' || b.locationId === 'park') : b.locationId === save.currentLocation).map(b => {
+        {buildings.filter(b => save.currentLocation === 'skybridge' ? (b.locationId === 'skybridge' || b.locationId === 'newsstand') : b.locationId === save.currentLocation).map(b => {
           let ab = b;
-          if (save.currentLocation === 'skybridge' && (b.locationId === 'newsstand' || b.locationId === 'park')) { const mp = getOffsetPos(b.locationId, b.pos); ab = { ...b, pos: mp }; if (b.id === 'news_cabin') { ab = { ...ab, windows: [{ side: 'left', x: 0.2, y: 0.3, w: 0.6, h: 0.4 }], decorations: (isR: boolean) => { const sc = isoToScreen({ x: ab.pos.x + 1.5, y: ab.pos.y + 3.0 }); return <div style={{ position: 'absolute', left: sc.left, top: sc.top - 12, width: 48, height: 18, background: isR ? 'linear-gradient(90deg, #ffb300, #ff8f00)' : '#444', border: '1px solid #ffe082', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 'bold', boxShadow: isR ? '0 0 12px #ff8f00' : 'none', transform: 'skewY(-15deg)', transition: 'all 1.5s', pointerEvents: 'none' }}>OPEN</div>; } }; } }
+          if (save.currentLocation === 'skybridge' && b.locationId === 'newsstand') { const mp = getOffsetPos(b.locationId, b.pos); ab = { ...b, pos: mp }; if (b.id === 'news_cabin') { ab = { ...ab, windows: [{ side: 'left', x: 0.2, y: 0.3, w: 0.6, h: 0.4 }], decorations: (isR: boolean) => { const sc = isoToScreen({ x: ab.pos.x + 1.5, y: ab.pos.y + 3.0 }); return <div style={{ position: 'absolute', left: sc.left, top: sc.top - 12, width: 48, height: 18, background: isR ? 'linear-gradient(90deg, #ffb300, #ff8f00)' : '#444', border: '1px solid #ffe082', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 'bold', boxShadow: isR ? '0 0 12px #ff8f00' : 'none', transform: 'skewY(-15deg)', transition: 'all 1.5s', pointerEvents: 'none' }}>OPEN</div>; } }; } }
           return <IsometricBuilding key={ab.id} building={ab} isRepaired={bridgeArtist.ending === 'success'} />;
         })}
         {entities.map(entity => {

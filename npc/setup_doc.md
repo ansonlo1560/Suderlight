@@ -118,6 +118,11 @@ const ending = {
 };
 ```
 
+> ✅ **第一步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — NPC definition & registry"
+> ```
+
 ---
 
 ## 第二步：線索系統
@@ -183,6 +188,11 @@ function getNpcIdForClue(clueId: ClueId): NpcId {
 **檔案**: `src/ui/NarrativeDebugOverlay.tsx`, `src/ui/NarrativePlaytestDashboard.tsx`
 
 同樣更新導入和查詢。
+
+> ✅ **第二步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — clue system & verticalSlice"
+> ```
 
 ---
 
@@ -314,6 +324,11 @@ const psychWorldRegistry: Record<NpcId, PsychLayerData[]> = {
 1. 在 `ComingSoonVisual` 中為新 NPC 加入主題視覺設定
 2. 在渲染區塊中加入新 NPC 的條件分支（可參考 victor 的實作）
 
+> ✅ **第三步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — psychological world layers"
+> ```
+
 ---
 
 ## 第四步：表世界地圖（等角地圖）
@@ -433,6 +448,11 @@ list.push({ id: 'return_portal', label: '返回天橋 · 傳送點', type: 'clue
   pos: { x: 9, y: 17 }, color: '#ffaa33', icon: '返' });
 ```
 
+> ✅ **第四步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — outer world map & teleport"
+> ```
+
 ---
 
 ## 第五步：NPC 狀態引擎
@@ -512,6 +532,11 @@ export function evaluateNpcDialogue(…) {
 ### 5.5 更新 gameStore.ts
 
 在 `getNpcIdForClue`、`findClueById`、以及存檔系統中加入新 NPC 的支援。
+
+> ✅ **第五步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — state engine & dialogue evaluation"
+> ```
 
 ---
 
@@ -606,6 +631,11 @@ export function evaluateNpcDialogue(…) {
 
 確保新 NPC 的場景條目 `unlockedByDefault: true`（若為可遊玩 NPC）。
 
+> ✅ **第六步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — backend data sync"
+> ```
+
 ---
 
 ## 第七步：前端 UI 整合
@@ -650,6 +680,11 @@ export function evaluateNpcDialogue(…) {
 **目錄**: `images/character/`
 
 放置 PNG 角色圖片（例如 `YourNpc.png`）。
+
+> ✅ **第七步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — UI integration & testing"
+> ```
 
 ---
 
