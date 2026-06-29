@@ -155,7 +155,7 @@
       "use_regex": false,
       "region": "apartment",
       "npcId": "aoi",
-      "unlockedByDefault": false
+      "unlockedByDefault": true
     },
     {
       "id": 9,

@@ -3,7 +3,7 @@ import { GlimmerButton, GlassPanel, GuiFrame } from '../components';
 import MeterBar from '../components/MeterBar';
 import { getNpcDefinition } from '../data/npcs/registry';
 import { evaluateRepairTip } from '../data/npcs/types';
-import { bridgeArtistClues } from '../data/npcs/bridgePainter';
+import { ALL_CLUES } from '../data/verticalSlice';
 import type { NpcId } from '../data/verticalSlice';
 import type { NpcRuntimeState, DialogueEvaluationContext } from '../systems/npcStateEngine';
 import { evaluateNpcDialogue } from '../systems/npcStateEngine';
@@ -15,7 +15,7 @@ import { isPlaytestEnabled } from '../hooks/narrativePlaytest';
 
 // 线索 ID → 中文描述映射（支持所有已知 NPC 線索）
 const CLUE_LABELS: Record<string, string> = {};
-for (const c of Object.values(bridgeArtistClues)) {
+for (const c of Object.values(ALL_CLUES)) {
   CLUE_LABELS[c.id] = c.shortLabel;
 }
 
@@ -126,7 +126,12 @@ export default function OuterWorldConversation({
 
   // 計算開場白（與 depth 對應）
   const layers = npcState.innerWorld?.layers;
-  const allLayersComplete = !!(layers && [1, 2, 3, 4].every(l => layers[l]?.completed));
+  const maxLayer = useMemo(() => {
+    const def = getNpcDefinition(npcId);
+    return def.visualRegistry.floatingTextsByLayer ? Object.keys(def.visualRegistry.floatingTextsByLayer).length : 4;
+  }, [npcId]);
+
+  const allLayersComplete = !!(layers && Array.from({ length: maxLayer }, (_, i) => i + 1).every(l => layers[l]?.completed));
   const effectiveDepth = allLayersComplete ? 4 : innerWorldDepth;
 
   const { initialSystemMessage, initialNpcMessage } = useMemo(() => {

@@ -1,6 +1,6 @@
 import { MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { GlimmerButton, GlassPanel } from '../components';
-import { ALL_CLUES, clueOrder, locations, type ClueId, type LocationId, type NpcId } from '../data/verticalSlice';
+import { ALL_CLUES, ALL_CLUE_ORDER, locations, type ClueId, type LocationId, type NpcId } from '../data/verticalSlice';
 import { getPlayerAuthHeaders } from '../lib/playerId';
 import type { CollectClueResult } from '../store/gameStore';
 import type { GameSave } from '../systems/saveSystem';
@@ -251,7 +251,7 @@ export default function OuterWorldExplorer({
       // 傳送回天橋
       list.push({ id: 'skybridge_portal', label: '天橋 · 傳送點', type: 'clue', pos: { x: 14, y: 16 }, color: '#ffaa33', icon: '返' });
     }
-    clueOrder.forEach(clueId => {
+    ALL_CLUE_ORDER.forEach(clueId => {
       const clue = (ALL_CLUES as Record<string, { locationId: string; pos: Point; label: string; color: string; icon: string }>)[clueId];
       if (!clue) return;
       const isVisible = save.currentLocation === 'skybridge' ? (clue.locationId === 'skybridge' || clue.locationId === 'newsstand' || clue.locationId === 'park') : clue.locationId === save.currentLocation;

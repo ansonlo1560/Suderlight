@@ -12,5 +12,19 @@
     "innerWorldUnlocked": false,
     "ending": "none",
     "worldbookUnlockIds": [5, 7]
+  },
+  "aoi": {
+    "id": "aoi",
+    "name": "小葵",
+    "background": "小學生，被夾在父母爭吵中長大，被迫扮演家庭情感粘合劑。她放棄了舞蹈夢想，來到公園獨自轉動魔方。",
+    "trauma": "她將父母的不合內化為自己的責任，認為只要她表現好、不添亂、不引發爭吵，父母就不會分開。她不再允許自己快樂。",
+    "emotion": "被剝奪的快樂、內疚、情感孤立、過度負責",
+    "trust": 10,
+    "stress": 90,
+    "knowledge": 0,
+    "knowledgeRequired": 80,
+    "innerWorldUnlocked": false,
+    "ending": "none",
+    "worldbookUnlockIds": [8, 9]
   }
 }

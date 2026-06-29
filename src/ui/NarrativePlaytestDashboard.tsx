@@ -10,7 +10,7 @@ import {
   CHAPTERS,
 } from '../store/narrativePlaytestStore';
 import { ALL_CLUES } from '../data/verticalSlice';
-import type { ClueId } from '../data/verticalSlice';
+import type { ClueId, NpcId } from '../data/verticalSlice';
 import type { NpcRuntimeState } from '../systems/npcStateEngine';
 
 // ---- Style Tokens ----
@@ -130,9 +130,11 @@ function flagName(flag: string): string {
     painter_reacted_to_brush: '🖌 畫筆反應',
     painter_acknowledged_accident: '📰 真相接近',
     painter_sketchbook_understood: '📓 素描理解',
-    inner_world_unlocked: '🔓 內心解鎖',
     bridge_artist_failed: '💀 失敗',
+    aoi_failed: '💀 失敗',
     bridge_artist_repaired: '✨ 修復',
+    aoi_repaired: '✨ 修復',
+    inner_world_unlocked: '🔓 內心解鎖',
   };
   return map[flag] ?? flag;
 }
@@ -198,7 +200,8 @@ export default function NarrativePlaytestDashboard({ currentScreen }: Props) {
   const demoMode = useNarrativePlaytestStore((s) => s.demoMode);
   const toggle = useNarrativePlaytestStore((s) => s.toggle);
 
-  const npc = save.npcs.bridge_artist;
+  const [activeNpcId, setActiveNpcId] = useState<NpcId>('bridge_artist');
+  const npc = save.npcs[activeNpcId];
   const allClueIds: ClueId[] = Object.keys(ALL_CLUES) as ClueId[];
   const branches = useMemo(() => computeBranches(save.collectedClues), [save.collectedClues]);
   const completedCount = innerWorldEvents.filter((e) => e.completed).length;
@@ -215,8 +218,8 @@ export default function NarrativePlaytestDashboard({ currentScreen }: Props) {
   useEffect(() => { setLocalKnowledge(npc.knowledge); }, [npc.knowledge]);
 
   const applyStat = useCallback((stat: 'trust' | 'stress' | 'knowledge', value: number) => {
-    setNpcStat('bridge_artist', stat, value);
-  }, [setNpcStat]);
+    setNpcStat(activeNpcId, stat, value);
+  }, [setNpcStat, activeNpcId]);
 
   const adjustStat = useCallback((stat: 'trust' | 'stress' | 'knowledge', delta: number) => {
     const current = stat === 'trust' ? localTrust : stat === 'stress' ? localStress : localKnowledge;
@@ -295,6 +298,33 @@ export default function NarrativePlaytestDashboard({ currentScreen }: Props) {
           <span><b style={{color:'#7ec8ff'}}>F9</b> 進入內心世界</span>
           <span><b style={{color:'#7ec8ff'}}>S+F9</b> 選章節</span>
           <span><b style={{color:'#ff9800'}}>F10</b> Demo模式</span>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* NPC Switcher Chips                                           */}
+      {/* ============================================================ */}
+      <div style={{ ...SECTION, padding: '6px 10px', marginBottom: 10 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 10, color: '#667' }}>
+          {(Object.keys(save.npcs) as NpcId[]).map((id) => (
+            <button
+              key={id}
+              onClick={() => setActiveNpcId(id)}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 12,
+                border: '1px solid rgba(255,255,255,0.15)',
+                background: activeNpcId === id ? 'rgba(126,200,255,0.2)' : 'rgba(255,255,255,0.04)',
+                color: activeNpcId === id ? '#7ec8ff' : '#889',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 10,
+                fontWeight: activeNpcId === id ? 700 : 400,
+              }}
+            >
+              {save.npcs[id].name}
+            </button>
+          ))}
         </div>
       </div>
 

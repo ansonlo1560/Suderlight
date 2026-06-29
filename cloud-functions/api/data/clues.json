@@ -22,5 +22,29 @@
     "npcId": "bridge_artist",
     "knowledge": 15,
     "description": "車禍報導"
+  },
+  {
+    "id": "muddy_dance_shoes",
+    "npcId": "aoi",
+    "knowledge": 10,
+    "description": "沾滿泥的紅舞鞋"
+  },
+  {
+    "id": "recording_pen",
+    "npcId": "aoi",
+    "knowledge": 10,
+    "description": "錄音筆"
+  },
+  {
+    "id": "spinning_cube",
+    "npcId": "aoi",
+    "knowledge": 15,
+    "description": "旋轉魔方"
+  },
+  {
+    "id": "static_swing_chain",
+    "npcId": "aoi",
+    "knowledge": 15,
+    "description": "靜止的鞦韆鏈"
   }
 ]

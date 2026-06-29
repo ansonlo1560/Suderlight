@@ -9,15 +9,17 @@
 
 新增一個可遊玩的 NPC 需要以下七大步驟，涉及 **後端 (cloud-functions)** 和 **前端 (src/data + src/ui)** 兩個範疇：
 
-| # | 範圍 | 說明 | 檔案數 |
-|---|------|------|--------|
-| 1 | NPC 定義 | 角色卡、NpcId 類型、註冊中心 | 3 |
-| 2 | 線索系統 | 線索定義、收集邏輯、線索 ID 聯合類型 | 2 |
-| 3 | 心理世界 | 四層情感弧線 + 可互動物件 | 1+ |
-| 4 | 表世界地圖 | 等角地圖：建築、道路、碰撞、實體 | 2 |
-| 5 | NPC 狀態引擎 | 對話評估規則、初始狀態、關鍵詞 | 1 |
-| 6 | 後端資料 | 線索、心理世界、NPC 狀態、Prompt | 5 |
-| 7 | UI 整合 | 心理世界視覺、地圖實體互動、傳送點、存檔 | 3+ |
+> **階段性 Git Commit 建議**：每完成一個大步驟（1–7），執行一次 `git add -A && git commit -m "feat: add <npcId> — <step description>"`。這樣可以在出錯時快速回滾，也方便 Code Review。
+
+| # | 範圍 | 說明 | 檔案數 | 建議 Commit 訊息 |
+|---|------|------|--------|-----------------|
+| 1 | NPC 定義 | 角色卡、NpcId 類型、註冊中心 | 3 | `feat: add <npcId> — NPC definition & registry` |
+| 2 | 線索系統 | 線索定義、收集邏輯、線索 ID 聯合類型 | 2 | `feat: add <npcId> — clue system & verticalSlice` |
+| 3 | 心理世界 | 四層情感弧線 + 可互動物件 | 1+ | `feat: add <npcId> — psychological world layers` |
+| 4 | 表世界地圖 | 等角地圖：建築、道路、碰撞、實體 | 2 | `feat: add <npcId> — outer world map & teleport` |
+| 5 | NPC 狀態引擎 | 對話評估規則、初始狀態、關鍵詞 | 1 | `feat: add <npcId> — state engine & dialogue evaluation` |
+| 6 | 後端資料 | 線索、心理世界、NPC 狀態、Prompt | 5 | `feat: add <npcId> — backend data sync` |
+| 7 | UI 整合 | 心理世界視覺、地圖實體互動、傳送點、存檔 | 3+ | `feat: add <npcId> — UI integration & testing` |
 
 ---
 
@@ -237,6 +239,25 @@ const layer1: PsychLayerData = {
 | `insight` | 玩家獲得 insight 後的簡短結論 |
 | `reflectionChoices` | 反思選項（含正確/錯誤答案） |
 | `understandingReward` | 理解度獎勵數值 (7-10) |
+
+### reflectionChoices 設計規範
+
+每個 `reflectionChoices` 必須包含 **4 個選項**，每個選項應該是：
+- **更模糊、更意象化的關鍵詞語**（例如：「才華」、「消失」、「沉默」、「形狀」）
+- **避免使用完整的判斷句或詳細解釋**（例如：不要寫「你應該接受自己的空白」或「這不是你的錯」）
+- 4 個選項中只有 1 個是 `insight: true`（正確選項），其餘 3 個為 `insight: false`
+- 正確選項的關鍵詞應該與該 NPC 的核心創傷主題產生隱晦共鳴，而不是直接說出答案
+
+```ts
+reflectionChoices: [
+  { text: '才華', insight: false },      // 模糊詞語，觸碰但非正解
+  { text: '消失', insight: true },      // 正確選項：與核心創傷共鳴
+  { text: '沉默', insight: false },
+  { text: '形狀', insight: false },
+]
+```
+
+這種設計讓玩家必須透過**情感直覺**而非**邏輯推理**來選擇，強化心理世界的沉浸感。
 
 ### 3.4 視覺註冊 (visualRegistry)
 

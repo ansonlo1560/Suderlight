@@ -28,7 +28,9 @@ export { aoiClues, aoiClueOrder } from './npcs/aoi';
 
 // 通用線索查詢表（用於 gameStore collectClue）
 import { bridgeArtistClues } from './npcs/bridgePainter';
-import { aoiClues } from './npcs/aoi';
+import { aoiClues, aoiClueOrder } from './npcs/aoi';
+
+export const ALL_CLUE_ORDER: ClueId[] = [...bridgeArtistClueOrder, ...aoiClueOrder] as ClueId[];
 
 export const ALL_CLUES: Record<ClueId, import('./npcs/types').ClueDefinition> = {
   ...bridgeArtistClues,

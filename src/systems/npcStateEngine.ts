@@ -181,15 +181,124 @@ export function evaluateBridgeArtistDialogue(
   return evaluateNpcDialogue(playerInput, state, context);
 }
 
-/**
- * 通用 NPC 對話評估（目前仍使用 bridge_artist 規則；
- * 未來可依 state.id 分派不同 NPC 的規則集）
- */
+// ---- aoi-specific evaluation ----
+const aoiForcedComfortWords = ['加油', '振作', '會好的', '一定會好', '不要想太多', '你父母還是愛你的', '你要體諒他們', '你長大就懂了', '別放在心上', '家庭總有問題', '你應該多溝通', '你要樂觀一點', '不要這麼負面', '不要太悲觀'];
+const aoiEmpathyWords = ['我陪你', '陪你', '聽你說', '慢慢說', '可以沉默', '不說話', '你不用說', '我會在', '不是你的錯', '你不需要負責', '你可以不高興', '你不需要表演', '你不需要讓他們開心', '你可以做你自己', '可以休息', '不開心也沒關係', '你很重要', '你值得被愛', '你不需要完美', '你不需要懂事', '你不需要成熟'];
+const aoiPressureWords = ['你好懂事', '好成熟', '好堅強', '好棒', '天才', '跳舞一定很美', '你跳舞的樣子', '考試成績', '你應該多跳舞', '你應該繼續跳舞', '你應該去表演', '你很有才華', '不要浪費天份', '你爸媽以你為榮'];
+const aoiCrisisWords = ['想死', '不想活', '自殺', '傷害自己', '結束生命'];
+const aoiHostileWords = ['廢物', '去死', '沒用', '垃圾', '活該', '可悲', '軟弱', '懦夫', '裝病', '演的', '滾', '閉嘴', '爛', '你活該'];
+const aoiDismissWords = ['隨便', '算了', '反正', '不重要', '無所謂', '懶得管', '不關我的事', '無聊', '沒差'];
+
+export function evaluateAoiDialogue(
+  playerInput: string,
+  state: NpcRuntimeState,
+  context: DialogueEvaluationContext,
+): DialogueEvaluationResult {
+  const input = playerInput.trim().toLowerCase();
+  const flags: string[] = [];
+  let trustDelta = 0;
+  let stressDelta = 0;
+  let reason = '對話維持在安全距離，未觸發特定判定。';
+  let safetyRedirect = false;
+
+  if (hasAny(input, aoiCrisisWords)) {
+    trustDelta = 0;
+    stressDelta = -2;
+    reason = '系統偵測到現實危機語句：停止角色誘導，轉向安全提醒。';
+    flags.push('safety_redirect_triggered');
+    safetyRedirect = true;
+  } else if (hasAny(input, aoiHostileWords)) {
+    trustDelta = -8;
+    stressDelta = 12;
+    reason = '你的語氣帶有敵意。這樣只會把她推得更遠。';
+    flags.push('player_used_hostile_language');
+  } else if (hasAny(input, aoiDismissWords) && input.length < 6) {
+    trustDelta = -3;
+    stressDelta = 3;
+    reason = '你的回應顯得很敷衍。她感覺到你其實不在乎。';
+    flags.push('player_used_dismissive_reply');
+  } else if (hasAny(input, aoiForcedComfortWords)) {
+    trustDelta = -5;
+    stressDelta = 10;
+    reason = '你使用了勵志式安慰。系統判定這會否定她當下的痛苦，並強化她「必須體諒父母」的內在命令。';
+    flags.push('player_used_forced_comfort');
+  } else if (hasAny(input, aoiPressureWords)) {
+    trustDelta = -6;
+    stressDelta = 8;
+    reason = '你觸碰到「懂事孩子」的壓力。系統判定她感到被「成熟」和「才華」消費。';
+    flags.push('player_consumed_good_child_identity');
+  } else if (hasAny(input, aoiEmpathyWords)) {
+    trustDelta = 10;
+    stressDelta = -8;
+    reason = '你選擇陪伴與接納，而不是要求她「好起來」。Trust 上升，Stress 下降。';
+    flags.push('player_offered_presence');
+  } else if (input.includes('公園') || input.includes('鞦韆') || input.includes('安靜') || input.includes('沒有人')) {
+    trustDelta = 7;
+    stressDelta = -5;
+    reason = '你把注意力放回她感到安全的地方——公園的安靜角落。';
+    flags.push('player_grounded_in_safe_place');
+  } else if (context.collectedClues.includes('muddy_dance_shoes') && (input.includes('舞鞋') || input.includes('跳舞') || input.includes('泥') || input.includes('鞋子'))) {
+    trustDelta = 5;
+    stressDelta = 2;
+    reason = '你注意到了那雙被丟棄的舞鞋。這增加真相接近度，也讓她的壓力短暫升高。';
+    flags.push('aoi_reacted_to_dance_shoes');
+  } else if (context.collectedClues.includes('recording_pen') && (input.includes('錄音') || input.includes('錄音筆') || input.includes('聽到') || input.includes('爭吵'))) {
+    trustDelta = 6;
+    stressDelta = 3;
+    reason = '你基於已收集的錄音筆線索提問。她發現你知道了她最不願示人的秘密。';
+    flags.push('aoi_acknowledged_recording_pen');
+  } else if (context.collectedClues.includes('spinning_cube') && (input.includes('魔方') || input.includes('旋轉') || input.includes('正方形') || input.includes('轉動'))) {
+    trustDelta = 7;
+    stressDelta = -1;
+    reason = '你讀懂了魔方對她的意義——秩序與控制，而不是玩具。';
+    flags.push('aoi_spinning_cube_understood');
+  } else if (context.collectedClues.includes('static_swing_chain') && (input.includes('鞦韆') || input.includes('鏈條') || input.includes('靜止') || input.includes('靜止的鞦韆'))) {
+    trustDelta = 7;
+    stressDelta = -2;
+    reason = '你注意到了那架靜止的鞦韆。你明白了：她沒有坐上去，不是因為不想，而是因為她不允許自己快樂。';
+    flags.push('aoi_swing_chain_understood');
+  } else if (input.includes('父母') || input.includes('媽媽') || input.includes('爸爸') || input.includes('家裡') || input.includes('家庭')) {
+    trustDelta = -2;
+    stressDelta = 5;
+    reason = '你提到了家庭。她立刻進入防衛狀態。';
+    flags.push('aoi_family_topic_triggered');
+  }
+
+  const nextTrust = clamp(state.trust + trustDelta);
+  const nextStress = clamp(state.stress + stressDelta);
+  const innerWorldUnlocked = context.knowledge >= state.knowledgeRequired && nextTrust >= state.trustRequired;
+  let ending: NpcEnding = 'none';
+
+  if (nextStress >= 100) {
+    ending = 'failed';
+    flags.push('aoi_failed');
+    reason = '她的 Stress 已達臨界值。對話中斷，Ghost 記錄生成。';
+  }
+
+  if (innerWorldUnlocked) {
+    flags.push('inner_world_unlocked');
+  }
+
+  return {
+    trustDelta,
+    stressDelta,
+    reason,
+    flags,
+    innerWorldUnlocked,
+    ending,
+    safetyRedirect,
+  };
+}
+
 export function evaluateNpcDialogue(
   playerInput: string,
   state: NpcRuntimeState,
   context: DialogueEvaluationContext,
 ): DialogueEvaluationResult {
+  if (state.id === 'aoi') {
+    return evaluateAoiDialogue(playerInput, state, context);
+  }
+  // fallback: bridge_artist (legacy default)
   const input = playerInput.trim().toLowerCase();
   const flags: string[] = [];
   // 【修复】默认完全中性（以前 trustDelta:1, stressDelta:-1 导致无条件偏正面）
