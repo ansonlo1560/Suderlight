@@ -247,7 +247,7 @@ export default function OuterWorldExplorer({
       }
       list.push({ id: 'gallery_door', label: '畫廊大門', type: 'clue', pos: { x: 18.0, y: 7.0 }, color: '#ec407a', icon: '門' });
       // 傳送到公園
-      list.push({ id: 'park_portal', label: '公園 · 傳送點', type: 'clue', pos: { x: 22, y: 18 }, color: '#66bb6a', icon: '🧭' });
+      list.push({ id: 'park_portal', label: '公園', type: 'clue', pos: { x: 5, y: 9 }, color: '#66bb6a', icon: '🧭' });
     }
     if (save.currentLocation === 'park') {
       // aoi 實體
@@ -255,7 +255,7 @@ export default function OuterWorldExplorer({
         list.push({ id: 'aoi', label: '小葵', type: 'npc', pos: { x: 12, y: 12 }, color: aoiState.ending === 'success' ? '#7acc7a' : '#ffaa33', icon: aoiState.ending === 'success' ? '光' : '葵' });
       }
       // 傳送回天橋
-      list.push({ id: 'skybridge_portal', label: '天橋 · 傳送點', type: 'clue', pos: { x: 14, y: 16 }, color: '#ffaa33', icon: '🧭' });
+      list.push({ id: 'skybridge_portal', label: '天橋', type: 'clue', pos: { x: 16, y: 14 }, color: '#ffaa33', icon: '🧭' });
     }
     ALL_CLUE_ORDER.forEach(clueId => {
       const clue = (ALL_CLUES as Record<string, { locationId: string; pos: Point; label: string; color: string; icon: string }>)[clueId];
@@ -330,10 +330,13 @@ export default function OuterWorldExplorer({
     openCm();
   };
 
+  const interactRef = useRef(interact);
+  interactRef.current = interact;
+
   useEffect(() => { focusCameraOnPlayer(playerPos); window.addEventListener('resize', () => focusCameraOnPlayer(playerPos)); return () => window.removeEventListener('resize', () => focusCameraOnPlayer(playerPos)); }, []);
   useEffect(() => { if (save.currentLocation === 'newsstand') { const ol = save.currentLocation; setCurrentLocation('skybridge'); const ns = getOffsetPos(ol, locations[ol].spawn); setPlayerPos(ns); focusCameraOnPlayer(ns); } }, [save.currentLocation, setCurrentLocation]);
   useEffect(() => {
-    const hkd = (e: KeyboardEvent) => { if (e.key === 'Escape' && modal) { setModal(null); return; } if (modal) return; if (['w','a','s','d','arrowup','arrowleft','arrowdown','arrowright'].includes(e.key.toLowerCase())) { e.preventDefault(); keys.current.add(e.key.toLowerCase()); } if ((e.key === 'e' || e.key === ' ') && nearbyEntity) { e.preventDefault(); interact(nearbyEntity.id); } };
+    const hkd = (e: KeyboardEvent) => { if (e.key === 'Escape' && modal) { setModal(null); return; } if (modal) return; if (['w','a','s','d','arrowup','arrowleft','arrowdown','arrowright'].includes(e.key.toLowerCase())) { e.preventDefault(); keys.current.add(e.key.toLowerCase()); } if ((e.key === 'e' || e.key === ' ') && nearbyEntity) { e.preventDefault(); interactRef.current(nearbyEntity.id); } };
     const hku = (e: KeyboardEvent) => keys.current.delete(e.key.toLowerCase());
     window.addEventListener('keydown', hkd); window.addEventListener('keyup', hku);
     return () => { window.removeEventListener('keydown', hkd); window.removeEventListener('keyup', hku); };

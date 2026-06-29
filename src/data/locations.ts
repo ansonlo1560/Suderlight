@@ -35,7 +35,7 @@ export const locations: Record<LocationId, LocationData> = {
     id: 'park',
     name: '公園',
     subtitle: '失修的城市公園',
-    description: '長椅被雨水浸黑，兒童遊具在風裡發出細小尖聲。樹下有一本被踩進泥水裡的素描本。',
+    description: '長椅被雨水浸黑，兒童遊具在風裡發出細小尖聲。樹下有一雙被踩進泥水裡的紅舞鞋。',
     ambient: '泥土、落葉、遲疑的雨聲',
     spawn: { x: 12, y: 12 },
   },

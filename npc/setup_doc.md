@@ -440,12 +440,10 @@ export type LocationId = 'skybridge' | 'newsstand' | 'park'
 
 ```ts
 // 在天橋 entities 中加入：
-list.push({ id: 'your_npc_portal', label: '地圖名稱 · 傳送點', type: 'clue',
-  pos: { x: 5.5, y: 4.5 }, color: '#66bb6a', icon: '傳' });
+list.push({ id: 'park_portal', label: '公園', type: 'clue', pos: { x: 4, y: 7.5 }, color: '#66bb6a', icon: '🧭' });
 
 // 在新 NPC entities 中加入返回傳送點：
-list.push({ id: 'return_portal', label: '返回天橋 · 傳送點', type: 'clue',
-  pos: { x: 9, y: 17 }, color: '#ffaa33', icon: '返' });
+list.push({ id: 'skybridge_portal', label: '天橋', type: 'clue', pos: { x: 16, y: 14 }, color: '#ffaa33', icon: '🧭' });
 ```
 
 > ✅ **第四步完成後請執行**：
