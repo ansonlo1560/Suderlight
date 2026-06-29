@@ -20,8 +20,8 @@ export const bridgeArtistClues: Record<BridgeArtistClueId, ClueDefinition> = {
   },
   newspaper: {
     id: 'newspaper', label: '報紙剪報', shortLabel: '報紙', knowledge: 10,
-    worldId: 'bridge_artist', locationId: 'newsstand',
-    pos: { x: 10, y: 17 }, color: '#fff6d8', icon: '紙',
+    worldId: 'bridge_artist', locationId: 'skybridge',
+    pos: { x: 10, y: 18 }, color: '#fff6d8', icon: '紙',
     content: '報紙被雨泡皺，只剩一角還能辨認：「天才青年畫家車禍後失去辨色能力……」旁邊的版面被人用力撕掉。',
     dictionaryHint: '失色不是黑暗，而是世界仍在發光，只是所有光都繞過了你。',
   },

@@ -3,7 +3,7 @@
 // 從 verticalSlice.ts 拆出
 // ============================================================
 
-export type LocationId = 'skybridge' | 'newsstand' | 'park';
+export type LocationId = 'skybridge' | 'park';
 
 export type LocationData = {
   id: LocationId;
@@ -22,14 +22,6 @@ export const locations: Record<LocationId, LocationData> = {
     description: '鏽蝕欄杆掛滿被雨浸透的展覽海報，橋下車流聲像遙遠海浪。天橋畫家站在空白畫布前，像守著一塊沒有色彩的墓碑。',
     ambient: '鐵鏽、濕顏料、車流低鳴',
     spawn: { x: 10, y: 9 },
-  },
-  newsstand: {
-    id: 'newsstand',
-    name: '報攤',
-    subtitle: '廢棄書報攤',
-    description: '木頭招牌被雨水泡得發脹，泛黃報紙黏在一起。某些標題像還沒癒合的傷口，隔著塑膠布微微反光。',
-    ambient: '濕紙、舊油墨、地下酒館的暖光縫隙',
-    spawn: { x: 8, y: 11 },
   },
   park: {
     id: 'park',

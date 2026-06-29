@@ -11,12 +11,12 @@ import type { Point } from '../bridgePainter/types';
 // ---- 共用常數與工具（從 bridgePainter 引入） ----
 import {
   MAP_WIDTH, MAP_HEIGHT, TILE_W, TILE_H, ORIGIN_X, ORIGIN_Y, PLAYER_SPEED,
-  clamp, lerp, isoToScreen, distance, getOffsetPos,
+  clamp, lerp, isoToScreen, distance,
 } from '../bridgePainter';
 
 export {
   MAP_WIDTH, MAP_HEIGHT, TILE_W, TILE_H, ORIGIN_X, ORIGIN_Y, PLAYER_SPEED,
-  clamp, lerp, isoToScreen, distance, getOffsetPos,
+  clamp, lerp, isoToScreen, distance,
 } from '../bridgePainter';
 
 export function getElevation(_pos: Point): number { return 0; }
@@ -34,24 +34,16 @@ export const locationDisplay: LocationDisplay = {
 // ---- 建築物 ----
 export const buildings: Building[] = [
   {
-    id: 'pavilion',
-    name: '林蔭涼亭',
-    locationId: 'park',
-    pos: { x: 11, y: 6.5 },
-    size: { x: 3, y: 3 },
+    id: 'tree',
+    name: '大樹',
+    pos: { x: 9, y: 5 },
+    size: { x: 2, y: 3 },
     tall: 150,
     baseColor: '#2e7d32',
-    windows: [
-      { side: 'left', x: 0.25, y: 0.2, w: 0.15, h: 0.6 },
-      { side: 'left', x: 0.6, y: 0.2, w: 0.15, h: 0.6 },
-      { side: 'right', x: 0.25, y: 0.2, w: 0.15, h: 0.6 },
-      { side: 'right', x: 0.6, y: 0.2, w: 0.15, h: 0.6 },
-    ],
   },
   {
     id: 'park_bench_area',
     name: '長椅區',
-    locationId: 'park',
     pos: { x: 5, y: 10 },
     size: { x: 2, y: 1.5 },
     tall: 20,
@@ -60,7 +52,6 @@ export const buildings: Building[] = [
   {
     id: 'swing_set',
     name: '鞦韆架',
-    locationId: 'park',
     pos: { x: 14, y: 11 },
     size: { x: 2.5, y: 1.5 },
     tall: 80,
@@ -107,7 +98,7 @@ export function getEntities(ctx: {
   // 這裡只提供靜態模板，OuterWorldExplorer 會覆蓋 pos/color/icon
   list.push({
     id: 'aoi', label: '小葵', type: 'npc',
-    pos: { x: 12, y: 12 },
+    pos: { x: 10, y: 10 },
     color: '#ffaa33', icon: '葵',
   });
 

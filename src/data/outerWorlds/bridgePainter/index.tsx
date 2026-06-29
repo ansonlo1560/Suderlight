@@ -3,6 +3,7 @@
 // 從 OuterWorldExplorer.tsx 抽離
 // ============================================================
 
+import React from 'react';
 import type { Building, CollisionZone, ElevationFn, EntityTemplate, LocationDisplay, RoadDef } from '../types';
 import type { Point } from './types';
 
@@ -55,12 +56,6 @@ export function distance(a: Point, b: Point) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-export function getOffsetPos(locationId: string, pos: { x: number; y: number }) {
-  if (locationId === 'newsstand') return { x: pos.x + 3, y: pos.y + 1 };
-  if (locationId === 'park') return { x: pos.x + 10, y: pos.y + 6.5 };
-  return pos;
-}
-
 export const locationDisplay: LocationDisplay = {
   id: 'skybridge',
   name: '表世界',
@@ -74,7 +69,6 @@ export const buildings: Building[] = [
   {
     id: 'gallery',
     name: '失色畫廊',
-    locationId: 'skybridge',
     pos: { x: 14.5, y: 2 },
     size: { x: 4, y: 3 },
     tall: 260,
@@ -96,16 +90,51 @@ export const buildings: Building[] = [
   {
     id: 'news_cabin',
     name: '拾光報攤',
-    locationId: 'newsstand',
-    pos: { x: 5, y: 11.5 },
+    pos: { x: 9, y: 12.5 },
     size: { x: 3.5, y: 3.5 },
     tall: 130,
     baseColor: '#d84315',
-    windows: [{ side: 'right', x: 0.2, y: 0.3, w: 0.6, h: 0.4 }],
-    decorations: (isRepaired: boolean) => (
-      // 由 isometric rendering 處理，此處僅定義數據
-      null
+    windows: [{ side: 'left', x: 0.2, y: 0.3, w: 0.6, h: 0.4 }],
+    decorations: ({ points }) => (
+      <div style={{
+        position: 'absolute',
+        left: points.s3.left + 100,
+        top: points.s3.top + 25,
+        transform: 'skewY(-26.5deg)',
+        background: 'rgba(30, 35, 45, 0.9)',
+        border: '1.5px solid #ffd54f',
+        borderRadius: '4px',
+        padding: '2px 8px',
+        color: '#fff',
+        fontSize: '10px',
+        fontWeight: 'bold',
+        letterSpacing: '1px',
+        boxShadow: '0 0 10px rgba(255, 213, 79, 0.3)',
+        pointerEvents: 'none',
+        userSelect: 'none',
+        zIndex: 10,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '40px'
+      }}>
+        OPEN
+      </div>
     ),
+  },
+    {
+    id: 'pavilion',
+    name: '林蔭涼亭',
+    pos: { x: 22, y: 13 },
+    size: { x: 3, y: 3 },
+    tall: 150,
+    baseColor: '#2e7d32',
+    windows: [
+      { side: 'left', x: 0.25, y: 0.2, w: 0.15, h: 0.6 },
+      { side: 'left', x: 0.6, y: 0.2, w: 0.15, h: 0.6 },
+      { side: 'right', x: 0.25, y: 0.2, w: 0.15, h: 0.6 },
+      { side: 'right', x: 0.6, y: 0.2, w: 0.15, h: 0.6 },
+    ],
   },
 ];
 
@@ -222,7 +251,7 @@ export function getInteraction(
         content: '你站在失色畫廊沉重的雕花橡木門前。\n\n此時你已解鎖了心理世界的存取權，大門正散發著玄妙的心智波動。\n\n是否推開大門，潛入畫家的心理世界（第一層：榮耀美術館）進行探索？',
         actions: [
           { label: '潛入心理世界', tone: 'primary', onClick: ctx.onEnterInnerWorld },
-          { label: '留在外面', onClick: () => {} },
+          { label: '留在外面', onClick: () => { ctx.onShowModal(null); } },
         ],
       };
     }
@@ -241,7 +270,7 @@ export function getInteraction(
             });
           },
         },
-        { label: '留在外面', onClick: () => {} },
+        { label: '留在外面', onClick: () => { ctx.onShowModal(null); } },
       ],
     };
   }

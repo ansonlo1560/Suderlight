@@ -18,13 +18,24 @@ export type WindowDef = {
 export type Building = {
   id: string;
   name: string;
-  locationId: string;
   pos: Point;
   size: { x: number; y: number };
   tall: number;
   baseColor: string;
   windows?: WindowDef[];
-  decorations?: (isRepaired: boolean) => React.ReactNode;
+  decorations?: (ctx: {
+    isRepaired: boolean;
+    points: {
+      s0: { left: number; top: number };
+      s1: { left: number; top: number };
+      s2: { left: number; top: number };
+      s3: { left: number; top: number };
+      t0: { left: number; top: number };
+      t1: { left: number; top: number };
+      t2: { left: number; top: number };
+      t3: { left: number; top: number };
+    };
+  }) => React.ReactNode;
 };
 
 export type RoadDef = Point[][];
