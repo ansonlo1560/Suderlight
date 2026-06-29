@@ -102,6 +102,7 @@ export type OuterWorldDefinition = {
       onEnterInnerWorld: () => void;
       onOpenArcFailure: () => void;
       onOpenReport: () => void;
+      onShowModal: (modal: { title: string; content: string; actions?: Array<{ label: string; tone?: string; onClick: () => void }> } | null) => void;
     },
   ) => string | { title: string; content: string; actions?: Array<{ label: string; tone?: string; onClick: () => void }> } | null;
 };

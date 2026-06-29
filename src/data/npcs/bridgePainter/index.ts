@@ -27,8 +27,8 @@ export const bridgeArtistClues: Record<BridgeArtistClueId, ClueDefinition> = {
   },
   sketchbook: {
     id: 'sketchbook', label: '素描本', shortLabel: '素描本', knowledge: 15,
-    worldId: 'bridge_artist', locationId: 'park',
-    pos: { x: 11, y: 11 }, color: '#fff6d8', icon: '本',
+    worldId: 'bridge_artist', locationId: 'skybridge',
+    pos: { x: 8, y: 9 }, color: '#fff6d8', icon: '本',
     content: '素描本前半本全是鮮活的花與街燈，後半本只剩反覆描過的灰階輪廓。最後一頁寫著：「如果春天只剩形狀，我還算畫家嗎？」',
     dictionaryHint: '自我價值崩塌時，人常把「做不到」誤認成「我不存在」。',
   },

@@ -107,21 +107,6 @@ export const buildings: Building[] = [
       null
     ),
   },
-  {
-    id: 'pavilion',
-    name: '林蔭涼亭',
-    locationId: 'park',
-    pos: { x: 11, y: 6.5 },
-    size: { x: 3, y: 3 },
-    tall: 150,
-    baseColor: '#2e7d32',
-    windows: [
-      { side: 'left', x: 0.25, y: 0.2, w: 0.15, h: 0.6 },
-      { side: 'left', x: 0.6, y: 0.2, w: 0.15, h: 0.6 },
-      { side: 'right', x: 0.25, y: 0.2, w: 0.15, h: 0.6 },
-      { side: 'right', x: 0.6, y: 0.2, w: 0.15, h: 0.6 },
-    ],
-  },
 ];
 
 // ---- 道路定義 ----
@@ -178,6 +163,11 @@ export function getEntities(ctx: {
       id: 'gallery_door', label: '畫廊大門', type: 'clue',
       pos: { x: 18.0, y: 7.0 }, color: '#ec407a', icon: '門',
     });
+    // 傳送到公園
+    list.push({
+      id: 'park_portal', label: '公園', type: 'portal',
+      pos: { x: 5, y: 9 }, color: '#66bb6a', icon: '🧭',
+    });
   }
 
   // 線索實體由 clueOrder 驅動，此處由呼叫方合併（避免循環依賴）
@@ -199,6 +189,7 @@ export function getInteraction(
     onEnterInnerWorld: () => void;
     onOpenArcFailure: () => void;
     onOpenReport: () => void;
+    onShowModal: (modal: { title: string; content: string; actions?: Array<{ label: string; tone?: string; onClick: () => void }> } | null) => void;
   },
 ): { title: string; content: string; actions?: Array<{ label: string; tone?: string; onClick: () => void }> } | null {
   if (entityId === 'painter') {
@@ -243,12 +234,11 @@ export function getInteraction(
           label: '推門進入',
           tone: 'primary',
           onClick: () => {
-            const innerModal = {
+            ctx.onShowModal({
               title: '失色畫廊 - 內部幻境',
               content: `【失色畫廊 · 內部】\n\n你推開了大門。此時畫廊內部呈現出一個宏大的心智空間，牆壁上掛滿了未填滿的畫布。${ctx.npcEnding === 'success' ? '\n\n【治癒共鳴】高大的採光窗下，一道明亮柔和的暖光斜射在地板上。雨聲此時在畫廊內迴響，空洞的灰色畫布上慢慢浮現出春天的線條與輪廓，那是重生的起點。' : '\n\n【失色迴廊】四下寂靜無聲，只有陰暗的灰階霧氣漂浮。所有的作品都沒有顏色，像一座封存了辨色力與希望的宏大墓碑，這就是他封閉的內心深處。\n\n（提示：你尚未解鎖心理世界的探尋權限，需要與畫家進一步對話並收集更多線索）'}`,
-              actions: [{ label: '回到外表世界', onClick: () => {} }],
-            };
-            return innerModal;
+              actions: [{ label: '回到外表世界', onClick: () => ctx.onShowModal(null) }],
+            });
           },
         },
         { label: '留在外面', onClick: () => {} },
@@ -261,6 +251,7 @@ export function getInteraction(
 
 // ---- 出入口 ----
 export const bridgePainterOuterWorld = {
+  id: 'bridge_painter',
   mapWidth: MAP_WIDTH,
   mapHeight: MAP_HEIGHT,
   tileW: TILE_W,
@@ -277,7 +268,7 @@ export const bridgePainterOuterWorld = {
     newsstand: { x: 3, y: 1 },
     park: { x: 10, y: 6.5 },
   },
-  getElevation,
+  getElevation: getSkybridgeElevation,
   getMaxX: (_lid: string) => 28,
   getMaxY: (_lid: string) => 22,
   getInteraction,
