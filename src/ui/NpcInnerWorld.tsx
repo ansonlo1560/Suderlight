@@ -32,6 +32,8 @@ import {
 } from '../systems/npcStateEngine';
 import { isPlaytestEnabled } from '../hooks/narrativePlaytest';
 import accidentMemoryVideo from '../video/grok-video-5614ed35-6339-496a-bc6b-027280fb9c19.mp4';
+import aoiLayer1Bg from '../../images/aoi/psyWorld-L1-bg.png';
+import aoiBearImage from '../../images/aoi/psyWorld-L1-bear.png';
 
 // ============================================================
 // Props
@@ -294,6 +296,101 @@ function GlowingCanvasVisual({ children, layerNum, floatingTextsByLayer }: { chi
   );
 }
 
+// ---- 小葵專屬視覺元件 ----
+
+interface AoiImageItemProps {
+  image: string;
+  name: string;
+  coord: { top: string; left: string };
+  onClick: () => void;
+  isCollected: boolean;
+  width?: number;
+}
+
+function AoiImageItem({ image, name, coord, onClick, isCollected, width = 100 }: AoiImageItemProps) {
+  return (
+    <button
+      onClick={onClick}
+      title={name}
+      style={{
+        position: 'absolute', top: coord.top, left: coord.left,
+        transform: 'translate(-50%, -50%)', background: 'none', border: 'none', outline: 'none',
+        cursor: 'pointer', pointerEvents: 'auto', zIndex: 10,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+        transition: 'transform 0.2s ease, filter 0.2s ease',
+        filter: isCollected ? 'drop-shadow(0 0 10px rgba(255,213,79,0.7))' : 'none',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.08)'; e.currentTarget.style.filter = 'brightness(1.08)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)'; e.currentTarget.style.filter = isCollected ? 'drop-shadow(0 0 10px rgba(255,213,79,0.7))' : 'none'; }}
+    >
+      <img src={image} alt={name} style={{ width, height: 'auto', display: 'block', objectFit: 'contain' }} />
+      <div style={{ marginTop: 4, color: isCollected ? '#ffd54f' : '#eee', fontSize: 11, fontWeight: 'bold', padding: '2px 8px', background: 'rgba(0,0,0,0.72)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.18)', whiteSpace: 'nowrap', textShadow: isCollected ? '0 0 4px rgba(255,213,79,0.5)' : 'none' }}>
+        {name}{isCollected && ' ✦'}
+      </div>
+    </button>
+  );
+}
+
+interface AoiRecorderPlaceholderProps {
+  name: string;
+  coord: { top: string; left: string };
+  onClick: () => void;
+  isCollected: boolean;
+}
+
+function AoiRecorderPlaceholder({ name, coord, onClick, isCollected }: AoiRecorderPlaceholderProps) {
+  return (
+    <button
+      onClick={onClick}
+      title={name}
+      style={{
+        position: 'absolute', top: coord.top, left: coord.left,
+        transform: 'translate(-50%, -50%)', background: 'none', border: 'none', outline: 'none',
+        cursor: 'pointer', pointerEvents: 'auto', zIndex: 10,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+        transition: 'transform 0.2s ease, filter 0.2s ease',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.08)'; e.currentTarget.style.filter = 'brightness(1.08)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)'; e.currentTarget.style.filter = 'none'; }}
+    >
+      <div style={{ fontSize: 44, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>🎙️</div>
+      <div style={{ marginTop: 2, color: isCollected ? '#ffd54f' : '#eee', fontSize: 11, fontWeight: 'bold', padding: '2px 8px', background: 'rgba(0,0,0,0.72)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.18)', whiteSpace: 'nowrap' }}>
+        {name}{isCollected && ' ✦'}
+      </div>
+      <div style={{ fontSize: 10, color: '#aaa', background: 'rgba(0,0,0,0.6)', borderRadius: 8, padding: '1px 6px' }}>預留圖片</div>
+    </button>
+  );
+}
+
+function AoiBrokenHomeVisual({ layer, floatingTextsByLayer, children }: { layer: PsychLayerData; floatingTextsByLayer: Record<number, string[]>; children: React.ReactNode }) {
+  return (
+    <div style={{ width: 'min(95vw, 100%)', height: 'min(95vh, 100%)', borderRadius: 20, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <img src={aoiLayer1Bg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 30%, rgba(0,0,0,0.12), transparent 60%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }}>
+        <FloatingComments layerNum={layer.layerNumber} floatingTextsByLayer={floatingTextsByLayer} />
+      </div>
+      <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'auto' }}>{children}</div>
+    </div>
+  );
+}
+
+function AoiPlaceholderVisual({ layer, floatingTextsByLayer, children, label, colors }: { layer: PsychLayerData; floatingTextsByLayer: Record<number, string[]>; children: React.ReactNode; label: string; colors: SchemeColors }) {
+  return (
+    <div style={{ width: 'min(95vw, 100%)', height: 'min(95vh, 100%)', borderRadius: 20, background: 'radial-gradient(circle at 50% 40%, rgba(30,30,35,0.7), rgba(8,8,12,0.98))', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
+      <div style={{ textAlign: 'center', color: '#666', userSelect: 'none', pointerEvents: 'none' }}>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>🖼️</div>
+        <div style={{ fontSize: 14 }}>{label}</div>
+        <div style={{ fontSize: 12, marginTop: 4, color: '#555' }}>背景圖片／影片預留</div>
+      </div>
+      <div style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }}>
+        <FloatingComments layerNum={layer.layerNumber} floatingTextsByLayer={floatingTextsByLayer} />
+      </div>
+      <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'auto' }}>{children}</div>
+    </div>
+  );
+}
+
 // ---- Icon map ----
 function getIcon(id: string): string {
   const m: Record<string,string> = {
@@ -301,7 +398,7 @@ function getIcon(id: string): string {
     shattered_windshield:'🪟',accident_newspaper:'📰',color_test_chart:'🔬',broken_brush_scene:'🖌️',bridge_railing:'🌉',
     fading_canvas_series:'🖼️',unsent_withdrawal_letter:'✉️',cracked_mirror:'🪞',empty_tubes_pile:'🎨',last_fan_letter:'💌',
     the_empty_frame:'🖼️',echo_trophy:'✨',echo_broken_brush:'✨',new_canvas:'🖌️',
-    family_photo:'🖼️',corner_aoi:'👧',arguing_parents:'💢',slammed_door:'🚪',cold_dinner_table:'🍽️',
+    broken_bear_doll:'🧸',family_photo:'🖼️',corner_aoi:'👧',arguing_parents:'💢',voice_recorder:'🎙️',
     stage_spotlight:'🔦',audience_seats:'👥',parents_arguing_silhouette:'💔',faltering_dance_steps:'💃',red_dance_shoes_scene:'👠',
     static_swing:'🎠',school_bag:'🎒',muddy_shoes:'👠',recording_pen_scene:'🎙️',
   };
@@ -680,7 +777,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
 
         <main style={{ display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,opacity:isModalOpen?0.3:1,pointerEvents:isModalOpen?'none':'auto',transition:'opacity 0.3s ease',height:'100%',overflow:'hidden',flex:1 }}>
           <div style={{ position:'relative',width:'100%',flex:1,display:'flex',alignItems:'center',justifyContent:'center' }}>
-            {/* bridgePainter 特定 Visuals；aoi → 通用視覺；其他 NPC → Coming Soon */}
+            {/* bridgePainter 特定 Visuals；aoi → 背景圖 + 圖片化互動物件；其他 NPC → Coming Soon */}
             {npcId === 'bridge_artist' ? (
               <>
                 {layerNum === 1 && (
@@ -711,11 +808,39 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                   </GlowingCanvasVisual>
                 )}
               </>
-            ) : npcId === 'aoi' ? (
-              <GenericInnerWorldVisual layer={layer} colors={colors} floatingTextsByLayer={floatingTextsByLayer}>
-                {layer.interactables.map(obj => { const coord = pinCoordinates[obj.id] || { top:'50%',left:'50%' }; const isDisc = discoveredIds.includes(obj.id); const hasIn = hasInsight(understanding, obj.id); return (<InteractivePin key={obj.id} icon={getIcon(obj.id)} name={obj.name} isCollected={hasIn} isDiscovered={isDisc} onClick={() => handleClickObject(obj)} style={{ top:coord.top,left:coord.left,transform:'translate(-50%, -50%)' }} />); })}
-              </GenericInnerWorldVisual>
-            ) : (
+            ) : npcId === 'aoi' ? (() => {
+              const bear = layer.interactables.find(o => o.id === 'broken_bear_doll');
+              const recorder = layer.interactables.find(o => o.id === 'voice_recorder');
+              const CN = ['一','二','三','四'];
+              if (layerNum === 1) {
+                return (
+                  <AoiBrokenHomeVisual layer={layer} floatingTextsByLayer={floatingTextsByLayer}>
+                    {layer.interactables.map(obj => {
+                      const coord = pinCoordinates[obj.id] || { top:'50%',left:'50%' };
+                      const isDisc = discoveredIds.includes(obj.id);
+                      const hasIn = hasInsight(understanding, obj.id);
+                      if (obj.id === 'broken_bear_doll' && bear) {
+                        return <AoiImageItem key={obj.id} image={aoiBearImage} name={obj.name} coord={coord} onClick={() => handleClickObject(obj)} isCollected={hasIn} width={130} />;
+                      }
+                      if (obj.id === 'voice_recorder' && recorder) {
+                        return <AoiRecorderPlaceholder key={obj.id} name={obj.name} coord={coord} onClick={() => handleClickObject(obj)} isCollected={hasIn} />;
+                      }
+                      return (<InteractivePin key={obj.id} icon={getIcon(obj.id)} name={obj.name} isCollected={hasIn} isDiscovered={isDisc} onClick={() => handleClickObject(obj)} style={{ top:coord.top,left:coord.left,transform:'translate(-50%, -50%)' }} />);
+                    })}
+                  </AoiBrokenHomeVisual>
+                );
+              }
+              return (
+                <AoiPlaceholderVisual layer={layer} floatingTextsByLayer={floatingTextsByLayer} colors={colors} label={`第${CN[layerNum-1]}層：${layer.layerName}`}>
+                  {layer.interactables.map(obj => {
+                    const coord = pinCoordinates[obj.id] || { top:'50%',left:'50%' };
+                    const isDisc = discoveredIds.includes(obj.id);
+                    const hasIn = hasInsight(understanding, obj.id);
+                    return (<InteractivePin key={obj.id} icon={getIcon(obj.id)} name={obj.name} isCollected={hasIn} isDiscovered={isDisc} onClick={() => handleClickObject(obj)} style={{ top:coord.top,left:coord.left,transform:'translate(-50%, -50%)' }} />);
+                  })}
+                </AoiPlaceholderVisual>
+              );
+            })() : (
               <ComingSoonVisual layerNum={layerNum} npcId={npcId} />
             )}
           </div>
