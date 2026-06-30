@@ -129,10 +129,6 @@ function flagName(flag: string): string {
     painter_reacted_to_brush: '🖌 畫筆反應',
     painter_acknowledged_accident: '📰 真相接近',
     painter_sketchbook_understood: '📓 素描理解',
-    aoi_reacted_to_dance_shoes: '👞 舞鞋反應',
-    aoi_acknowledged_recording_pen: '🎙️ 錄音筆',
-    aoi_spinning_cube_understood: '🧊 魔方理解',
-    aoi_swing_chain_understood: '🪐 鞦韆理解',
     aoi_family_topic_triggered: '🚪 觸及家庭',
     inner_world_unlocked: '🔓 內心解鎖',
     bridge_artist_failed: '💀 天橋畫家 失敗',
@@ -191,10 +187,6 @@ function computeBranches(npcId: NpcId, clues: string[]): { unlocked: Branch[]; l
       { label: '懂事消費', trigger: '懂事/堅強…', available: true, requirement: '永遠可用' },
       { label: '安全場景', trigger: '公園/鞦韆…', available: true, requirement: '永遠可用' },
       { label: '觸及家庭', trigger: '父母/家裡…', available: true, requirement: '永遠可用' },
-      { label: '舞鞋反應', trigger: '舞鞋/跳舞…', available: clues.includes('muddy_dance_shoes'), requirement: '需收集：紅舞鞋' },
-      { label: '錄音筆真相', trigger: '錄音/爭吵…', available: clues.includes('recording_pen'), requirement: '需收集：錄音筆' },
-      { label: '魔方理解', trigger: '魔方/旋轉…', available: clues.includes('spinning_cube'), requirement: '需收集：魔方' },
-      { label: '鞦韆理解', trigger: '鞦韆/靜止…', available: clues.includes('static_swing_chain'), requirement: '需收集：鞦韆' },
     ];
     return { unlocked: all.filter(b => b.available), locked: all.filter(b => !b.available) };
   }

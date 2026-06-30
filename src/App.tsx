@@ -21,8 +21,7 @@ import {
 
 type Screen = 'title' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
 
-function getNpcIdForLocation(locationId: LocationId): NpcId {
-  if (locationId === 'park') return 'aoi';
+function getNpcIdForLocation(_locationId: LocationId): NpcId {
   return 'bridge_artist';
 }
 

@@ -12,7 +12,6 @@ import {
 import brushImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_49_08.png';
 import newspaperImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_50_17.png';
 import sketchbookImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_51_17.png';
-import aoiClueImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_38_45.png';
 import painterImage from '../../images/character/IMG_3556.png';
 import painterUnlockedImage from '../../images/character/IMG_3562.png';
 
@@ -53,10 +52,6 @@ const CLUE_IMAGE_MAP: Partial<Record<ClueId, string>> = {
   newspaper: newspaperImage,
   sketchbook: sketchbookImage,
   accident_report: newspaperImage,
-  muddy_dance_shoes: aoiClueImage,
-  recording_pen: aoiClueImage,
-  spinning_cube: aoiClueImage,
-  static_swing_chain: aoiClueImage,
 };
 
 function clueName(clueId: ClueId) {
@@ -74,8 +69,7 @@ function adjustColorBrightness(hex: string, percent: number) {
 }
 
 // ---- 位置 → NPC 對應表（未來可移至註冊中心） ----
-function getNpcIdForLocation(locationId: LocationId): NpcId {
-  if (locationId === 'park') return 'aoi';
+function getNpcIdForLocation(_locationId: LocationId): NpcId {
   return 'bridge_artist';
 }
 
@@ -315,26 +309,15 @@ export default function OuterWorldExplorer({
 
     // 傳送點處理（通用）
     if (entity?.type === 'portal') {
-      if (targetId === 'park_portal') {
-        setCurrentLocation('park');
-        setPlayerPos(locations['park'].spawn);
-        focusCameraOnPlayer(locations['park'].spawn);
-        return;
-      }
-      if (targetId === 'skybridge_portal') {
-        setCurrentLocation('skybridge');
-        setPlayerPos(locations['skybridge'].spawn);
-        focusCameraOnPlayer(locations['skybridge'].spawn);
-        return;
-      }
       return;
     }
 
     // 委派給世界模組的互動邏輯
+    const targetNpcState = entity?.id === 'aoi' ? save.npcs['aoi'] : npcState;
     const interaction = world.getInteraction?.(targetId, {
-      npcEnding: npcState?.ending ?? 'none',
-      npcInnerWorldUnlocked: npcState?.innerWorldUnlocked ?? false,
-      npcFlags: npcState?.flags ?? [],
+      npcEnding: targetNpcState?.ending ?? 'none',
+      npcInnerWorldUnlocked: targetNpcState?.innerWorldUnlocked ?? false,
+      npcFlags: targetNpcState?.flags ?? [],
       collectedClues: save.collectedClues,
       onOpenConversation,
       onEnterInnerWorld,
@@ -363,9 +346,13 @@ export default function OuterWorldExplorer({
       return;
     }
 
-    // NPC 實體：開啟對話
+    // NPC 實體：根據 entity.id 切換到對應 NPC
     if (entity?.type === 'npc') {
-      onSwitchNpc?.(npcId);
+      if (entity.id === 'aoi') {
+        onSwitchNpc?.('aoi');
+      } else {
+        onSwitchNpc?.('bridge_artist');
+      }
       onOpenConversation();
       return;
     }
@@ -472,19 +459,17 @@ export default function OuterWorldExplorer({
       <GlassPanel title="提燈筆記" variant="dark" style={{ position: 'absolute', top: 20, left: 20, zIndex: 100, width: 270 }} contentStyle={{ display: 'grid', gap: 12, padding: 16 }}>
         <div style={{ fontSize: 13, lineHeight: 1.7, color: '#bbb' }}>
           {npcState?.innerWorldUnlocked
-            ? (npcId === 'aoi' ? '公園的鞦韆旁出現了微弱的門縫光。' : '天橋盡頭出現了微弱的門縫光。')
-            : (npcId === 'aoi' ? '公園裡很安靜，故事還沒有拼合。' : '雨聲仍很密，故事還沒有拼合。')}
+            ? '天橋盡頭出現了微弱的門縫光。'
+            : '雨聲仍很密，故事還沒有拼合。'}
           <br />
           {npcState?.ending === 'success' && (
             <span style={{ color: '#b8ffd6' }}>
-              {npcId === 'aoi' ? '她終於聽見了風聲。' : '畫家終於聽見了雨聲。'}
+              畫家終於聽見了雨聲。
             </span>
           )}
           {npcState?.ending === 'failed' && (
             <span style={{ color: '#ffd0d0' }}>
-              {npcId === 'aoi'
-                ? '公園裡只剩下一雙被遺棄的紅舞鞋。'
-                : '天橋上只剩下一張被撕碎的空白畫布。'}
+              天橋上只剩下一張被撕碎的空白畫布。
             </span>
           )}
         </div>
@@ -531,7 +516,7 @@ export default function OuterWorldExplorer({
           const isImg = entity.type === 'clue' && Boolean(cImg);
           const isPtr = entity.id === 'painter';
           const isTC = entity.id === 'torn_canvas';
-          const isPill = !isImg && !isPtr && !isTC && (isGDoor || entity.id === 'park_portal' || entity.id === 'skybridge_portal' || entity.id === 'brush' || entity.id === 'newspaper' || entity.id === 'sketchbook' || entity.id === 'accident_report');
+          const isPill = !isImg && !isPtr && !isTC && (isGDoor || entity.id === 'brush' || entity.id === 'newspaper' || entity.id === 'sketchbook' || entity.id === 'accident_report');
           const bw = isTC ? 82 : (isImg ? 88 : (isPill ? 94 : (entity.type === 'npc' ? 64 : 48)));
           const bh = isTC ? 82 : (isImg ? 112 : (isPill ? 36 : (entity.type === 'npc' ? 84 : 48)));
           return (
