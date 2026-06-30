@@ -189,13 +189,13 @@ export function getEntities(ctx: {
       });
     }
     list.push({
+      id: 'aoi', label: '小葵', type: 'npc',
+      pos: { x: 21, y: 17.5 },
+      color: '#ffaa33', icon: '葵',
+    });
+    list.push({
       id: 'gallery_door', label: '畫廊大門', type: 'clue',
       pos: { x: 18.0, y: 7.0 }, color: '#ec407a', icon: '門',
-    });
-    // 傳送到公園
-    list.push({
-      id: 'park_portal', label: '公園', type: 'portal',
-      pos: { x: 5, y: 9 }, color: '#66bb6a', icon: '🧭',
     });
   }
 
@@ -230,6 +230,17 @@ export function getInteraction(
       };
     }
     return null; // 信號：應該開對話頁
+  }
+
+  if (entityId === 'aoi') {
+    if (ctx.npcEnding === 'success') {
+      return {
+        title: '成功結局：靜止的鞦韆',
+        content: '她沒有重新開始跳舞，也沒有立刻變好。\n\n但她終於坐在鞦韆上，沒有晃動，只是靜靜地待著。\n\n「原來……不做事的時候，我也還在。」',
+        actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: ctx.onOpenReport }],
+      };
+    }
+    return null; // 信號：應該開對話頁（ OuterWorldExplorer 處理 onSwitchNpc + onOpenConversation ）
   }
 
   if (entityId === 'torn_canvas') {
@@ -295,7 +306,6 @@ export const bridgePainterOuterWorld = {
   locationDisplay,
   locationOffsets: {
     newsstand: { x: 3, y: 1 },
-    park: { x: 10, y: 6.5 },
   },
   getElevation: getSkybridgeElevation,
   getMaxX: (_lid: string) => 28,
