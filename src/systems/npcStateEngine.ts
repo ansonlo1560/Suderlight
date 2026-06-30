@@ -227,7 +227,7 @@ export function evaluateAoiDialogue(
     stressDelta = 8;
     reason = '你觸碰到「懂事孩子」的壓力。系統判定她感到被「成熟」和「才華」消費。';
     flags.push('player_consumed_good_child_identity');
-  } else if (hasAny(input, aoiEmpathyWords)) {
+  } else   if (hasAny(input, aoiEmpathyWords)) {
     trustDelta = 10;
     stressDelta = -8;
     reason = '你選擇陪伴與接納，而不是要求她「好起來」。Trust 上升，Stress 下降。';
@@ -237,26 +237,6 @@ export function evaluateAoiDialogue(
     stressDelta = -5;
     reason = '你把注意力放回她感到安全的地方——公園的安靜角落。';
     flags.push('player_grounded_in_safe_place');
-  } else if (context.collectedClues.includes('muddy_dance_shoes') && (input.includes('舞鞋') || input.includes('跳舞') || input.includes('泥') || input.includes('鞋子'))) {
-    trustDelta = 5;
-    stressDelta = 2;
-    reason = '你注意到了那雙被丟棄的舞鞋。這增加真相接近度，也讓她的壓力短暫升高。';
-    flags.push('aoi_reacted_to_dance_shoes');
-  } else if (context.collectedClues.includes('recording_pen') && (input.includes('錄音') || input.includes('錄音筆') || input.includes('聽到') || input.includes('爭吵'))) {
-    trustDelta = 6;
-    stressDelta = 3;
-    reason = '你基於已收集的錄音筆線索提問。她發現你知道了她最不願示人的秘密。';
-    flags.push('aoi_acknowledged_recording_pen');
-  } else if (context.collectedClues.includes('spinning_cube') && (input.includes('魔方') || input.includes('旋轉') || input.includes('正方形') || input.includes('轉動'))) {
-    trustDelta = 7;
-    stressDelta = -1;
-    reason = '你讀懂了魔方對她的意義——秩序與控制，而不是玩具。';
-    flags.push('aoi_spinning_cube_understood');
-  } else if (context.collectedClues.includes('static_swing_chain') && (input.includes('鞦韆') || input.includes('鏈條') || input.includes('靜止') || input.includes('靜止的鞦韆'))) {
-    trustDelta = 7;
-    stressDelta = -2;
-    reason = '你注意到了那架靜止的鞦韆。你明白了：她沒有坐上去，不是因為不想，而是因為她不允許自己快樂。';
-    flags.push('aoi_swing_chain_understood');
   } else if (input.includes('父母') || input.includes('媽媽') || input.includes('爸爸') || input.includes('家裡') || input.includes('家庭')) {
     trustDelta = -2;
     stressDelta = 5;
