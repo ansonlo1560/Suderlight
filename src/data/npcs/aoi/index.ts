@@ -3,52 +3,7 @@
 // 基於 aoi.md 建立最小可行結構，內容待完善
 // ============================================================
 
-import type { NpcDefinition, RepairTipRule, ClueDefinition } from '../types';
-
-// ---- 線索資料 ----
-
-export type AoiClueId = 'muddy_dance_shoes' | 'recording_pen' | 'spinning_cube' | 'static_swing_chain';
-
-export const aoiClues: Record<AoiClueId, ClueDefinition> = {
-  muddy_dance_shoes: {
-    id: 'muddy_dance_shoes', label: '沾滿泥土的紅舞鞋', shortLabel: '紅舞鞋', knowledge: 15,
-    worldId: 'aoi', locationId: 'park',
-    pos: { x: 6, y: 9 }, color: '#ff6b6b', icon: '鞋',
-    content: '一雙紅色的舞鞋被丟在公園角落，鞋面上沾滿乾掉的泥土。鞋帶鬆開，像一雙被遺棄的手。',
-    dictionaryHint: '她曾經最愛跳舞，但自從父母在她的發表會上大吵後，她再也不敢穿上它。',
-    insightTitle: '被遺棄的快樂',
-    insightDesc: '她曾經最愛跳舞，但自從父母在她的發表會上大吵後，她再也不敢穿上它。快樂不再是她的權利，而是危險的導火線。',
-  },
-  recording_pen: {
-    id: 'recording_pen', label: '錄音筆', shortLabel: '錄音筆', knowledge: 15,
-    worldId: 'aoi', locationId: 'park',
-    pos: { x: 14, y: 16 }, color: '#a0a0a0', icon: '筆',
-    content: '一支舊款錄音筆，外殼有幾道刮痕。裡面錄下了父母激烈的爭吵聲，背景中能聽到一個孩子微弱、急促的呼吸聲。',
-    dictionaryHint: '她反覆聆聽爭吵，試圖從中找到「解決方案」。',
-    insightTitle: '反覆聆聽的創傷',
-    insightDesc: '她反覆聆聽爭吵，試圖從中找到「解決方案」。但爭吵的內容永遠不會改變，她只是在試圖控制不可控之物。',
-  },
-  spinning_cube: {
-    id: 'spinning_cube', label: '旋轉的魔方色塊', shortLabel: '魔方', knowledge: 15,
-    worldId: 'aoi', locationId: 'park',
-    pos: { x: 8, y: 14 }, color: '#ffd93d', icon: '方',
-    content: '一個老舊的魔方，其中一面已經剝落。剩下的色塊仍然鮮豔，但無論怎麼轉，都無法讓它恢復完整的樣子。',
-    dictionaryHint: '她相信只要自己夠聰明、夠小心，就能讓一切恢復秩序。',
-    insightTitle: '無法恢復的秩序',
-    insightDesc: '她相信只要自己夠聰明、夠小心，就能讓一切恢復秩序。但魔方的色塊已經剝落，有些混亂無法被轉回去。',
-  },
-  static_swing_chain: {
-    id: 'static_swing_chain', label: '靜止的鞦韆鏈條', shortLabel: '鞦韆', knowledge: 15,
-    worldId: 'aoi', locationId: 'park',
-    pos: { x: 14, y: 14 }, color: '#6bcb77', icon: '鏈',
-    content: '一架鞦韆靜止不動，鏈條上沒有使用痕跡。旁邊放著一個書包，沒有大人，沒有爭吵聲，很安靜。',
-    dictionaryHint: '她可以只是坐著，不必解決任何問題。',
-    insightTitle: '允許無所事事的權利',
-    insightDesc: '她終於來到一個沒有爭吵的地方，但她已經忘記了如何允許自己快樂。鞦韆靜止不動，她連坐上去都不敢。',
-  },
-};
-
-export const aoiClueOrder: AoiClueId[] = ['muddy_dance_shoes', 'recording_pen', 'spinning_cube', 'static_swing_chain'];
+import type { NpcDefinition, RepairTipRule } from '../types';
 
 // ---- 角色卡 ----
 
@@ -56,7 +11,7 @@ export const aoiCard = {
   id: 'aoi' as const,
   name: '學童 小葵',
   displayName: '小葵',
-  districtId: 'park',
+  districtId: 'skybridge',
   innerWorldTemplate: 'chaotic_cube',
   coreEmotion: '安全感缺失、過度警覺、被迫早熟',
   role: '在父母冷戰期間被迫成為兩人間唯一的溝通橋樑，學會根據腳步聲和關門力道調整自己的呼吸。認為自己必須隨時「接住」大人的情緒，否則家就會爆炸。',
@@ -100,38 +55,6 @@ export const aoiCard = {
 // ---- Lorebook ----
 
 export const aoiLorebook = [
-  {
-    id: 'clue_muddy_dance_shoes',
-    keywords: ['紅舞鞋', '舞鞋', '跳舞', '泥土', 'dance'],
-    requiredFlags: ['inventory.muddy_dance_shoes'],
-    relatedNpcIds: ['aoi'],
-    priority: 90,
-    content: '玩家已找到沾滿泥土的紅舞鞋。這是小葵曾經最愛的舞鞋。她會短暫想起跳舞的感覺，但立刻用壓抑掩飾。',
-  },
-  {
-    id: 'clue_recording_pen',
-    keywords: ['錄音筆', '錄音', '爭吵', '吵架', 'recording'],
-    requiredFlags: ['inventory.recording_pen'],
-    relatedNpcIds: ['aoi'],
-    priority: 85,
-    content: '玩家已找到錄音筆。小葵反覆聆聽父母的爭吵，試圖從中找到「解決方案」。她會對這條線索更脆弱。',
-  },
-  {
-    id: 'clue_spinning_cube',
-    keywords: ['魔方', '色塊', '控制', '秩序', 'cube'],
-    requiredFlags: ['inventory.spinning_cube'],
-    relatedNpcIds: ['aoi'],
-    priority: 80,
-    content: '玩家已找到魔方。小葵相信只要自己夠聰明、夠小心，就能讓一切恢復秩序。這反映了她對家庭失控的恐懼。',
-  },
-  {
-    id: 'clue_static_swing_chain',
-    keywords: ['鞦韆', '靜止', '書包', 'swing'],
-    requiredFlags: ['inventory.static_swing_chain'],
-    relatedNpcIds: ['aoi'],
-    priority: 88,
-    content: '玩家已找到靜止的鞦韆。這是小葵最後的避風港。她不需要鞦韆晃動，只需要它靜靜地存在。',
-  },
   {
     id: 'world_park_silence',
     keywords: ['公園', '安靜', '沉默', '鞦韆', 'park'],
@@ -283,11 +206,8 @@ function simulateAoiReply(params: {
   history: Array<{ role: 'player' | 'npc' | 'system'; content: string }>;
   depth: number;
 }) {
-  const { playerInput, inventory, history, depth } = params;
+  const { playerInput, history, depth } = params;
   const input = playerInput.trim().toLowerCase();
-  const hasShoes = inventory.includes('muddy_dance_shoes');
-  const hasPen = inventory.includes('recording_pen');
-  const hasCube = inventory.includes('spinning_cube');
   const playerTurns = history.filter(m => m.role === 'player').length;
 
   if (hasAny(input, ['我想死', '想死', '不想活', '自殺', '傷害自己'])) {
@@ -338,30 +258,6 @@ function simulateAoiReply(params: {
         ? '……那你就站遠一點吧。\n不用看我，也不用問我。\n安靜……如果夠久，也許我能睡着一點點。'
         : '……你不問我為什麼不回家？\n很多大人來到這裡，第一句話都是要我「懂事」。',
       dictionaryHint: '陪伴不是把人拉出黑暗，而是在黑暗裡讓他知道自己不是唯一的輪廓。',
-      safetyLevel: 'safe' as const,
-    };
-  }
-
-  if (hasShoes && hasAny(input, ['舞鞋', '跳舞', '紅舞鞋', 'dance'])) {
-    return {
-      dialogue: '……別拿近。\n那雙鞋以前會弄髒我的腳。現在它只會提醒我，腳還在，但不敢跳了。',
-      dictionaryHint: '空虛並非什麼都沒有，而是感覺到有一種「沒有」正在吞噬自己。',
-      safetyLevel: 'safe' as const,
-    };
-  }
-
-  if (hasPen && hasAny(input, ['錄音筆', '錄音', '爭吵', '吵架'])) {
-    return {
-      dialogue: '……那些聲音一直都在。\n我以為只要我聽得夠仔細，就能找到讓它們停止的辦法。\n但原來……我什麼都做不了。',
-      dictionaryHint: '反覆聆聽創傷，有時是一種試圖控制不可控之物的掙扎。',
-      safetyLevel: 'safe' as const,
-    };
-  }
-
-  if (hasCube && hasAny(input, ['魔方', '控制', '秩序', '聰明'])) {
-    return {
-      dialogue: '……我一直轉，一直轉。\n以為只要夠聰明，就能讓所有顏色回到對的位置。\n但家……不是魔方。它不會因為我轉得快就變好。',
-      dictionaryHint: '當一個孩子將自我價值完全綁定在「維持家庭和平」的責任上，她還能允許自己只是一個孩子嗎？',
       safetyLevel: 'safe' as const,
     };
   }
@@ -455,30 +351,6 @@ export const aoiDefinition: NpcDefinition = {
     stress: 90,
   },
 };
-
-// ---- 字典條目（小葵專屬） ----
-export const aoiDictionary = [
-  {
-    id: 'loss_of_safety', name: '安全感缺失',
-    description: '她不再相信世界是安全的。父母的爭吵讓她學會了隨時警戒，認為自己必須「接住」大人的情緒，否則家就會爆炸。',
-    relatedClues: ['muddy_dance_shoes'], unlockCondition: 'muddy_dance_shoes',
-  },
-  {
-    id: 'premature_adulting', name: '過早成年',
-    description: '她被迫承擔成人情緒責任，學會根據腳步聲和關門力道調整呼吸。她將整個家庭的情感平衡當成了自己的責任。',
-    relatedClues: ['recording_pen'], unlockCondition: 'recording_pen',
-  },
-  {
-    id: 'abandoned_joy', name: '放棄的快樂',
-    description: '她曾經熱愛跳舞，但父母的爭吵讓快樂變成了罪惡。沾滿泥土的紅舞鞋是她放棄童年的證據。',
-    relatedClues: ['spinning_cube'], unlockCondition: 'spinning_cube',
-  },
-  {
-    id: 'right_to_be_still', name: '無所事事的權力',
-    description: '她意識到自己可以只是坐著，不必解決任何問題。靜止的鞦韆是她重新找回「只做一個孩子」的權利的象徵。',
-    relatedClues: ['static_swing_chain'], unlockCondition: 'static_swing_chain',
-  },
-];
 
 // ---- 餘波匯報（AftermathReport 文案） ----
 export const aoiAftermath = {
