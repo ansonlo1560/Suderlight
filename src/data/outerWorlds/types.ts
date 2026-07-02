@@ -40,6 +40,15 @@ export type Building = {
 
 export type RoadDef = Point[][];
 
+export type SceneryItem = {
+  id: string;
+  type: 'swing' | 'slide' | 'tree' | 'grass';
+  pos: Point;
+  size?: number;
+  rotation?: number;
+  label?: string;
+};
+
 export type Cliff = {
   boundingBox: { minX: number; maxX: number; minY: number; maxY: number };
   elevation: number;
@@ -94,6 +103,8 @@ export type OuterWorldDefinition = {
   }) => EntityTemplate[];
   locationDisplay: LocationDisplay;
   locationOffsets: Record<string, { x: number; y: number }>;
+  /** 場景裝飾：不具互動性的地圖元素，例如公園的鞦韆、滑梯、樹、草 */
+  scenery?: SceneryItem[];
   getElevation: (pos: Point) => number;
   getMaxX: (locationId: string) => number;
   getMaxY: (locationId: string) => number;

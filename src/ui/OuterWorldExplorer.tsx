@@ -15,6 +15,8 @@ import sketchbookImage from '../../images/item/ChatGPT Image 2026年5月29日 �
 import painterImage from '../../images/character/IMG_3556.png';
 import painterUnlockedImage from '../../images/character/IMG_3562.png';
 
+import type { SceneryItem } from '../data/outerWorlds/types';
+
 // ---- 型別 ----
 type Point = { x: number; y: number };
 type EntityId = string;
@@ -236,6 +238,99 @@ function IsometricRoads({ world, locationId, isRepaired }: { world: OuterWorldMo
       {locationId === 'skybridge' && bridgeDetails && (
         <g>{bridgeDetails.railings.map((rg, gi) => (<g key={gi}>{rg.map((l, i) => (<line key={i} x1={l.p1.left} y1={l.p1.top} x2={l.p2.left} y2={l.p2.top} stroke={isRepaired ? 'rgba(255,224,130,0.45)' : 'rgba(255,255,255,0.15)'} strokeWidth="1" style={{ transition: 'stroke 1.5s ease' }} />))}{rg.length > 0 && <path d={`M ${rg[0].p2.left} ${rg[0].p2.top} ` + rg.slice(1).map(l => `L ${l.p2.left} ${l.p2.top}`).join(' ')} fill="none" stroke={isRepaired ? 'rgba(255,224,130,0.65)' : 'rgba(255,255,255,0.25)'} strokeWidth="1.5" style={{ transition: 'stroke 1.5s ease' }} />}</g>))}</g>
       )}
+    </svg>
+  );
+}
+
+// ---- 公園場景裝飾 ----
+function ParkScenery({ world, locationId, scenery, isRepaired }: { world: OuterWorldModule; locationId: LocationId; scenery?: SceneryItem[]; isRepaired?: boolean }) {
+  if (!scenery || scenery.length === 0) return null;
+  const items = useMemo(() => {
+    return [...scenery].sort((a, b) => a.pos.y - b.pos.y || a.pos.x - b.pos.x);
+  }, [scenery]);
+
+  const renderItem = (item: SceneryItem) => {
+    const s = isoToScreen(item.pos);
+    const elev = world.getElevation(item.pos);
+    const top = s.top - elev;
+    const left = s.left;
+    const scale = item.size ?? 1;
+    const key = `${item.id}-${locationId}`;
+
+    switch (item.type) {
+      case 'tree': {
+        const trunkW = 6 * scale;
+        const trunkH = 26 * scale;
+        const crownR = 20 * scale;
+        const trunkFill = isRepaired ? '#4a3728' : '#5a5a5a';
+        const crownFills = isRepaired
+          ? ['#2e7d32', '#388e3c', '#1b5e20']
+          : ['#555555', '#444444', '#333333'];
+        return (
+          <g key={key} transform={`translate(${left}, ${top})`}>
+            <rect x={-trunkW / 2} y={-trunkH} width={trunkW} height={trunkH} fill={trunkFill} />
+            <circle cx={0} cy={-trunkH - crownR * 0.4} r={crownR} fill={crownFills[0]} opacity="0.95" />
+            <circle cx={-crownR * 0.3} cy={-trunkH - crownR * 0.7} r={crownR * 0.7} fill={crownFills[1]} opacity="0.9" />
+            <circle cx={crownR * 0.3} cy={-trunkH - crownR * 0.6} r={crownR * 0.75} fill={crownFills[2]} opacity="0.85" />
+          </g>
+        );
+      }
+      case 'grass': {
+        const h = 12 * scale;
+        const offsets = [-5, 0, 5];
+        const tilts = [-3, 0, 3];
+        const stroke = isRepaired ? '#4caf50' : '#666666';
+        return (
+          <g key={key} transform={`translate(${left}, ${top})`}>
+            {offsets.map((off, i) => (
+              <line key={i} x1={off} y1={0} x2={off + tilts[i]} y2={-h} stroke={stroke} strokeWidth="1.5" opacity="0.7" />
+            ))}
+          </g>
+        );
+      }
+      case 'swing': {
+        const frameW = 40 * scale;
+        const frameH = 48 * scale;
+        const frameStroke = isRepaired ? '#5d4037' : '#555555';
+        const ropeStroke = isRepaired ? '#8d6e63' : '#666666';
+        const seatFill = isRepaired ? '#a1887f' : '#777777';
+        return (
+          <g key={key} transform={`translate(${left}, ${top})`}>
+            <line x1={-frameW / 2} y1={0} x2={-frameW / 2} y2={-frameH} stroke={frameStroke} strokeWidth="2" />
+            <line x1={frameW / 2} y1={0} x2={frameW / 2} y2={-frameH} stroke={frameStroke} strokeWidth="2" />
+            <line x1={-frameW / 2} y1={-frameH} x2={frameW / 2} y2={-frameH} stroke={frameStroke} strokeWidth="2" />
+            <line x1={-10} y1={-frameH} x2={-10} y2={-frameH + 18} stroke={ropeStroke} strokeWidth="2" />
+            <line x1={10} y1={-frameH} x2={10} y2={-frameH + 18} stroke={ropeStroke} strokeWidth="2" />
+            <rect x={-12} y={-frameH + 18} width={24} height={7} rx={2} fill={seatFill} />
+          </g>
+        );
+      }
+      case 'slide': {
+        const w = 44 * scale;
+        const h = 34 * scale;
+        const slideFill = isRepaired ? '#ef5350' : '#555555';
+        const frameStroke = isRepaired ? '#5d4037' : '#444444';
+        return (
+          <g key={key} transform={`translate(${left}, ${top})`}>
+            <path d={`M ${-w / 2} 0 L ${w / 2} ${-h} L ${w / 2 + 4} ${-h} L ${-w / 2 + 4} 0 Z`} fill={slideFill} opacity="0.9" />
+            <line x1={-w / 2 + 4} y1={0} x2={-w / 2 + 4} y2={-h - 8} stroke={frameStroke} strokeWidth="3" />
+            <line x1={w / 2 + 4} y1={-h} x2={w / 2 + 4} y2={-h - 8} stroke={frameStroke} strokeWidth="3" />
+            <line x1={-w / 2 + 4} y1={-h - 8} x2={w / 2 + 4} y2={-h - 8} stroke={frameStroke} strokeWidth="3" />
+            <line x1={-w / 2 + 6} y1={-2} x2={-w / 2 + 6} y2={-h - 6} stroke="rgba(255,255,255,0.35)" strokeWidth="1.5" />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <line key={i} x1={-w / 2 + 4} y1={-i * 7 - 4} x2={w / 2 + 4} y2={-h - i * 7 - 4} stroke="rgba(0,0,0,0.15)" strokeWidth="1.5" />
+            ))}
+          </g>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <svg width={world.mapWidth} height={world.mapHeight} style={{ position: 'absolute', left: 0, top: 0, zIndex: 2, pointerEvents: 'none', overflow: 'visible' }}>
+      {items.map(renderItem)}
     </svg>
   );
 }
@@ -501,6 +596,7 @@ export default function OuterWorldExplorer({
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 45% 35%, rgba(45,55,65,0.95), rgba(5,7,10,1) 70%)' }} />
         <div style={{ position: 'absolute', left: world.originX - 920, top: world.originY - 90, width: 1840, height: 1840, transform: 'rotateX(60deg) rotateZ(-45deg)', transformOrigin: 'center center', backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px), radial-gradient(circle at 50% 50%, rgba(120,140,160,0.16), rgba(30,34,40,0.86) 58%, rgba(10,12,16,0.96) 100%)', backgroundSize: '96px 96px, 96px 96px, cover', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 0 90px rgba(0,0,0,0.85) inset' }} />
         <IsometricRoads world={world} locationId={save.currentLocation} isRepaired={isRepaired} />
+        <ParkScenery world={world} locationId={save.currentLocation} scenery={world.scenery} isRepaired={save.npcs['aoi']?.ending === 'success'} />
         <div style={{ position: 'absolute', top: 58, left: '50%', transform: 'translateX(-50%)', width: 720, textAlign: 'center', pointerEvents: 'none', userSelect: 'none' }}>
           <div style={{ color: 'rgba(255,255,255,0.16)', fontSize: 28, letterSpacing: 8, fontWeight: 'bold' }}>{displayLoc.name}</div>
           <div style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13, lineHeight: 1.7, marginTop: 10 }}>{displayLoc.description}</div>

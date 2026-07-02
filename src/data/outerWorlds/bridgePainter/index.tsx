@@ -4,7 +4,7 @@
 // ============================================================
 
 import React from 'react';
-import type { Building, CollisionZone, ElevationFn, EntityTemplate, LocationDisplay, RoadDef } from '../types';
+import type { Building, CollisionZone, ElevationFn, EntityTemplate, LocationDisplay, RoadDef, SceneryItem } from '../types';
 import type { Point } from './types';
 
 // ---- 常數 ----
@@ -145,7 +145,7 @@ export const roadDefs = (locationId: string): RoadDef => {
     [{ x: 4, y: 8 }, { x: 19, y: 8 }, { x: 19, y: 10 }, { x: 4, y: 10 }],
     [{ x: 17, y: 4 }, { x: 19, y: 4 }, { x: 19, y: 8 }, { x: 17, y: 8 }],
     [{ x: 4, y: 10 }, { x: 6, y: 10 }, { x: 6, y: 16 }, { x: 4, y: 16 }],
-    [{ x: 4, y: 16 }, { x: 26, y: 16 }, { x: 26, y: 19 }, { x: 4, y: 19 }],
+    [{ x: 4, y: 16 }, { x: 28, y: 16 }, { x: 28, y: 19 }, { x: 4, y: 19 }],
   ];
 };
 
@@ -157,10 +157,11 @@ export const collisionZones: Record<string, CollisionZone> = {
       { minX: 4.5, maxX: 19.0, minY: 8.5, maxY: 10.0 },
       { minX: 17.5, maxX: 19.0, minY: 7.0, maxY: 8.5 },
       { minX: 4.5, maxX: 6.0, minY: 10.0, maxY: 17.0 },
-      { minX: 4.5, maxX: 26.0, minY: 16.5, maxY: 19.0 },
+      { minX: 4.5, maxX: 28.0, minY: 16.5, maxY: 19.0 },
+      { minX: 18.0, maxX: 28.0, minY: 19.0, maxY: 24.0 },
     ],
-    maxX: 28,
-    maxY: 22,
+    maxX: 30,
+    maxY: 24,
   },
 };
 
@@ -190,7 +191,7 @@ export function getEntities(ctx: {
     }
     list.push({
       id: 'aoi', label: '小葵', type: 'npc',
-      pos: { x: 21, y: 17.5 },
+      pos: { x: 25, y: 21.5 },
       color: '#ffaa33', icon: '葵',
     });
     list.push({
@@ -202,6 +203,48 @@ export function getEntities(ctx: {
   // 線索實體由 clueOrder 驅動，此處由呼叫方合併（避免循環依賴）
   return list;
 }
+
+// ---- 公園場景裝飾：涼亭對面，延伸至地圖右側邊緣 ----
+export const parkScenery: SceneryItem[] = [
+  // 西邊
+  { id: 'tree_w1', type: 'tree', pos: { x: 18, y: 21 }, size: 1.1 },
+  { id: 'tree_w2', type: 'tree', pos: { x: 18, y: 22.5 }, size: 1.2 },
+  { id: 'tree_w3', type: 'tree', pos: { x: 18, y: 23.5 }, size: 1.1 },
+  // 東邊
+  { id: 'tree_e1', type: 'tree', pos: { x: 27, y: 21 }, size: 1.2 },
+  { id: 'tree_e2', type: 'tree', pos: { x: 27, y: 22.5 }, size: 1.1 },
+  { id: 'tree_e3', type: 'tree', pos: { x: 27, y: 23.5 }, size: 1.2 },
+  // 南邊
+  { id: 'tree_s1', type: 'tree', pos: { x: 19.5, y: 23.5 }, size: 1.1 },
+  { id: 'tree_s2', type: 'tree', pos: { x: 21, y: 23.5 }, size: 1.2 },
+  { id: 'tree_s3', type: 'tree', pos: { x: 22.5, y: 23.5 }, size: 1.1 },
+  { id: 'tree_s4', type: 'tree', pos: { x: 24, y: 23.5 }, size: 1.3 },
+  { id: 'tree_s5', type: 'tree', pos: { x: 25.5, y: 23.5 }, size: 1.2 },
+  // 內部小樹
+  { id: 'tree_i1', type: 'tree', pos: { x: 22.5, y: 21.5 }, size: 1.1 },
+
+  // 草地
+  { id: 'grass_1', type: 'grass', pos: { x: 19.5, y: 20.5 }, size: 1.2 },
+  { id: 'grass_2', type: 'grass', pos: { x: 21, y: 20.5 }, size: 1.1 },
+  { id: 'grass_3', type: 'grass', pos: { x: 22.5, y: 20.5 }, size: 1.2 },
+  { id: 'grass_4', type: 'grass', pos: { x: 24, y: 20.5 }, size: 1.1 },
+  { id: 'grass_5', type: 'grass', pos: { x: 25.5, y: 20.5 }, size: 1.2 },
+  { id: 'grass_6', type: 'grass', pos: { x: 19.5, y: 22 }, size: 1.1 },
+  { id: 'grass_7', type: 'grass', pos: { x: 21, y: 22 }, size: 1.2 },
+  { id: 'grass_8', type: 'grass', pos: { x: 22.5, y: 22 }, size: 1.1 },
+  { id: 'grass_9', type: 'grass', pos: { x: 24, y: 22 }, size: 1.2 },
+  { id: 'grass_10', type: 'grass', pos: { x: 25.5, y: 22 }, size: 1.1 },
+  { id: 'grass_11', type: 'grass', pos: { x: 20, y: 23 }, size: 1.2 },
+  { id: 'grass_12', type: 'grass', pos: { x: 21.5, y: 23 }, size: 1.1 },
+  { id: 'grass_13', type: 'grass', pos: { x: 23, y: 23 }, size: 1.2 },
+  { id: 'grass_14', type: 'grass', pos: { x: 24.5, y: 23 }, size: 1.1 },
+  { id: 'grass_15', type: 'grass', pos: { x: 26, y: 23 }, size: 1.2 },
+  { id: 'grass_16', type: 'grass', pos: { x: 19, y: 21 }, size: 1 },
+  { id: 'grass_17', type: 'grass', pos: { x: 26.5, y: 21 }, size: 1 },
+  { id: 'grass_18', type: 'grass', pos: { x: 20.5, y: 21.5 }, size: 1.1 },
+  { id: 'grass_19', type: 'grass', pos: { x: 23.5, y: 21.5 }, size: 1.2 },
+  { id: 'grass_20', type: 'grass', pos: { x: 25, y: 21.5 }, size: 1.1 },
+];
 
 // ---- 海拔函數 ----
 export const getElevation: ElevationFn = (pos: Point) => 0;
@@ -307,6 +350,7 @@ export const bridgePainterOuterWorld = {
   locationOffsets: {
     newsstand: { x: 3, y: 1 },
   },
+  scenery: parkScenery,
   getElevation: getSkybridgeElevation,
   getMaxX: (_lid: string) => 28,
   getMaxY: (_lid: string) => 22,
