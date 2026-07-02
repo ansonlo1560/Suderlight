@@ -5,7 +5,7 @@
 // ============================================================
 
 import type { LocationId } from '../locations';
-import type { Building, CollisionZone, ElevationFn, EntityTemplate, LocationDisplay, RoadDef } from './types';
+import type { Building, CollisionZone, ElevationFn, EntityTemplate, LocationDisplay, RoadDef, SceneryItem } from './types';
 import type { Point } from './bridgePainter/types';
 
 // ---- 引入各角色表世界 ----
@@ -42,6 +42,8 @@ export type OuterWorldModule = {
   }) => EntityTemplate[];
   locationDisplay: LocationDisplay;
   locationOffsets: Record<string, { x: number; y: number }>;
+  /** 場景裝飾：不具互動性的地圖元素，例如公園的樹、草、鞦韆、滑梯 */
+  scenery?: SceneryItem[];
   getElevation: ElevationFn;
   getMaxX: (locationId: string) => number;
   getMaxY: (locationId: string) => number;
