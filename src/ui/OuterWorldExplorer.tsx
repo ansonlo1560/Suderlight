@@ -612,7 +612,7 @@ export default function OuterWorldExplorer({
           const isImg = entity.type === 'clue' && Boolean(cImg);
           const isPtr = entity.id === 'painter';
           const isTC = entity.id === 'torn_canvas';
-          const isPill = !isImg && !isPtr && !isTC && (isGDoor || entity.id === 'brush' || entity.id === 'newspaper' || entity.id === 'sketchbook' || entity.id === 'accident_report');
+          const isPill = !isImg && !isPtr && !isTC && (isGDoor || entity.type === 'clue');
           const bw = isTC ? 82 : (isImg ? 88 : (isPill ? 94 : (entity.type === 'npc' ? 64 : 48)));
           const bh = isTC ? 82 : (isImg ? 112 : (isPill ? 36 : (entity.type === 'npc' ? 84 : 48)));
           return (

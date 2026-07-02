@@ -13,23 +13,28 @@ export { locations, locationOrder } from './locations';
 
 import type { ClueDefinition } from './npcs/types';
 import { bridgeArtistClueOrder } from './npcs/bridgePainter';
+import { aoiClueOrder } from './npcs/aoi';
 
 import type { BridgeArtistClueId } from './npcs/bridgePainter';
+import type { AoiClueId } from './npcs/aoi';
 
-export type { BridgeArtistClueId };
+export type { BridgeArtistClueId, AoiClueId };
 
-export type ClueId = BridgeArtistClueId;
+export type ClueId = BridgeArtistClueId | AoiClueId;
 
 export { bridgeArtistClues, bridgeArtistClueOrder } from './npcs/bridgePainter';
+export { aoiClues, aoiClueOrder } from './npcs/aoi';
 export { bridgeArtistClueOrder as clueOrder } from './npcs/bridgePainter';
 
 // 通用線索查詢表（用於 gameStore collectClue）
 import { bridgeArtistClues } from './npcs/bridgePainter';
+import { aoiClues } from './npcs/aoi';
 
-export const ALL_CLUE_ORDER: ClueId[] = [...bridgeArtistClueOrder] as ClueId[];
+export const ALL_CLUE_ORDER: ClueId[] = [...bridgeArtistClueOrder, ...aoiClueOrder] as ClueId[];
 
 export const ALL_CLUES: Record<ClueId, import('./npcs/types').ClueDefinition> = {
   ...bridgeArtistClues,
+  ...aoiClues,
 };
 
 export function getNpcIdForClue(clueId: ClueId): NpcId {

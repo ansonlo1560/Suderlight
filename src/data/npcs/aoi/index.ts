@@ -3,7 +3,7 @@
 // 基於 aoi.md 建立最小可行結構，內容待完善
 // ============================================================
 
-import type { NpcDefinition, RepairTipRule } from '../types';
+import type { NpcDefinition, RepairTipRule, ClueDefinition } from '../types';
 
 // ---- 角色卡 ----
 
@@ -52,6 +52,60 @@ export const aoiCard = {
   safetyRule: '涉及兒童心理安全，避免任何暗示自傷或暴力的內容。若玩家表達現實中的即時危機，停止角色扮演並提供溫和求助建議。角色可以表達孤獨和恐懼，但必須使用象徵、感官和環境意象。',
 };
 
+// ---- 線索資料（表世界地圖提示道具） ----
+
+export type AoiClueId = 'muddy_red_dance_shoes' | 'demerit_notice' | 'torn_diary';
+
+export const aoiClues: Record<AoiClueId, ClueDefinition> = {
+  muddy_red_dance_shoes: {
+    id: 'muddy_red_dance_shoes',
+    label: '沾滿泥土的紅舞鞋',
+    shortLabel: '紅舞鞋',
+    knowledge: 15,
+    worldId: 'aoi',
+    locationId: 'skybridge',
+    pos: { x: 20, y: 23 },
+    color: '#ff8a80',
+    icon: '鞋',
+    content: '你在公園角落的草叢中發現一雙紅舞鞋。鞋面沾滿泥土，紅色已經黯淡，像是一段被硬生生踩進土裡的童年。',
+    dictionaryHint: '快樂有時會被大人的爭吵連根拔起，讓孩子以為自己再也不配擁有它。',
+    insightTitle: '被迫埋葬的童年夢想',
+    insightDesc: '她曾經在舞蹈裡找到唯一的自由，但一次舞台上的爭吵後，她再也不敢穿上這雙鞋。那不是她不喜歡跳舞，是她開始害怕快樂。',
+  },
+  demerit_notice: {
+    id: 'demerit_notice',
+    label: '缺點通告',
+    shortLabel: '通告',
+    knowledge: 10,
+    worldId: 'aoi',
+    locationId: 'skybridge',
+    pos: { x: 13, y: 18 },
+    color: '#fff176',
+    icon: '紙',
+    content: '報攤旁的地上躺著一張皺巴巴的缺點通告。紙角被雨淋濕，上面的字跡依稀可見：「多次欠繳功課」。',
+    dictionaryHint: '孩子的「失敗」有時不是懶惰，而是家裡的聲音太吵，讓他根本沒辦法安靜坐下。',
+    insightTitle: '被誤讀的「壞孩子」',
+    insightDesc: '她不是不想做功課。她只是常常在深夜裡成為父母之間的橋樑，沒有力氣再當一個學生。',
+  },
+  torn_diary: {
+    id: 'torn_diary',
+    label: '缺頁的日記本',
+    shortLabel: '日記',
+    knowledge: 10,
+    worldId: 'aoi',
+    locationId: 'skybridge',
+    pos: { x: 26, y: 21 },
+    color: '#ce93d8',
+    icon: '本',
+    content: '你在公園長椅邊撿到一本日記本。中間好幾頁被撕掉了，殘留的字跡斷斷續續：「今天……我沒有說……」',
+    dictionaryHint: '沉默不是沒有話要說，而是話被拿走之後，剩下的空間。',
+    insightTitle: '撕掉的聲音',
+    insightDesc: '她曾試著記錄自己，但害怕被看見。於是最痛苦的部分被撕掉，連帶著她表達自己的能力。',
+  },
+};
+
+export const aoiClueOrder: AoiClueId[] = ['muddy_red_dance_shoes', 'demerit_notice', 'torn_diary'];
+
 // ---- Lorebook ----
 
 export const aoiLorebook = [
@@ -62,6 +116,30 @@ export const aoiLorebook = [
     relatedNpcIds: ['aoi'],
     priority: 40,
     content: '公園是小葵的避難所。在這裡，沒有爭吵聲，沒有大人要求她「懂事」。這與她的內心世界「混亂魔方」互相呼應。',
+  },
+  {
+    id: 'clue_muddy_red_dance_shoes',
+    keywords: ['紅舞鞋', '舞鞋', '跳舞', '泥土', 'shoes', '舞台'],
+    requiredFlags: ['inventory.muddy_red_dance_shoes'],
+    relatedNpcIds: ['aoi'],
+    priority: 90,
+    content: '玩家已找到小葵的紅舞鞋。她曾最愛跳舞，但在父母於發表會上爭吵後，她再也無法穿上它們。提及舞鞋時她會緊繃，但可能願意透露一點關於快樂的恐懼。',
+  },
+  {
+    id: 'clue_demerit_notice',
+    keywords: ['缺點', '通告', '功課', '學校', '老師', '欠繳'],
+    requiredFlags: ['inventory.demerit_notice'],
+    relatedNpcIds: ['aoi'],
+    priority: 85,
+    content: '玩家已讀過小葵的缺點通告。她並非懶惰，而是家庭爭吵讓她無法專注。提及學校時她會感到羞恥，認為自己在哪裡都失敗。',
+  },
+  {
+    id: 'clue_torn_diary',
+    keywords: ['日記', '日記本', '撕掉', '頁面', 'diary', '想說'],
+    requiredFlags: ['inventory.torn_diary'],
+    relatedNpcIds: ['aoi'],
+    priority: 88,
+    content: '玩家已找到小葵的缺頁日記本。她曾試圖記錄心情，但害怕被父母看見。提及日記時她會顯示出壓抑的自我表達。',
   },
 ];
 
@@ -372,3 +450,22 @@ export const aoiAftermath = {
     innerDepth1: '你只看到了魔方的旋轉。她把你歸類為和所有人一樣——這比沒去過更糟。',
   },
 };
+
+// ---- 字典條目（小葵專屬） ----
+export const aoiDictionary = [
+  {
+    id: 'fear_of_happiness', name: '對快樂的恐懼',
+    description: '小葵曾經在跳舞時感到自由，但父母的爭吵把這份快樂毀滅。此後她不敢再擁有快樂，彷彿快樂會引來懲罰。',
+    relatedClues: ['muddy_red_dance_shoes'], unlockCondition: 'muddy_red_dance_shoes',
+  },
+  {
+    id: 'mislabeled_failure', name: '被誤貼的失敗標籤',
+    description: '缺點通告讓她認定自己是「壞孩子」，但真正的問題是她被迫在家庭裡擔任情緒調解者，沒有餘力當學生。',
+    relatedClues: ['demerit_notice'], unlockCondition: 'demerit_notice',
+  },
+  {
+    id: 'suppressed_expression', name: '壓抑的自我表達',
+    description: '日記本裡被撕掉的頁面，是她「想說卻不敢說」的證據。她害怕表達自己會引發更多衝突。',
+    relatedClues: ['torn_diary'], unlockCondition: 'torn_diary',
+  },
+];

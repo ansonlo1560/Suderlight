@@ -5,6 +5,7 @@
  *
  * 字典條目已依 npcId 分離至各 NPC 資料夾：
  * - bridge_artist → src/data/npcs/bridgePainter/index.ts (bridgeArtistDictionary)
+ * - aoi → src/data/npcs/aoi/index.ts (aoiDictionary)
  * 統一的本地副本僅保留基礎結構
  */
 export type DictEntry = {
@@ -17,9 +18,11 @@ export type DictEntry = {
 
 // 本地副本（建議從 /api/dictionary 動態載入為準）
 import { bridgeArtistDictionary } from './npcs/bridgePainter';
+import { aoiDictionary } from './npcs/aoi';
 
 const DICTIONARY: { entries: DictEntry[] } = {
-  entries: bridgeArtistDictionary as DictEntry[],
+  entries: [...bridgeArtistDictionary, ...aoiDictionary] as DictEntry[],
 };
 
 export default DICTIONARY;
+
