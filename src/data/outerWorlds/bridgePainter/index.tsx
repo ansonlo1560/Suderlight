@@ -158,10 +158,10 @@ export const collisionZones: Record<string, CollisionZone> = {
       { minX: 17.5, maxX: 19.0, minY: 7.0, maxY: 8.5 },
       { minX: 4.5, maxX: 6.0, minY: 10.0, maxY: 17.0 },
       { minX: 4.5, maxX: 28.0, minY: 16.5, maxY: 19.0 },
-      { minX: 18.0, maxX: 28.0, minY: 19.0, maxY: 24.0 },
+      { minX: 17.0, maxX: 28.0, minY: 19.0, maxY: 28.0 },
     ],
-    maxX: 30,
-    maxY: 24,
+    maxX: 28,
+    maxY: 28,
   },
 };
 
@@ -191,7 +191,7 @@ export function getEntities(ctx: {
     }
     list.push({
       id: 'aoi', label: '小葵', type: 'npc',
-      pos: { x: 25, y: 21.5 },
+      pos: { x: 25, y: 24.5 },
       color: '#ffaa33', icon: '葵',
     });
     list.push({
@@ -204,46 +204,73 @@ export function getEntities(ctx: {
   return list;
 }
 
-// ---- 公園場景裝飾：涼亭對面，延伸至地圖右側邊緣 ----
+// ---- 公園場景裝飾：占據地圖右下角 x=17~28, y=19~28 ----
 export const parkScenery: SceneryItem[] = [
-  // 西邊
-  { id: 'tree_w1', type: 'tree', pos: { x: 18, y: 21 }, size: 1.1 },
-  { id: 'tree_w2', type: 'tree', pos: { x: 18, y: 22.5 }, size: 1.2 },
-  { id: 'tree_w3', type: 'tree', pos: { x: 18, y: 23.5 }, size: 1.1 },
-  // 東邊
-  { id: 'tree_e1', type: 'tree', pos: { x: 27, y: 21 }, size: 1.2 },
-  { id: 'tree_e2', type: 'tree', pos: { x: 27, y: 22.5 }, size: 1.1 },
-  { id: 'tree_e3', type: 'tree', pos: { x: 27, y: 23.5 }, size: 1.2 },
-  // 南邊
-  { id: 'tree_s1', type: 'tree', pos: { x: 19.5, y: 23.5 }, size: 1.1 },
-  { id: 'tree_s2', type: 'tree', pos: { x: 21, y: 23.5 }, size: 1.2 },
-  { id: 'tree_s3', type: 'tree', pos: { x: 22.5, y: 23.5 }, size: 1.1 },
-  { id: 'tree_s4', type: 'tree', pos: { x: 24, y: 23.5 }, size: 1.3 },
-  { id: 'tree_s5', type: 'tree', pos: { x: 25.5, y: 23.5 }, size: 1.2 },
+  // 西邊 x=17
+  { id: 'tree_w1', type: 'tree', pos: { x: 17, y: 21 }, size: 1.2 },
+  { id: 'tree_w2', type: 'tree', pos: { x: 17, y: 22.5 }, size: 1.3 },
+  { id: 'tree_w3', type: 'tree', pos: { x: 17, y: 23.5 }, size: 1.2 },
+  { id: 'tree_w4', type: 'tree', pos: { x: 17, y: 25 }, size: 1.2 },
+  { id: 'tree_w5', type: 'tree', pos: { x: 17, y: 26.5 }, size: 1.3 },
+  // 東邊 x=28
+  { id: 'tree_e1', type: 'tree', pos: { x: 28, y: 21 }, size: 1.2 },
+  { id: 'tree_e2', type: 'tree', pos: { x: 28, y: 22.5 }, size: 1.1 },
+  { id: 'tree_e3', type: 'tree', pos: { x: 28, y: 23.5 }, size: 1.2 },
+  { id: 'tree_e4', type: 'tree', pos: { x: 28, y: 25 }, size: 1.2 },
+  { id: 'tree_e5', type: 'tree', pos: { x: 28, y: 26.5 }, size: 1.1 },
+  // 北邊 y=19 緊鄰道路，移除樹木避免遮蔽道路
+  // 南邊 y=28
+  { id: 'tree_s1', type: 'tree', pos: { x: 18, y: 28 }, size: 1.1 },
+  { id: 'tree_s2', type: 'tree', pos: { x: 19.5, y: 28 }, size: 1.2 },
+  { id: 'tree_s3', type: 'tree', pos: { x: 21, y: 28 }, size: 1.1 },
+  { id: 'tree_s4', type: 'tree', pos: { x: 22.5, y: 28 }, size: 1.3 },
+  { id: 'tree_s5', type: 'tree', pos: { x: 24, y: 28 }, size: 1.1 },
+  { id: 'tree_s6', type: 'tree', pos: { x: 25.5, y: 28 }, size: 1.2 },
+  { id: 'tree_s7', type: 'tree', pos: { x: 27, y: 28 }, size: 1.1 },
   // 內部小樹
-  { id: 'tree_i1', type: 'tree', pos: { x: 22.5, y: 21.5 }, size: 1.1 },
+  { id: 'tree_i1', type: 'tree', pos: { x: 20, y: 21.5 }, size: 1.1 },
+  { id: 'tree_i2', type: 'tree', pos: { x: 22.5, y: 22.5 }, size: 1.2 },
+  { id: 'tree_i3', type: 'tree', pos: { x: 25, y: 23.5 }, size: 1.1 },
+  { id: 'tree_i4', type: 'tree', pos: { x: 26.5, y: 21.5 }, size: 1.2 },
+  { id: 'tree_i5', type: 'tree', pos: { x: 21, y: 25.5 }, size: 1.1 },
+  { id: 'tree_i6', type: 'tree', pos: { x: 24.5, y: 26 }, size: 1.2 },
 
-  // 草地
-  { id: 'grass_1', type: 'grass', pos: { x: 19.5, y: 20.5 }, size: 1.2 },
-  { id: 'grass_2', type: 'grass', pos: { x: 21, y: 20.5 }, size: 1.1 },
-  { id: 'grass_3', type: 'grass', pos: { x: 22.5, y: 20.5 }, size: 1.2 },
-  { id: 'grass_4', type: 'grass', pos: { x: 24, y: 20.5 }, size: 1.1 },
-  { id: 'grass_5', type: 'grass', pos: { x: 25.5, y: 20.5 }, size: 1.2 },
-  { id: 'grass_6', type: 'grass', pos: { x: 19.5, y: 22 }, size: 1.1 },
-  { id: 'grass_7', type: 'grass', pos: { x: 21, y: 22 }, size: 1.2 },
-  { id: 'grass_8', type: 'grass', pos: { x: 22.5, y: 22 }, size: 1.1 },
-  { id: 'grass_9', type: 'grass', pos: { x: 24, y: 22 }, size: 1.2 },
-  { id: 'grass_10', type: 'grass', pos: { x: 25.5, y: 22 }, size: 1.1 },
-  { id: 'grass_11', type: 'grass', pos: { x: 20, y: 23 }, size: 1.2 },
-  { id: 'grass_12', type: 'grass', pos: { x: 21.5, y: 23 }, size: 1.1 },
-  { id: 'grass_13', type: 'grass', pos: { x: 23, y: 23 }, size: 1.2 },
-  { id: 'grass_14', type: 'grass', pos: { x: 24.5, y: 23 }, size: 1.1 },
-  { id: 'grass_15', type: 'grass', pos: { x: 26, y: 23 }, size: 1.2 },
-  { id: 'grass_16', type: 'grass', pos: { x: 19, y: 21 }, size: 1 },
-  { id: 'grass_17', type: 'grass', pos: { x: 26.5, y: 21 }, size: 1 },
-  { id: 'grass_18', type: 'grass', pos: { x: 20.5, y: 21.5 }, size: 1.1 },
-  { id: 'grass_19', type: 'grass', pos: { x: 23.5, y: 21.5 }, size: 1.2 },
-  { id: 'grass_20', type: 'grass', pos: { x: 25, y: 21.5 }, size: 1.1 },
+  // 草地（占據公園內部，避開線索位置）
+  { id: 'grass_1', type: 'grass', pos: { x: 18, y: 20 }, size: 1.2 },
+  { id: 'grass_2', type: 'grass', pos: { x: 19.5, y: 20 }, size: 1.1 },
+  { id: 'grass_3', type: 'grass', pos: { x: 21, y: 20 }, size: 1.2 },
+  { id: 'grass_4', type: 'grass', pos: { x: 22.5, y: 20 }, size: 1.1 },
+  { id: 'grass_5', type: 'grass', pos: { x: 24, y: 20 }, size: 1.2 },
+  { id: 'grass_6', type: 'grass', pos: { x: 25.5, y: 20 }, size: 1.1 },
+  { id: 'grass_7', type: 'grass', pos: { x: 27, y: 20 }, size: 1.2 },
+  { id: 'grass_8', type: 'grass', pos: { x: 18, y: 21.5 }, size: 1.1 },
+  { id: 'grass_9', type: 'grass', pos: { x: 19.5, y: 21.5 }, size: 1.2 },
+  { id: 'grass_10', type: 'grass', pos: { x: 21, y: 21.5 }, size: 1.1 },
+  { id: 'grass_11', type: 'grass', pos: { x: 22.5, y: 21.5 }, size: 1.2 },
+  { id: 'grass_12', type: 'grass', pos: { x: 24, y: 21.5 }, size: 1.1 },
+  { id: 'grass_13', type: 'grass', pos: { x: 25.5, y: 21.5 }, size: 1.2 },
+  { id: 'grass_14', type: 'grass', pos: { x: 27, y: 21.5 }, size: 1.1 },
+  { id: 'grass_15', type: 'grass', pos: { x: 18, y: 23 }, size: 1.2 },
+  { id: 'grass_16', type: 'grass', pos: { x: 19.5, y: 23 }, size: 1.1 },
+  { id: 'grass_17', type: 'grass', pos: { x: 21, y: 23 }, size: 1.2 },
+  { id: 'grass_18', type: 'grass', pos: { x: 22.5, y: 23 }, size: 1.1 },
+  { id: 'grass_19', type: 'grass', pos: { x: 24, y: 23 }, size: 1.2 },
+  { id: 'grass_20', type: 'grass', pos: { x: 25.5, y: 23 }, size: 1.1 },
+  { id: 'grass_21', type: 'grass', pos: { x: 27, y: 23 }, size: 1.2 },
+  { id: 'grass_22', type: 'grass', pos: { x: 18, y: 24.5 }, size: 1.1 },
+  { id: 'grass_23', type: 'grass', pos: { x: 19.5, y: 24.5 }, size: 1.2 },
+  { id: 'grass_24', type: 'grass', pos: { x: 21, y: 24.5 }, size: 1.1 },
+  { id: 'grass_25', type: 'grass', pos: { x: 22.5, y: 24.5 }, size: 1.2 },
+  { id: 'grass_26', type: 'grass', pos: { x: 24, y: 24.5 }, size: 1.1 },
+  { id: 'grass_27', type: 'grass', pos: { x: 25.5, y: 24.5 }, size: 1.2 },
+  { id: 'grass_28', type: 'grass', pos: { x: 27, y: 24.5 }, size: 1.1 },
+  { id: 'grass_29', type: 'grass', pos: { x: 18, y: 26 }, size: 1.2 },
+  { id: 'grass_30', type: 'grass', pos: { x: 19.5, y: 26 }, size: 1.1 },
+  { id: 'grass_31', type: 'grass', pos: { x: 21, y: 26 }, size: 1.2 },
+  { id: 'grass_32', type: 'grass', pos: { x: 22.5, y: 26 }, size: 1.1 },
+  { id: 'grass_33', type: 'grass', pos: { x: 24, y: 26 }, size: 1.2 },
+  { id: 'grass_34', type: 'grass', pos: { x: 25.5, y: 26 }, size: 1.1 },
+  { id: 'grass_35', type: 'grass', pos: { x: 27, y: 26 }, size: 1.2 },
 ];
 
 // ---- 海拔函數 ----
@@ -353,6 +380,6 @@ export const bridgePainterOuterWorld = {
   scenery: parkScenery,
   getElevation: getSkybridgeElevation,
   getMaxX: (_lid: string) => 28,
-  getMaxY: (_lid: string) => 22,
+  getMaxY: (_lid: string) => 28,
   getInteraction,
 };
