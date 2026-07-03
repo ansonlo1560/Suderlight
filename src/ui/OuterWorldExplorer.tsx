@@ -412,8 +412,24 @@ export default function OuterWorldExplorer({
     setTimeout(() => setGhostFlash(null), 1800);
   };
 
+  // ---- 輔助：立即保存座標 ----
+  const playerPosRef = useRef(playerPos);
+  const lastSavedPos = useRef(playerPos);
+  useEffect(() => { playerPosRef.current = playerPos; }, [playerPos]);
+
+  const saveCurrentPos = () => {
+    if (setPlayerPos && (playerPosRef.current.x !== lastSavedPos.current.x || playerPosRef.current.y !== lastSavedPos.current.y)) {
+      setPlayerPos(playerPosRef.current.x, playerPosRef.current.y);
+      lastSavedPos.current = playerPosRef.current;
+    }
+  };
+
   const interact = (targetId: EntityId) => {
+    // 立即保存當前位置，避免互動後退出回檔
+    saveCurrentPos();
+
     const entity = entities.find(e => e.id === targetId);
+
 
     // 傳送點處理（通用）
     if (entity?.type === 'portal') {
@@ -505,6 +521,7 @@ export default function OuterWorldExplorer({
     window.addEventListener('keydown', hkd); window.addEventListener('keyup', hku);
     return () => { window.removeEventListener('keydown', hkd); window.removeEventListener('keyup', hku); };
   }, [modal, nearbyEntity]);
+  const wasMoving = useRef(false);
   useEffect(() => {
     let frame = 0;
     const tick = () => {
@@ -514,7 +531,9 @@ export default function OuterWorldExplorer({
         if (keys.current.has('s') || keys.current.has('arrowdown')) dy += 1;
         if (keys.current.has('a') || keys.current.has('arrowleft')) dx -= 1;
         if (keys.current.has('d') || keys.current.has('arrowright')) dx += 1;
+        
         if (dx !== 0 || dy !== 0) {
+          wasMoving.current = true;
           const len = Math.hypot(dx, dy);
           setPlayerPosState(prev => {
             const sx = (dx / len) * world.playerSpeed, sy = (dy / len) * world.playerSpeed;
@@ -542,6 +561,10 @@ export default function OuterWorldExplorer({
             if (!checkCol(ny)) { focusCameraOnPlayer(ny); return ny; }
             return prev;
           });
+        } else if (wasMoving.current) {
+          // 剛剛停止移動，立即保存
+          wasMoving.current = false;
+          saveCurrentPos();
         }
       }
       frame = requestAnimationFrame(tick);
@@ -550,17 +573,20 @@ export default function OuterWorldExplorer({
     return () => cancelAnimationFrame(frame);
   }, [modal, save.currentLocation, world]);
 
-  // 玩家座標變更時，防抖寫入存檔（避免退出對話/心理世界後傳送回重生點）
-  const lastSavedPos = useRef(playerPos);
+  // 玩家座標變更時，防抖寫入存檔
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (setPlayerPos && (playerPos.x !== lastSavedPos.current.x || playerPos.y !== lastSavedPos.current.y)) {
-        setPlayerPos(playerPos.x, playerPos.y);
-        lastSavedPos.current = playerPos;
-      }
+      saveCurrentPos();
     }, 500);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      // 組件卸載前，如果還有未保存的變動，強制保存
+      if (setPlayerPos && (playerPosRef.current.x !== lastSavedPos.current.x || playerPosRef.current.y !== lastSavedPos.current.y)) {
+        setPlayerPos(playerPosRef.current.x, playerPosRef.current.y);
+      }
+    };
   }, [playerPos, setPlayerPos]);
+
 
   const handleMouseDown = (e: MouseEvent) => { setIsDragging(true); hasMoved.current = false; dragStart.current = { x: e.clientX - mapPos.x, y: e.clientY - mapPos.y }; };
   const handleMouseMove = (e: MouseEvent) => { if (!isDragging) return; hasMoved.current = true; setMapPos({ x: clamp(e.clientX - dragStart.current.x, window.innerWidth - world.mapWidth, 0), y: clamp(e.clientY - dragStart.current.y, window.innerHeight - world.mapHeight, 0) }); };

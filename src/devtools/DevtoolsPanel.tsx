@@ -450,7 +450,7 @@ type Props = {
 const NPC_NAMES: Record<NpcId, string> = {
   bridge_artist: '天橋畫家',
   victor: '維克多',
-  aoi: '葵',
+  aoi: '小葵',
 };
 
 export default function DevtoolsPanel({ currentScreen, selectedNpcId, onSelectNpcId }: Props) {
