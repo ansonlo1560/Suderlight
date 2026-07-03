@@ -269,6 +269,13 @@ export const useGameStore = create<GameStore>((set) => ({
       window.localStorage.removeItem('sud_aoi_inner_visited');
     } catch { /* ignore */ }
     const fresh = createInitialSave();
+    // 遞增 innerWorldSyncId 以強制 NpcInnerWorld 組件重新從存檔載入
+    for (const npcId of Object.keys(fresh.npcs) as NpcId[]) {
+      fresh.npcs[npcId] = {
+        ...fresh.npcs[npcId],
+        innerWorldSyncId: (fresh.npcs[npcId].innerWorldSyncId ?? 0) + 1,
+      };
+    }
     persistSave(fresh);
     set({ save: fresh });
   },
