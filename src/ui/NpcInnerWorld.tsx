@@ -33,6 +33,8 @@ import {
 import { isPlaytestEnabled } from '../hooks/narrativePlaytest';
 import accidentMemoryVideo from '../video/grok-video-5614ed35-6339-496a-bc6b-027280fb9c19.mp4';
 import aoiLayer1Bg from '../../images/aoi/psyWorld-L1-bg.png';
+import aoiLayer2Bg from '../../images/aoi/psyWorld-L2-bg.png';
+import aoiLayer3Bg from '../../images/aoi/psyWorld-L3-bg.png';
 import aoiBearImage from '../../images/aoi/psyWorld-L1-bear.png';
 
 // ============================================================
@@ -811,7 +813,8 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
             ) : npcId === 'aoi' ? (() => {
               const bear = layer.interactables.find(o => o.id === 'broken_bear_doll');
               const recorder = layer.interactables.find(o => o.id === 'voice_recorder');
-              const CN = ['一','二','三','四'];
+              const layerBgMap: Record<number, string> = { 1: aoiLayer1Bg, 2: aoiLayer2Bg, 3: aoiLayer3Bg };
+              const bgImage = layerBgMap[layerNum];
               if (layerNum === 1) {
                 return (
                   <AoiBrokenHomeVisual layer={layer} floatingTextsByLayer={floatingTextsByLayer}>
@@ -830,15 +833,23 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                   </AoiBrokenHomeVisual>
                 );
               }
+              // 第二層、第三層：使用各自的背景圖
               return (
-                <AoiPlaceholderVisual layer={layer} floatingTextsByLayer={floatingTextsByLayer} colors={colors} label={`第${CN[layerNum-1]}層：${layer.layerName}`}>
-                  {layer.interactables.map(obj => {
-                    const coord = pinCoordinates[obj.id] || { top:'50%',left:'50%' };
-                    const isDisc = discoveredIds.includes(obj.id);
-                    const hasIn = hasInsight(understanding, obj.id);
-                    return (<InteractivePin key={obj.id} icon={getIcon(obj.id)} name={obj.name} isCollected={hasIn} isDiscovered={isDisc} onClick={() => handleClickObject(obj)} style={{ top:coord.top,left:coord.left,transform:'translate(-50%, -50%)' }} />);
-                  })}
-                </AoiPlaceholderVisual>
+                <div style={{ width: 'min(95vw, 100%)', height: 'min(95vh, 100%)', borderRadius: 20, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.8)', border: `1px solid ${colors.border}` }}>
+                  <img src={bgImage} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 50% 30%, rgba(0,0,0,0.12), transparent 60%)', pointerEvents: 'none' }} />
+                  <div style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }}>
+                    <FloatingComments layerNum={layer.layerNumber} floatingTextsByLayer={floatingTextsByLayer} />
+                  </div>
+                  <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'auto' }}>
+                    {layer.interactables.map(obj => {
+                      const coord = pinCoordinates[obj.id] || { top:'50%',left:'50%' };
+                      const isDisc = discoveredIds.includes(obj.id);
+                      const hasIn = hasInsight(understanding, obj.id);
+                      return (<InteractivePin key={obj.id} icon={getIcon(obj.id)} name={obj.name} isCollected={hasIn} isDiscovered={isDisc} onClick={() => handleClickObject(obj)} style={{ top:coord.top,left:coord.left,transform:'translate(-50%, -50%)' }} />);
+                    })}
+                  </div>
+                </div>
               );
             })() : (
               <ComingSoonVisual layerNum={layerNum} npcId={npcId} />
