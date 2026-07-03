@@ -552,7 +552,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
       const layerData = psychLayers.find(ld => ld.layerNumber === l);
       layers[l] = {
         completed: completedLayers.has(l),
-        understandingScore: getCurrentLayerUnderstanding(understandingByLayer[l] ?? { insightIds: [] }, l),
+        understandingScore: getCurrentLayerUnderstanding(understandingByLayer[l] ?? { insightIds: [] }, l, npcId),
         understoodItems: (understandingByLayer[l]?.insightIds ?? []).map((id): UnderstoodItem => {
           const obj = layerData?.interactables.find(o => o.id === id);
           return { id, name: obj?.name ?? id, understandingReward: obj?.understandingReward ?? 0 };
@@ -581,7 +581,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   const isChampionPaintingDiscovered = championPaintingObj ? discoveredIds.includes(championPaintingObj.id) : false;
   const isChampionPaintingCollected = championPaintingObj ? hasInsight(understanding, championPaintingObj.id) : false;
   const colors = useMemo(() => getSchemeColors(layer?.colorScheme ?? 'gold'), [layer]);
-  const score = useMemo(() => getCurrentLayerUnderstanding(understanding, layerNum), [understanding, layerNum]);
+  const score = useMemo(() => getCurrentLayerUnderstanding(understanding, layerNum, npcId), [understanding, layerNum, npcId]);
   const thresholdMet = layer && score >= layer.nextLayerThreshold && layer.nextLayerThreshold > 0;
   const isLast = layerNum >= maxLayer;
 
@@ -604,11 +604,11 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   const handleStartReflection = useCallback(() => { if (phase.type === 'observing') setPhase({ type: 'reflecting', target: phase.target }); }, [phase]);
   const handleChooseReflection = useCallback((choseInsight: boolean) => {
     if (phase.type !== 'reflecting') return;
-    const { state: newU, reward } = tryAddInsight(understanding, phase.target.id, choseInsight, layerNum);
+    const { state: newU, reward } = tryAddInsight(understanding, phase.target.id, choseInsight, layerNum, npcId);
     if (!reward) { setPhase({ type: 'exploring' }); return; }
     setUnderstandingByLayer(prev => ({ ...prev, [layerNum]: newU }));
     setPhase({ type: 'insight_revealed', target: phase.target, reward });
-  }, [phase, understanding, layerNum]);
+  }, [phase, understanding, layerNum, npcId]);
   const handleCloseInsight = useCallback(() => setPhase({ type: 'exploring' }), []);
   const handleLayerComplete = useCallback(() => {
     // 標記當前層完成（無論是否最後一層）
@@ -631,7 +631,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
   const handleReturn = useCallback(() => { const cnt = completedLayers.size; return onReturnToSurface(Math.min(cnt, maxLayer - 1)); }, [completedLayers, onReturnToSurface, maxLayer]);
 
   const insightCount = understanding.insightIds.length;
-  const insightFragments = getInsightFragments(understanding);
+  const insightFragments = getInsightFragments(understanding, npcId);
   const allCollected = insightCount >= layer.interactables.length;
   const showLayerCompleteBtn = (phase.type === 'exploring' || phase.type === 'observing' || phase.type === 'reflecting' || phase.type === 'insight_revealed') && (thresholdMet || allCollected);
   const isModalOpen = phase.type !== 'exploring' && phase.type !== 'entering' && phase.type !== 'layer_complete' && phase.type !== 'arc_complete';

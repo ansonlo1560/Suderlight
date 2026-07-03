@@ -49,16 +49,18 @@ export function getPsychLayerForNpc(npcId: NpcId, layerNumber: number): PsychLay
 }
 
 /**
- * 通用：根據互動物件 ID 取得理解度獎勵（搜索所有 NPC 資料）
+ * 通用：根據互動物件 ID 取得理解度獎勵
+ * 優先搜索指定 npcId 的資料；若未指定則搜索所有 NPC 資料（向後相容）
  */
 export function getUnderstandingReward(
   interactableId: string,
   choseInsight: boolean,
   layerNumber?: number,
+  npcId?: NpcId,
 ): UnderstandingReward | null {
   if (!choseInsight) return null;
-  const allLayers = Object.values(psychWorldRegistry).flat();
-  const layers = layerNumber ? allLayers.filter(l => l.layerNumber === layerNumber) : allLayers;
+  const npcLayers = npcId ? (psychWorldRegistry[npcId] ?? []) : Object.values(psychWorldRegistry).flat();
+  const layers = layerNumber ? npcLayers.filter(l => l.layerNumber === layerNumber) : npcLayers;
   for (const layer of layers) {
     const obj = layer.interactables.find((o) => o.id === interactableId);
     if (obj) {
@@ -74,11 +76,12 @@ export function getUnderstandingReward(
 }
 
 /**
- * 通用：根據 ID 取得互動物件（搜索所有 NPC 資料）
+ * 通用：根據 ID 取得互動物件
+ * 優先搜索指定 npcId 的資料；若未指定則搜索所有 NPC 資料（向後相容）
  */
-export function getInteractable(id: string): PsychInteractable | undefined {
-  const allLayers = Object.values(psychWorldRegistry).flat();
-  for (const layer of allLayers) {
+export function getInteractable(id: string, npcId?: NpcId): PsychInteractable | undefined {
+  const npcLayers = npcId ? (psychWorldRegistry[npcId] ?? []) : Object.values(psychWorldRegistry).flat();
+  for (const layer of npcLayers) {
     const obj = layer.interactables.find((o) => o.id === id);
     if (obj) return obj;
   }
@@ -88,8 +91,8 @@ export function getInteractable(id: string): PsychInteractable | undefined {
 /**
  * 通用：根據層級編號取得所有互動物件（搜索所有 NPC 資料）
  */
-export function getLayerInteractables(layerNumber: number): PsychInteractable[] {
-  const allLayers = Object.values(psychWorldRegistry).flat();
-  const layer = allLayers.find(l => l.layerNumber === layerNumber);
+export function getLayerInteractables(layerNumber: number, npcId?: NpcId): PsychInteractable[] {
+  const npcLayers = npcId ? (psychWorldRegistry[npcId] ?? []) : Object.values(psychWorldRegistry).flat();
+  const layer = npcLayers.find(l => l.layerNumber === layerNumber);
   return layer?.interactables ?? [];
 }
