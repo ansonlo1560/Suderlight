@@ -88,7 +88,11 @@ router.post('/', async (req, res, next) => {
     await withPlayerLock(playerId, async () => {
       const ts = Date.now();
       const npc = saveService.getNpc(npcId, playerId);
-      if (!npc) throw new NotFoundError('NPC', npcId);
+      if (!npc) {
+        const availableNpcs = Object.keys(saveService.readNpcs());
+        logger.error(`[chat] NPC "${npcId}" not found. Available: ${availableNpcs.join(', ')}`);
+        throw new NotFoundError('NPC', npcId);
+      }
 
       // 若前端傳來了客戶端 NPC 狀態（如 playtest dashboard 修改），覆蓋/補充後端值
       const clientNpcState = req.body.clientNpcState;
