@@ -57,6 +57,8 @@ type GameStore = {
   undoUnlockChapter: (depth: number, npcId?: NpcId) => void;
   /** Playtest: 強制滿足內心世界解鎖條件 */
   forceUnlockInnerWorld: (npcId?: NpcId) => void;
+  /** 保存玩家地圖座標（避免退出對話/心理世界後傳送回重生點） */
+  setPlayerPos: (x: number, y: number) => void;
 };
 
 function cloneSave(save: GameSave): GameSave {
@@ -546,6 +548,16 @@ export const useGameStore = create<GameStore>((set) => ({
         innerWorldUnlocked: true,
         flags: Array.from(new Set([...next.npcs[npcId].flags, 'inner_world_unlocked'])),
       };
+      return { save: persistAndReturn(next) };
+    });
+  },
+
+  /** 保存玩家地圖座標（避免退出對話/心理世界後傳送回重生點） */
+  setPlayerPos: (x, y) => {
+    set(state => {
+      const next = cloneSave(state.save);
+      next.playerX = x;
+      next.playerY = y;
       return { save: persistAndReturn(next) };
     });
   },

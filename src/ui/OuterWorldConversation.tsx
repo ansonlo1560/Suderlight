@@ -262,9 +262,12 @@ export default function OuterWorldConversation({
       }
 
       if (localFailed) {
+        const failedMessage = npcId === 'aoi'
+          ? '小葵最後看了你一眼。\n她從鞦韆上站起來，頭也不回地走進夜色。\n\n小葵永遠不回家，不上學，每天垂頭喪氣。\n父母找到了她也堅決不回去，然後離開了城市。\n\n（小葵已離開，請點擊「離開對話」回到公園）'
+          : '畫家最後看了你一眼。\n他收起畫布，在雨夜中離開天橋。\n\n畫家徹底放棄與現實的連結，\n將名字留在被水沖淡的報紙裡。\n城市的一部分繼續黯淡無光。\n\n（畫家已離開，請點擊「離開對話」回到天橋）';
         systemMessages.push({
           role: 'system',
-          content: '畫家最後看了你一眼。\n他收起畫布，在雨夜中離開天橋。\n\n畫家徹底放棄與現實的連結，\n將名字留在被水沖淡的報紙裡。\n城市的一部分繼續黯淡無光。\n\n（畫家已離開，請點擊「離開對話」回到天橋）',
+          content: failedMessage,
         });
       }
     } else {
@@ -362,7 +365,7 @@ export default function OuterWorldConversation({
                     </div>
                   </div>
                 ))}
-                {isThinking && <div style={{ color: '#888', fontSize: 13 }}>畫家沉默了一下，像是在等待雨聲替他組織句子……</div>}
+                {isThinking && <div style={{ color: '#888', fontSize: 13 }}>{npcCard.displayName}沉默了一下，像是在等待雨聲替他組織句子……</div>}
                 <div ref={chatEndRef} />
               </>
             )}
@@ -374,7 +377,7 @@ export default function OuterWorldConversation({
                 value={input}
                 onChange={event => setInput(event.target.value)}
                 disabled={isEnded}
-                placeholder={isEnded ? '畫家已經離開了天橋...' : '試著輸入：你的畫筆還在嗎 / 創作對你來說是什麼 / 我可以陪你坐一會 / 不畫畫也沒關係'}
+                placeholder={isEnded ? `${npcCard.displayName}已經離開了...` : '試著輸入：你的畫筆還在嗎 / 創作對你來說是什麼 / 我可以陪你坐一會 / 不畫畫也沒關係'}
                 style={{ flex: 1, background: isEnded ? '#0a0c12' : '#101218', color: isEnded ? '#555' : '#f5f0e8', border: '1px solid #444', borderRadius: 10, padding: '12px 14px', outline: 'none', fontSize: 14 }}
               />
               <GlimmerButton type="submit" tone="primary" disabled={isThinking || isEnded}>送出</GlimmerButton>

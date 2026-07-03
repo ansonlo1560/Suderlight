@@ -54,14 +54,14 @@ export const aoiCard = {
 
 // ---- 線索資料（表世界地圖提示道具） ----
 
-export type AoiClueId = 'muddy_red_dance_shoes' | 'demerit_notice' | 'torn_diary';
+export type AoiClueId = 'muddy_red_dance_shoes' | 'demerit_notice' | 'torn_diary' | 'rubiks_cube';
 
 export const aoiClues: Record<AoiClueId, ClueDefinition> = {
   muddy_red_dance_shoes: {
     id: 'muddy_red_dance_shoes',
     label: '沾滿泥土的紅舞鞋',
     shortLabel: '紅舞鞋',
-    knowledge: 15,
+    knowledge: 13,
     worldId: 'aoi',
     locationId: 'skybridge',
     pos: { x: 20, y: 23 },
@@ -76,7 +76,7 @@ export const aoiClues: Record<AoiClueId, ClueDefinition> = {
     id: 'demerit_notice',
     label: '缺點通告',
     shortLabel: '通告',
-    knowledge: 10,
+    knowledge: 12,
     worldId: 'aoi',
     locationId: 'skybridge',
     pos: { x: 13, y: 18 },
@@ -91,7 +91,7 @@ export const aoiClues: Record<AoiClueId, ClueDefinition> = {
     id: 'torn_diary',
     label: '缺頁的日記本',
     shortLabel: '日記',
-    knowledge: 10,
+    knowledge: 12,
     worldId: 'aoi',
     locationId: 'skybridge',
     pos: { x: 26, y: 21 },
@@ -102,9 +102,24 @@ export const aoiClues: Record<AoiClueId, ClueDefinition> = {
     insightTitle: '撕掉的聲音',
     insightDesc: '她曾試著記錄自己，但害怕被看見。於是最痛苦的部分被撕掉，連帶著她表達自己的能力。',
   },
+  rubiks_cube: {
+    id: 'rubiks_cube',
+    label: '轉不齊的魔方',
+    shortLabel: '魔方',
+    knowledge: 13,
+    worldId: 'aoi',
+    locationId: 'skybridge',
+    pos: { x: 22, y: 26 },
+    color: '#ffab40',
+    icon: '方',
+    content: '你在公園鞦韆旁發現一個舊魔方。它已經磨損發白，好幾面的顏色被刮花了，但每一面都被反覆轉動過的痕跡。這是她不斷解決父母吵架的問題，維持父母關係才漸漸喜歡的玩具，但是從來沒有成功轉出過一面完整的顏色。',
+    dictionaryHint: '她轉的不是魔方，是家裡的氣氛——每一面都想對齊，但方塊從來不聽話。',
+    insightTitle: '無法對齊的顏色',
+    insightDesc: '她相信只要自己夠努力，就能把家裡的不和轉成和平。魔方是她唯一的練習，但練習的結果永遠是失敗——這讓她覺得是自己不夠好，而不是家裡的問題根本無解。',
+  },
 };
 
-export const aoiClueOrder: AoiClueId[] = ['muddy_red_dance_shoes', 'demerit_notice', 'torn_diary'];
+export const aoiClueOrder: AoiClueId[] = ['muddy_red_dance_shoes', 'demerit_notice', 'torn_diary', 'rubiks_cube'];
 
 // ---- Lorebook ----
 
@@ -140,6 +155,14 @@ export const aoiLorebook = [
     relatedNpcIds: ['aoi'],
     priority: 88,
     content: '玩家已找到小葵的缺頁日記本。她曾試圖記錄心情，但害怕被父母看見。提及日記時她會顯示出壓抑的自我表達。',
+  },
+  {
+    id: 'clue_rubiks_cube',
+    keywords: ['魔方', '方塊', '轉', '顏色', 'cube', '玩具'],
+    requiredFlags: ['inventory.rubiks_cube'],
+    relatedNpcIds: ['aoi'],
+    priority: 86,
+    content: '玩家已找到小葵的魔方。她曾試圖透過轉魔方來轉動家裡的氣氛，但從未成功。提及魔方時她會透露對家庭和平的無力感。',
   },
 ];
 
@@ -268,7 +291,7 @@ const openingsByDepth = [
 
 const ending = {
   success: '她寫了一首短詩，貼在公園佈告欄：「今天風很大，鞦韆自己動了，我沒有推它，它也沒生氣。」',
-  failed: '小葵離家出走，在公園留下那雙沾滿泥土的紅舞鞋。',
+  failed: '小葵永遠不回家，不上學，每天垂頭喪氣。父母找到了她也堅決不回去，然後離開了城市。',
   none: '（對話尚未結束）',
 };
 
@@ -467,5 +490,10 @@ export const aoiDictionary = [
     id: 'suppressed_expression', name: '壓抑的自我表達',
     description: '日記本裡被撕掉的頁面，是她「想說卻不敢說」的證據。她害怕表達自己會引發更多衝突。',
     relatedClues: ['torn_diary'], unlockCondition: 'torn_diary',
+  },
+  {
+    id: 'maintaining_peace', name: '維持和平的魔方',
+    description: '這是她不斷解決父母吵架的問題、維持父母關係才漸漸喜歡的玩具，但是從沒成功過。她轉動魔方的每一面，就像她試圖轉動家裡的氣氛——但方塊永遠對不齊，家裡的爭吵聲也從未真正停止。',
+    relatedClues: ['rubiks_cube'], unlockCondition: 'rubiks_cube',
   },
 ];

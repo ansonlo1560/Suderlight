@@ -37,6 +37,7 @@ export default function App() {
   const advancePsychLayer = useGameStore(state => state.advancePsychLayer);
   const forceUnlockInnerWorld = useGameStore(state => state.forceUnlockInnerWorld);
   const addFlagToNpc = useGameStore(state => state.addFlagToNpc);
+  const setPlayerPos = useGameStore(state => state.setPlayerPos);
 
   const [screen, setScreen] = useState<Screen>('title');
   const [returnScreen, setReturnScreen] = useState<Screen>('city');
@@ -200,6 +201,7 @@ export default function App() {
           setScreen('innerWorld');
         }}
         onSwitchNpc={setCurrentNpcId}
+        setPlayerPos={setPlayerPos}
       />
     );
   })();

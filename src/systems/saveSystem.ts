@@ -13,6 +13,9 @@ export type GameSave = {
   collectedClues: ClueId[];
   npcs: Record<NpcId, NpcRuntimeState>;
   ghosts: GhostRecord[];
+  /** 玩家地圖座標（用於退出對話/心理世界後返回原位） */
+  playerX?: number;
+  playerY?: number;
 };
 
 const SAVE_KEY = 'glimmer_city_vertical_slice_save_v1';

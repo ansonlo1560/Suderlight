@@ -50,6 +50,7 @@ type OuterWorldExplorerProps = {
   onOpenArcFailure: () => void;
   npcId?: NpcId;
   onSwitchNpc?: (npcId: NpcId) => void;
+  setPlayerPos?: (x: number, y: number) => void;
 };
 
 // ---- 工具 ----
@@ -344,9 +345,14 @@ function ParkScenery({ world, locationId, scenery, isRepaired }: { world: OuterW
 
 // ============================================================
 export default function OuterWorldExplorer({
-  save, collectClue, setCurrentLocation, resetSave, onOpenConversation, onOpenDictionary, onOpenTavern, onOpenReport, onEnterInnerWorld, addFlagToNpc, onOpenArcFailure, npcId: _npcId, onSwitchNpc,
+  save, collectClue, setCurrentLocation, resetSave, onOpenConversation, onOpenDictionary, onOpenTavern, onOpenReport, onEnterInnerWorld, addFlagToNpc, onOpenArcFailure, npcId: _npcId, onSwitchNpc, setPlayerPos,
 }: OuterWorldExplorerProps) {
-  const [playerPos, setPlayerPos] = useState<Point>(locations[save.currentLocation].spawn);
+  const spawnPoint = locations[save.currentLocation].spawn;
+  const [playerPos, setPlayerPosState] = useState<Point>(
+    (save.playerX != null && save.playerY != null)
+      ? { x: save.playerX, y: save.playerY }
+      : spawnPoint
+  );
   const [isDragging, setIsDragging] = useState(false);
   const [mapPos, setMapPos] = useState({ x: -320, y: -160 });
   const [modal, setModal] = useState<ModalState>(null);
@@ -510,7 +516,7 @@ export default function OuterWorldExplorer({
         if (keys.current.has('d') || keys.current.has('arrowright')) dx += 1;
         if (dx !== 0 || dy !== 0) {
           const len = Math.hypot(dx, dy);
-          setPlayerPos(prev => {
+          setPlayerPosState(prev => {
             const sx = (dx / len) * world.playerSpeed, sy = (dy / len) * world.playerSpeed;
             const buffer = 0.4;
             const maxX = world.getMaxX(save.currentLocation);
@@ -543,6 +549,18 @@ export default function OuterWorldExplorer({
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [modal, save.currentLocation, world]);
+
+  // 玩家座標變更時，防抖寫入存檔（避免退出對話/心理世界後傳送回重生點）
+  const lastSavedPos = useRef(playerPos);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (setPlayerPos && (playerPos.x !== lastSavedPos.current.x || playerPos.y !== lastSavedPos.current.y)) {
+        setPlayerPos(playerPos.x, playerPos.y);
+        lastSavedPos.current = playerPos;
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [playerPos, setPlayerPos]);
 
   const handleMouseDown = (e: MouseEvent) => { setIsDragging(true); hasMoved.current = false; dragStart.current = { x: e.clientX - mapPos.x, y: e.clientY - mapPos.y }; };
   const handleMouseMove = (e: MouseEvent) => { if (!isDragging) return; hasMoved.current = true; setMapPos({ x: clamp(e.clientX - dragStart.current.x, window.innerWidth - world.mapWidth, 0), y: clamp(e.clientY - dragStart.current.y, window.innerHeight - world.mapHeight, 0) }); };
