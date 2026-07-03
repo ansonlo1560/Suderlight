@@ -399,8 +399,21 @@ export default function OuterWorldConversation({
         </GlassPanel>
 
         <div style={{ alignSelf: 'center', display: 'grid', gap: 10 }}>
-          {npcState.innerWorldUnlocked && npcState.ending === 'none' && (
-            <GlimmerButton tone="primary" onClick={onEnterInnerWorld}>進入心理世界</GlimmerButton>
+          {npcState.ending === 'none' && (
+            <div style={{ display: 'grid', gap: 8 }}>
+              {!npcState.innerWorldUnlocked && (
+                <div style={{ color: '#9ba2ad', fontSize: 11, textAlign: 'center', background: 'rgba(255,255,255,0.04)', padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', letterSpacing: 0.2 }}>
+                  進入條件：認識 ≥ {npcState.knowledgeRequired} & 信任 ≥ {npcState.trustRequired}
+                </div>
+              )}
+              <GlimmerButton 
+                tone={npcState.innerWorldUnlocked ? "primary" : "ghost"} 
+                onClick={onEnterInnerWorld}
+                disabled={!npcState.innerWorldUnlocked}
+              >
+                進入心理世界
+              </GlimmerButton>
+            </div>
           )}
           <GlimmerButton onClick={onClose}>離開對話</GlimmerButton>
 
