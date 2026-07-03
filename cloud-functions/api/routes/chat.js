@@ -113,7 +113,9 @@ router.post('/', async (req, res, next) => {
         personality: npcCard.personality || '',
         description: npcCard.description || '',
         system_prompt: npcCard.system_prompt || '',
+        role_keywords: npcCard.role_keywords || [],
       };
+
       const recentMessages = memoryService.getRecentDialogue(npcId, 10, playerId);
       const recentInputTypes = memoryService.getRecentTypes(npcId, playerId);
       // 传递 npc 状态（含 ending / innerWorldDepth），用于 promptBuilder 判断是否使用 post-completion 规则
