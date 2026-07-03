@@ -348,6 +348,13 @@ export default function OuterWorldConversation({
             {npcCard.coreEmotion}
           </div>
 
+          {npcCard.conversationTip && (
+            <div style={{ padding: '10px 20px', background: 'rgba(245, 193, 108, 0.05)', borderBottom: '1px solid rgba(245, 193, 108, 0.1)', color: '#d7b77a', fontSize: 12, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <span style={{ opacity: 0.8 }}>💡</span>
+              <span style={{ lineHeight: 1.5 }}>{npcCard.conversationTip}</span>
+            </div>
+          )}
+
           <div style={{ flex: 1, overflowY: 'auto', padding: 20, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '100% 42px' }}>
             {isInitializing ? (
               <div style={{ color: '#888', fontSize: 13, textAlign: 'center', marginTop: 20 }}>正在同步記憶...</div>
@@ -383,15 +390,28 @@ export default function OuterWorldConversation({
               <GlimmerButton type="submit" tone="primary" disabled={isThinking || isEnded}>送出</GlimmerButton>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, color: '#777', fontSize: 12 }}>
-              <span>目前線索：{inventory.length > 0 
-                ? inventory
-                    .filter(id => {
-                      const clue = ALL_CLUES[id as import('../data/verticalSlice').ClueId];
-                      return clue && clue.worldId === npcId;
-                    })
-
-                    .map(id => clueLabels[id] || id).join(' / ') 
-                : '沒有線索'}</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px', maxWidth: '80%' }}>
+                <span>目前線索：</span>
+                {inventory.length > 0 
+                  ? inventory
+                      .filter(id => {
+                        const clue = ALL_CLUES[id as import('../data/verticalSlice').ClueId];
+                        return clue && clue.worldId === npcId;
+                      })
+                      .map(id => {
+                        const clue = ALL_CLUES[id as import('../data/verticalSlice').ClueId];
+                        return (
+                          <span 
+                            key={id} 
+                            title={clue?.content}
+                            style={{ color: '#aaa', borderBottom: '1px dotted #555', cursor: 'help' }}
+                          >
+                            {clueLabels[id] || id}
+                          </span>
+                        );
+                      }) 
+                  : <span>沒有線索</span>}
+              </div>
 
               {triggeredLore.length > 0 && <span style={{ color: '#f5c16c' }}>記憶被線索牽動</span>}
             </div>
@@ -400,24 +420,39 @@ export default function OuterWorldConversation({
 
         <div style={{ alignSelf: 'center', display: 'grid', gap: 10 }}>
           {npcState.ending === 'none' && (
-            <div style={{ display: 'grid', gap: 8 }}>
-              {!npcState.innerWorldUnlocked && (
-                <div style={{ color: '#9ba2ad', fontSize: 11, textAlign: 'center', background: 'rgba(255,255,255,0.04)', padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', letterSpacing: 0.2 }}>
-                  進入條件：認識 ≥ {npcState.knowledgeRequired} & 信任 ≥ {npcState.trustRequired}
-                </div>
-              )}
-              <GlimmerButton 
-                tone={npcState.innerWorldUnlocked ? "primary" : "ghost"} 
-                onClick={onEnterInnerWorld}
-                disabled={!npcState.innerWorldUnlocked}
-              >
-                進入心理世界
-              </GlimmerButton>
-            </div>
+            <GlimmerButton 
+              tone={npcState.innerWorldUnlocked ? "primary" : "ghost"} 
+              onClick={onEnterInnerWorld}
+              disabled={!npcState.innerWorldUnlocked}
+              fullWidth
+            >
+              進入心理世界
+            </GlimmerButton>
           )}
-          <GlimmerButton onClick={onClose}>離開對話</GlimmerButton>
+          <GlimmerButton onClick={onClose} fullWidth>離開對話</GlimmerButton>
 
-          <GlassPanel title="修復指引" variant="dark" contentStyle={{ display: 'grid', gap: 12 }}>
+          <GlassPanel 
+            title="修復指引" 
+            variant="dark" 
+            contentStyle={{ display: 'grid', gap: 12 }}
+            style={{ position: 'relative' }}
+          >
+            {!npcState.innerWorldUnlocked && npcState.ending === 'none' && (
+              <div style={{ 
+                padding: '8px 10px', 
+                background: 'rgba(245, 193, 108, 0.08)', 
+                borderRadius: 8, 
+                border: '1px solid rgba(245, 193, 108, 0.15)',
+                fontSize: 11,
+                color: '#d7b77a',
+                marginBottom: 4,
+                lineHeight: 1.4
+              }}>
+                <strong>解鎖條件：</strong><br/>
+                認識度 ≥ {npcState.knowledgeRequired} (目前 {npcState.knowledge})<br/>
+                信任度 ≥ {npcState.trustRequired} (目前 {npcState.trust})
+              </div>
+            )}
             <MeterBar label="對TA的認識" value={npcState.knowledge} max={100} tone="blue" />
             <MeterBar label="恐懼值" value={npcState.stress} max={100} tone="red" />
             <MeterBar label="信任度" value={npcState.trust} max={100} tone="gold" />

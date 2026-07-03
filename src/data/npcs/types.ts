@@ -30,6 +30,8 @@ export type NpcCharacterCard = {
   exampleDialogues: Array<{ player: string; npc: string }>;
   hiddenTruth: string;
   safetyRule: string;
+  /** 給玩家的對話建議提示 */
+  conversationTip?: string;
 };
 
 // ---- 線索定義 ----
