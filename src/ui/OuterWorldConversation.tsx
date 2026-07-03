@@ -383,7 +383,16 @@ export default function OuterWorldConversation({
               <GlimmerButton type="submit" tone="primary" disabled={isThinking || isEnded}>送出</GlimmerButton>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, color: '#777', fontSize: 12 }}>
-              <span>目前線索：{inventory.length > 0 ? inventory.map(id => clueLabels[id] || id).join(' / ') : '沒有線索'}</span>
+              <span>目前線索：{inventory.length > 0 
+                ? inventory
+                    .filter(id => {
+                      const clue = ALL_CLUES[id as import('../data/verticalSlice').ClueId];
+                      return clue && clue.worldId === npcId;
+                    })
+
+                    .map(id => clueLabels[id] || id).join(' / ') 
+                : '沒有線索'}</span>
+
               {triggeredLore.length > 0 && <span style={{ color: '#f5c16c' }}>記憶被線索牽動</span>}
             </div>
           </form>
