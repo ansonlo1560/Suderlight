@@ -330,6 +330,14 @@ export default function OuterWorldConversation({
   };
 
   const isEnded = npcState.ending !== 'none' || conversationEndedLocally;
+  const hasPlayerMessaged = useMemo(() => messages.some(m => m.role === 'player'), [messages]);
+
+  const placeholderText = useMemo(() => {
+    if (isEnded) return `${npcCard.displayName}已經離開了...`;
+    if (hasPlayerMessaged) return '輸入訊息...';
+    const suggestions = npcCard.exampleDialogues?.map(d => d.player).join(' / ');
+    return suggestions ? `試著輸入：${suggestions}` : '輸入訊息...';
+  }, [isEnded, hasPlayerMessaged, npcCard]);
 
   // 計算修復指引
   const repairTip = evaluateRepairTip(npcDef, {
@@ -384,7 +392,7 @@ export default function OuterWorldConversation({
                 value={input}
                 onChange={event => setInput(event.target.value)}
                 disabled={isEnded}
-                placeholder={isEnded ? `${npcCard.displayName}已經離開了...` : '試著輸入：你的畫筆還在嗎 / 創作對你來說是什麼 / 我可以陪你坐一會 / 不畫畫也沒關係'}
+                placeholder={placeholderText}
                 style={{ flex: 1, background: isEnded ? '#0a0c12' : '#101218', color: isEnded ? '#555' : '#f5f0e8', border: '1px solid #444', borderRadius: 10, padding: '12px 14px', outline: 'none', fontSize: 14 }}
               />
               <GlimmerButton type="submit" tone="primary" disabled={isThinking || isEnded}>送出</GlimmerButton>
