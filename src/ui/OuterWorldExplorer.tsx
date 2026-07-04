@@ -16,6 +16,7 @@ import muddyRedDanceShoesImage from '../../images/aoi/map-danceShoe.png';
 import demeritNoticeImage from '../../images/aoi/map-demeritNotice.png';
 import tornDiaryImage from '../../images/aoi/map-brokenDairy.png';
 import aoiImage from '../../images/aoi/Aoi.png';
+import aoiGoneImage from '../../images/aoi/AoiGone.png';
 import painterImage from '../../images/character/IMG_3556.png';
 import painterUnlockedImage from '../../images/character/IMG_3562.png';
 
@@ -613,9 +614,9 @@ export default function OuterWorldExplorer({
               畫家終於聽見了雨聲。
             </span>
           )}
-          {npcState?.ending === 'failed' && (
+          {(npcState?.ending === 'failed' || save.npcs['aoi']?.ending === 'failed') && (
             <span style={{ color: '#ffd0d0' }}>
-              天橋上只剩下一張被撕碎的空白畫布。
+              {save.npcs['aoi']?.ending === 'failed' ? '公園的鞦韆上，只剩風還在輕輕推著空盪的座位。' : '天橋上只剩下一張被撕碎的空白畫布。'}
             </span>
           )}
         </div>
@@ -670,7 +671,7 @@ export default function OuterWorldExplorer({
           return (
             <button key={entity.id} onClick={e => handleEntityClick(e, entity)} style={{ position: 'absolute', left: s.left, top: s.top, transform: 'translate(-50%, -100%)', width: bw, height: bh, border: isTC ? '2px dashed #5a5a6e' : ((isPtr || isAoi) ? 'none' : `2px solid ${entity.color}`), borderRadius: (isPtr || isAoi) ? '0' : isTC ? '8px 14px 10px 4px' : isImg ? '14px' : isPill ? '999px' : entity.type === 'npc' ? '36px 36px 18px 18px' : '50%', padding: (isPtr || isAoi) ? '0' : isTC ? '4px' : isImg ? '4px' : isPill ? '0 8px' : '0', background: isTC ? 'rgba(20,22,30,0.94)' : (isPtr || isAoi) ? 'transparent' : isImg ? 'rgba(14,18,25,0.92)' : entity.type === 'npc' ? 'rgba(255,170,51,0.12)' : 'rgba(255,255,255,0.08)', color: isTC ? '#8a8a9c' : entity.color, cursor: 'pointer', zIndex: Math.round(s.top) + (isGDoor ? 500 : 0), boxShadow: isTC ? (isNear ? '0 0 28px rgba(120,120,140,0.35)' : '0 0 10px rgba(120,120,140,0.15)') : isPtr ? (isNear ? '0 0 26px rgba(255,196,132,0.65)' : 'none') : isAoi ? 'none' : (isNear ? `0 0 36px ${entity.color}` : `0 0 18px ${entity.color}55`), fontWeight: 'bold', userSelect: 'none', transition: 'box-shadow 0.18s, transform 0.18s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} title={entity.label}>
               {isPtr ? <img src={npcState?.ending === 'success' ? painterUnlockedImage : painterImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: isNear ? 'drop-shadow(0 0 20px rgba(255,196,132,0.45))' : 'none' }} />
-              : isAoi ? <img src={aoiImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: save.npcs['aoi']?.ending === 'success' ? (isNear ? 'drop-shadow(0 0 20px rgba(255,170,51,0.45))' : 'none') : 'grayscale(1)' }} />
+              : isAoi ? <img src={save.npcs['aoi']?.ending === 'failed' ? aoiGoneImage : aoiImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: save.npcs['aoi']?.ending === 'success' ? (isNear ? 'drop-shadow(0 0 20px rgba(255,170,51,0.45))' : 'none') : save.npcs['aoi']?.ending === 'failed' ? 'none' : 'grayscale(1)' }} />
               : isImg && cImg ? <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', width: '100%', height: '100%' }}><img src={cImg} alt={entity.label} style={{ width: '100%', height: 72, objectFit: 'cover', borderRadius: 9, border: '1px solid rgba(255,255,255,0.18)', boxShadow: '0 3px 10px rgba(0,0,0,0.35)' }} /><span style={{ fontSize: 11, lineHeight: 1.2, letterSpacing: 0.2, color: '#f7f0dc', textShadow: '0 0 6px rgba(0,0,0,0.45)' }}>{entity.label}</span></div>
               : isPill ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', height: '100%', whiteSpace: 'nowrap' }}><span style={{ fontSize: 13, fontWeight: 'bold', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', width: 22, height: 22, minWidth: 22, minHeight: 22, flexShrink: 0, flexGrow: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{entity.icon}</span><span style={{ fontSize: 11, letterSpacing: 0.5, fontWeight: 'bold' }}>{entity.label}</span></div>
               : isTC ? <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: '100%', height: '100%' }}><div style={{ fontSize: 22, opacity: 0.55, filter: 'grayscale(1)', lineHeight: 1 }}>🧩</div><span style={{ fontSize: 9, letterSpacing: 0.3, color: '#7a7a8c', textAlign: 'center', lineHeight: 1.3, maxWidth: 70 }}>{entity.label}</span></div>

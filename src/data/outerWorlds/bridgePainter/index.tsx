@@ -310,6 +310,13 @@ export function getInteraction(
         actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: ctx.onOpenReport }],
       };
     }
+    if (ctx.npcEnding === 'failed') {
+      return {
+        title: '空盪的鞦韆',
+        content: '這裡曾經有一個小女孩，靜靜坐在鞦韆上。\n風輕輕推著她的影子，彷彿時間也不忍打擾。\n可如今，她的身影已不在，空盪的座位孤獨地搖晃著，像是在呼喚，卻永遠等不到回應。\n夜色吞沒了她的背影，只留下公園裡一片寂靜，提醒著人們——她曾經來過，卻再也不會回來。',
+        actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: ctx.onOpenReport }],
+      };
+    }
     return null; // 信號：應該開對話頁（ OuterWorldExplorer 處理 onSwitchNpc + onOpenConversation ）
   }
 
