@@ -1,17 +1,58 @@
 import type { ClueId, NpcId } from '../data/verticalSlice';
+import { getAllPsychLayers } from '../data/psychologicalWorlds/index';
 
 export type NpcEnding = 'none' | 'success' | 'failed';
+
+// ---- InnerWorld 存檔結構 ----
+
+/** 已理解的物品記錄 */
+export type UnderstoodItem = {
+  id: string;
+  name: string;
+  understandingReward: number;
+};
+
+/** 心理世界單層存檔狀態 */
+export type InnerWorldLayerState = {
+  /** 本層是否已完成（理解度達門檻並點擊"深入理解"） */
+  completed: boolean;
+  /** 當前累積理解度分數 */
+  understandingScore: number;
+  /** 已獲得 insight 的物品列表 */
+  understoodItems: UnderstoodItem[];
+  /** 僅發現（點擊過）但尚未獲得 insight 的物品 ID */
+  discoveredItems: string[];
+};
+
+/** 心理世界完整存檔 */
+export type InnerWorldSave = {
+  /** 目前已解鎖可進入的層級編號（基於 stress 條件，一旦解鎖即保留） */
+  unlockedLayers: number[];
+  /** 各層詳細狀態 */
+  layers: Record<number, InnerWorldLayerState>;
+};
+
+// ---- NPC 運行時狀態 ----
 
 export type NpcRuntimeState = {
   id: NpcId;
   name: string;
   trust: number;
   stress: number;
+  knowledge: number;
   knowledgeRequired: number;
   trustRequired: number;
   innerWorldUnlocked: boolean;
   ending: NpcEnding;
   flags: string[];
+  /** 心理世界探索深度：0=未進入, 1=理解不足, 2=理解中等, 3=理解很深 */
+  innerWorldDepth: number;
+  /** 最深達成的心理層級 (0=未進入, 1-4=Layer 1-4 完成) */
+  innerWorldLayer: number;
+  /** 心理世界各層詳細進度存檔 */
+  innerWorld?: InnerWorldSave;
+  /** 心理世界同步版本號（供 UI 偵測外部修改） */
+  innerWorldSyncId?: number;
 };
 
 export type DialogueEvaluationContext = {
@@ -34,6 +75,8 @@ const empathyWords = ['我陪你', '陪你', '不用立刻', '不用馬上', '�
 const acceptanceWords = ['空白也可以', '不用填滿', '不是你的錯', '不需要變好', '不需要證明', '不用證明', '你不只是畫家', '你不是作品'];
 const geniusConsumptionWords = ['天才', '大師', '作品價值', '一定很美', '有名', '賣畫', '人設'];
 const crisisWords = ['我想死', '想死', '不想活', '自殺', '傷害自己'];
+const hostileWords = ['廢物', '去死', '沒用', '垃圾', '活該', '可悲', '軟弱', '懦夫', '裝病', '演的', '滾', '閉嘴', '爛'];
+const dismissWords = ['隨便', '算了', '反正', '不重要', '無所謂', '懶得管', '不關我的事', '無聊'];
 
 function clamp(value: number, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
@@ -47,17 +90,46 @@ function mergeFlags(oldFlags: string[], newFlags: string[]) {
   return Array.from(new Set([...oldFlags, ...newFlags]));
 }
 
+/**
+ * 根據 npcId 動態生成對應心理世界的預設存檔
+ * 向後相容：不傳 npcId 時預設使用 bridge_artist
+ */
+export function createDefaultInnerWorldSave(npcId: NpcId = 'bridge_artist'): InnerWorldSave {
+  const layers: Record<number, InnerWorldLayerState> = {};
+  const psychLayers = getAllPsychLayers(npcId);
+  for (const layer of psychLayers) {
+    layers[layer.layerNumber] = {
+      completed: false,
+      understandingScore: 0,
+      understoodItems: [],
+      discoveredItems: [],
+    };
+  }
+  // 若 psychLayers 為空（骨架 NPC），仍初始化 Layer 1 佔位
+  if (psychLayers.length === 0) {
+    layers[1] = { completed: false, understandingScore: 0, understoodItems: [], discoveredItems: [] };
+  }
+  return {
+    unlockedLayers: [1], // Layer 1 預設解鎖
+    layers,
+  };
+}
+
 export function createBridgeArtistState(): NpcRuntimeState {
   return {
     id: 'bridge_artist',
     name: '天橋畫家',
     trust: 20,
     stress: 80,
-    knowledgeRequired: 70,
+    knowledge: 0,
+    knowledgeRequired: 80,
     trustRequired: 50,
     innerWorldUnlocked: false,
     ending: 'none',
     flags: [],
+    innerWorldDepth: 0,
+    innerWorldLayer: 0,
+    innerWorld: createDefaultInnerWorldSave('bridge_artist'),
   };
 }
 
@@ -67,11 +139,15 @@ export function createVictorState(): NpcRuntimeState {
     name: '調香師 維克多',
     trust: 10,
     stress: 90,
-    knowledgeRequired: 70,
+    knowledge: 0,
+    knowledgeRequired: 80,
     trustRequired: 50,
     innerWorldUnlocked: false,
     ending: 'none',
     flags: [],
+    innerWorldDepth: 0,
+    innerWorldLayer: 0,
+    innerWorld: createDefaultInnerWorldSave('victor'),
   };
 }
 
@@ -84,11 +160,24 @@ export function evaluateBridgeArtistDialogue(
   state: NpcRuntimeState,
   context: DialogueEvaluationContext,
 ): DialogueEvaluationResult {
+  return evaluateNpcDialogue(playerInput, state, context);
+}
+
+/**
+ * 通用 NPC 對話評估（目前仍使用 bridge_artist 規則；
+ * 未來可依 state.id 分派不同 NPC 的規則集）
+ */
+export function evaluateNpcDialogue(
+  playerInput: string,
+  state: NpcRuntimeState,
+  context: DialogueEvaluationContext,
+): DialogueEvaluationResult {
   const input = playerInput.trim().toLowerCase();
   const flags: string[] = [];
-  let trustDelta = 1;
-  let stressDelta = -1;
-  let reason = '你沒有急著替他下結論，對話維持在安全距離。';
+  // 【修复】默认完全中性（以前 trustDelta:1, stressDelta:-1 导致无条件偏正面）
+  let trustDelta = 0;
+  let stressDelta = 0;
+  let reason = '對話維持在安全距離，未觸發特定判定。';
   let safetyRedirect = false;
 
   if (hasAny(input, crisisWords)) {
@@ -97,6 +186,18 @@ export function evaluateBridgeArtistDialogue(
     reason = '系統偵測到現實危機語句：停止角色誘導，轉向安全提醒。';
     flags.push('safety_redirect_triggered');
     safetyRedirect = true;
+  } else if (hasAny(input, hostileWords)) {
+    // 【新增】敌意/侮辱 → 大幅降信任 + 大幅升压力
+    trustDelta = -8;
+    stressDelta = 12;
+    reason = '你的語氣帶有敵意。這樣只會把他推得更遠。';
+    flags.push('player_used_hostile_language');
+  } else if (hasAny(input, dismissWords) && input.length < 6) {
+    // 【新增】冷漠/敷衍 → 略降信任
+    trustDelta = -3;
+    stressDelta = 3;
+    reason = '你的回應顯得很敷衍。他感覺到你其實不在乎。';
+    flags.push('player_used_dismissive_reply');
   } else if (hasAny(input, forcedComfortWords)) {
     trustDelta = -5;
     stressDelta = 10;
@@ -184,8 +285,7 @@ export function applyDialogueEvaluation(
 export function markNpcSuccess(state: NpcRuntimeState): NpcRuntimeState {
   return {
     ...state,
-    trust: Math.max(state.trust, state.trustRequired),
-    stress: Math.min(state.stress, 35),
+    // 不再强制修改 trust/stress；这些数值由对话系统自然累积完成
     innerWorldUnlocked: true,
     ending: 'success',
     flags: mergeFlags(state.flags, ['bridge_artist_repaired']),

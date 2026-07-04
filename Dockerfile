@@ -1,24 +1,38 @@
-FROM node:20-bookworm-slim
-
-# 設定工作目錄
+# ---- Stage 1: Build Frontend ----
+FROM node:20-bookworm-slim AS frontend-build
 WORKDIR /app
-
-# 複製 package.json 和 package-lock.json
 COPY package*.json ./
-
-# 安裝依賴套件
-RUN npm install
-
-# 複製所有原始碼
+RUN npm ci
 COPY . .
-
-# 編譯專案
 RUN npm run build
 
-# 根據環境變數執行 preview 伺服器
-# 預設對外曝露的 Port
-ENV PORT=443
+# ---- Stage 2: Final Serve ----
+FROM nginx:1.27-bookworm
+
+# Install Node.js for backend server
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy nginx config + SSL certs
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY cert/ /etc/nginx/ssl/
+
+# Copy frontend build products
+COPY --from=frontend-build /app/dist /usr/share/nginx/html
+
+# Copy unified server code & install deps
+COPY cloud-functions/api/ /app/server/
+COPY package*.json /app/
+RUN cd /app && npm ci --omit=dev
+
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 443
 
-# 啟動命令，使用 vite preview 並綁定 host 與 port
-CMD ["sh", "-c", "npm run preview -- --host 0.0.0.0 --port ${PORT}"]
+CMD ["/entrypoint.sh"]

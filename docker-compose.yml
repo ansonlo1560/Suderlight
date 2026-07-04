@@ -1,38 +1,25 @@
 version: '3.8'
 
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: suderlight_backend
-    restart: always
-    ports:
-      - "4000:4000"
-    environment:
-      - PORT=4000
-      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-YOUR_KEY}
-      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
-      - OLLAMA_URL=http://host.docker.internal:11434
-      - OLLAMA_MODEL=gemma4:e2b
-    volumes:
-      - ./backend/data:/app/data
-
-  web:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: suderlight_web
+    container_name: suderlight
     restart: always
     ports:
-      # 主機Port:容器Port
-      # 根據需求 PORT = 8483 -> 8483 進行映射
-      - "8483:8483"
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
     environment:
-      - PORT=8483
-    depends_on:
-      - backend
-    # 如果需要用到 HTTPS 憑證或環境變數檔可以掛載進來
+      - PORT=4000
+      - NODE_ENV=production
+      - STORAGE_MODE=fs
+      - API_PREFIX=/api
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-YOUR_KEY}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+    # 持久化玩家数据 (saves + memories)，静态数据由镜像提供
     volumes:
-      - ./cert:/app/cert
+      - suderlight_data:/app/server/data
 
+volumes:
+  suderlight_data:

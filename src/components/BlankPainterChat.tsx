@@ -1,7 +1,9 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState, useEffect } from 'react';
 import { blankPainterCard, blankPainterLorebook } from '../data/npcs/blankPainter';
-import type { NpcRuntimeState, DialogueEvaluationResult } from '../systems/npcStateEngine';
+import type { NpcRuntimeState } from '../systems/npcStateEngine';
 import { fetchLLMReply, type BackendNpcState } from '../utils/llmReply';
+import { getPlayerId } from '../lib/playerId';
+import { loadDialogueHistory, appendDialogueExchange } from '../lib/dialogueStore';
 
 type ChatMessage = {
   role: 'player' | 'npc' | 'system';
@@ -26,6 +28,9 @@ type AiReply = {
   safetyLevel?: 'safe' | 'safety_redirect';
   backendPsychology?: BackendPsychology;
   backendNpcState?: BackendNpcState;
+  backendRoundCount?: number;
+  backendSummary?: string;
+  backendSummaryError?: string;
 };
 
 type BlankPainterChatProps = {
@@ -33,7 +38,6 @@ type BlankPainterChatProps = {
   knowledge: number;
   npcState: NpcRuntimeState;
   onClose: () => void;
-  onDialogueEvaluated: (playerInput: string) => DialogueEvaluationResult;
   onEnterInnerWorld: () => void;
   onEndingTriggered: (ending: 'failed') => void;
 };
@@ -121,24 +125,13 @@ function simulateBlankPainterReply(playerInput: string, inventory: string[], his
   };
 }
 
-function formatDelta(value: number) {
-  if (value > 0) return `+${value}`;
-  return `${value}`;
-}
 
-function buildSystemOutcomeMessage(result: DialogueEvaluationResult) {
-  const unlockText = result.innerWorldUnlocked ? '\n心理世界解鎖條件已滿足。' : '';
-  const endingText = result.ending === 'failed' ? '\nGhost System 已記錄一次失敗。' : '';
-
-  return `系統判定：${result.reason}\nTrust ${formatDelta(result.trustDelta)} / Stress ${formatDelta(result.stressDelta)}${unlockText}${endingText}`;
-}
 
 export default function BlankPainterChat({
   inventory,
   knowledge,
   npcState,
   onClose,
-  onDialogueEvaluated,
   onEnterInnerWorld,
   onEndingTriggered,
 }: BlankPainterChatProps) {
@@ -148,6 +141,32 @@ export default function BlankPainterChat({
   ]);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+
+  // 从本地 localStorage 加载历史对话
+  useEffect(() => {
+    const playerId = getPlayerId();
+    const local = loadDialogueHistory('bridge_artist', playerId);
+    if (local && local.fullHistory.length > 0) {
+      const rebuilt: ChatMessage[] = [
+        { role: 'system', content: '雨水沿著天橋欄杆滴落。提燈的光很低，只照見空白畫布的一角。' },
+        { role: 'npc', content: blankPainterCard.firstMessage },
+      ];
+      local.fullHistory.forEach((msg: any) => {
+        if (msg.role === 'user') {
+          rebuilt.push({ role: 'player', content: msg.content });
+        } else if (msg.role === 'assistant') {
+          rebuilt.push({ role: 'npc', content: msg.content });
+          if (msg.systemJudgement) {
+            rebuilt.push({
+              role: 'system',
+              content: `系統判定：${msg.systemJudgement.stateLabel}（Trust ${msg.systemJudgement.trustDelta >= 0 ? '+' : ''}${msg.systemJudgement.trustDelta} / Stress ${msg.systemJudgement.stressDelta >= 0 ? '+' : ''}${msg.systemJudgement.stressDelta}）`,
+            });
+          }
+        }
+      });
+      setMessages(rebuilt);
+    }
+  }, []);
 
 
   const triggeredLore = useMemo(() => {
@@ -159,17 +178,21 @@ export default function BlankPainterChat({
     });
   }, [input, inventory]);
 
-  const appendReplyAndSystemResult = (reply: AiReply, trimmed: string) => {
-    const evaluation = onDialogueEvaluated(trimmed);
+  const appendReplyAndSystemResult = (reply: AiReply) => {
     const nextMessages: ChatMessage[] = [
       { role: 'npc', content: reply.dialogue },
       ...(reply.dictionaryHint ? [{ role: 'system' as const, content: `情緒詞典浮現：${reply.dictionaryHint}` }] : []),
-      { role: 'system', content: buildSystemOutcomeMessage(evaluation) },
+      ...(reply.backendPsychology
+        ? [{
+            role: 'system' as const,
+            content: `系統判定：${reply.backendPsychology.stateLabel}（Trust ${reply.backendPsychology.trustDelta >= 0 ? '+' : ''}${reply.backendPsychology.trustDelta} / Stress ${reply.backendPsychology.stressDelta >= 0 ? '+' : ''}${reply.backendPsychology.stressDelta}）`,
+          }]
+        : []),
     ];
 
     setMessages(current => [...current, ...nextMessages]);
 
-    if (evaluation.ending === 'failed') {
+    if (reply.backendNpcState?.ending === 'failed') {
       window.setTimeout(() => onEndingTriggered('failed'), 300);
     }
   };
@@ -194,7 +217,11 @@ export default function BlankPainterChat({
       try {
         const cleanedStr = replyStr.replace(/```json/gi, '').replace(/```/g, '').trim();
         reply = JSON.parse(cleanedStr) as AiReply;
-        if (!reply.dialogue) reply.dialogue = replyStr;
+        if (reply.dialogue === undefined) {
+          reply.dialogue = replyStr;
+        } else if (reply.dialogue.trim() === '') {
+          reply.dialogue = '（他沈默著，沒有說話。）';
+        }
       } catch (error) {
         console.error('解析 LLM JSON 失敗:', error, replyStr);
         reply = {
@@ -203,15 +230,39 @@ export default function BlankPainterChat({
         };
       }
 
-      appendReplyAndSystemResult(reply, trimmed);
+      appendReplyAndSystemResult(reply);
+
+      // 存储对话到本地 localStorage
+      appendDialogueExchange(
+        'bridge_artist',
+        getPlayerId(),
+        trimmed,
+        reply.dialogue,
+        reply.backendPsychology ? {
+          stateLabel: reply.backendPsychology.stateLabel,
+          trustDelta: reply.backendPsychology.trustDelta,
+          stressDelta: reply.backendPsychology.stressDelta,
+        } : undefined,
+        reply.backendSummary,
+        reply.backendRoundCount,
+      );
+
+      // 摘要生成失敗時，顯示系統錯誤提示
+      if (reply.backendSummaryError) {
+        setMessages(current => [
+          ...current,
+          { role: 'system', content: `（摘要生成失敗：${reply.backendSummaryError}）` },
+        ]);
+      }
     } catch (error) {
-      console.warn('LLM 連線失敗，切換至本地語意模擬:', error);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.warn('LLM 連線失敗，切換至本地語意模擬:', errMsg);
       const simulatedReply = simulateBlankPainterReply(trimmed, inventory, nextMessages);
       setMessages(current => [
         ...current,
-        { role: 'system', content: '（連線錯誤：暫時由本地語意模擬回應。請確認 DeepSeek/Ollama/Tencent 代理是否正常運行。）' },
+        { role: 'system', content: `（連線錯誤：${errMsg}）` },
       ]);
-      appendReplyAndSystemResult(simulatedReply, trimmed);
+      appendReplyAndSystemResult(simulatedReply);
     } finally {
       setIsThinking(false);
     }
@@ -243,11 +294,11 @@ export default function BlankPainterChat({
             <h2 style={{ margin: '6px 0 0', fontSize: 22 }}>{blankPainterCard.displayName}</h2>
             <p style={{ margin: '8px 0 0', color: '#aaa', fontSize: 13 }}>{blankPainterCard.coreEmotion}</p>
             <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12 }}>
-              <span style={{ color: '#d7b77a' }}>Knowledge {knowledge}/100</span>
-              <span style={{ color: '#9bd6ff' }}>Trust {npcState.trust}/100</span>
-              <span style={{ color: '#ffaaa0' }}>Stress {npcState.stress}/100</span>
+              <span style={{ color: '#d7b77a' }}>對TA的認識 {knowledge}/100</span>
+              <span style={{ color: '#9bd6ff' }}>信任度 {npcState.trust}/100</span>
+              <span style={{ color: '#ffaaa0' }}>??? {npcState.stress}/100</span>
               <span style={{ color: npcState.innerWorldUnlocked ? '#9cffc7' : '#888' }}>
-                InnerWorld {npcState.innerWorldUnlocked ? 'Unlocked' : 'Locked'}
+                心理世界 {npcState.innerWorldUnlocked ? '已解鎖' : '未解鎖'}
               </span>
             </div>
           </div>
@@ -336,7 +387,7 @@ export default function BlankPainterChat({
               畫家的記憶被某個線索輕輕牽動了。
             </div>
           )}
-        </form>
+        </form>a
       </section>
 
 

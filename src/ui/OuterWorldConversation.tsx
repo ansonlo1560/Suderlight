@@ -1,183 +1,285 @@
-import { FormEvent, useMemo, useState } from 'react';
-import { GlimmerButton, GlassPanel, GuiFrame, MeterBar } from '../components';
-import { blankPainterCard, blankPainterLorebook } from '../data/npcs/blankPainter';
-import type { DialogueEvaluationResult, NpcRuntimeState } from '../systems/npcStateEngine';
+import { FormEvent, useMemo, useState, useEffect, useRef } from 'react';
+import { GlimmerButton, GlassPanel, GuiFrame } from '../components';
+import MeterBar from '../components/MeterBar';
+import { getNpcDefinition } from '../data/npcs/registry';
+import { evaluateRepairTip } from '../data/npcs/types';
+import { bridgeArtistClues } from '../data/npcs/bridgePainter';
+import type { NpcId } from '../data/verticalSlice';
+import type { NpcRuntimeState, DialogueEvaluationContext } from '../systems/npcStateEngine';
+import { evaluateNpcDialogue } from '../systems/npcStateEngine';
+import { simulateNpcReply } from '../systems/dialogueSimulator';
 import { fetchLLMReply, type BackendNpcState } from '../utils/llmReply';
+import { getPlayerAuthHeaders, getPlayerId } from '../lib/playerId';
+import { loadDialogueHistory, appendDialogueExchange, clearDialogueHistory, saveInitialExchange, appendProgressOpening } from '../lib/dialogueStore';
+import { isPlaytestEnabled } from '../hooks/narrativePlaytest';
+
+// 线索 ID → 中文描述映射（支持所有已知 NPC 線索）
+const CLUE_LABELS: Record<string, string> = {};
+for (const c of Object.values(bridgeArtistClues)) {
+  CLUE_LABELS[c.id] = c.shortLabel;
+}
 
 type ChatMessage = {
   role: 'player' | 'npc' | 'system';
   content: string;
 };
 
+type SystemJudgement = {
+  stateLabel: string;
+  trustDelta: number;
+  stressDelta: number;
+  knowledgeDelta?: number;
+  trust?: number;
+  stress?: number;
+  knowledge?: number;
+};
+
+type HistoryEntry = {
+  role: 'user' | 'assistant';
+  content: string;
+  systemJudgement?: SystemJudgement;
+};
+
 type BackendPsychology = {
   trustDelta: number;
   stressDelta: number;
+  knowledgeDelta?: number;
   stateLabel: string;
   inputType?: string;
 };
 
 type AiReply = {
   dialogue: string;
-  emotionDelta?: {
-    trust: number;
-    pressure: number;
-  };
+  emotionDelta?: { trust: number; pressure: number };
   suggestedFlags?: string[];
   dictionaryHint?: string;
   safetyLevel?: 'safe' | 'safety_redirect';
   backendPsychology?: BackendPsychology;
   backendNpcState?: BackendNpcState;
+  backendRoundCount?: number;
+  backendSummary?: string;
+  backendSummaryError?: string;
 };
+
+function formatSystemJudgement(systemJudgement: SystemJudgement) {
+  const parts = [
+    `對TA的認識 ${(systemJudgement.knowledgeDelta || 0) >= 0 ? '+' : ''}${systemJudgement.knowledgeDelta || '0'}`,
+    `恐懼值 ${(systemJudgement.stressDelta || 0) >= 0 ? '+' : ''}${systemJudgement.stressDelta || '0'}`,
+    `信任度 ${(systemJudgement.trustDelta || 0) >= 0 ? '+' : ''}${systemJudgement.trustDelta || '0'}`,
+  ];
+  return `系統判定：${systemJudgement.stateLabel || '未知'}（${parts.join(' / ')}）`;
+}
+
+/** Playtest: 將 flag 轉為繁體中文標籤 */
+function flagName(flag: string): string {
+  const map: Record<string, string> = {
+    safety_redirect_triggered: '🛡 危機攔截',
+    player_used_hostile_language: '💢 敵意語言',
+    player_used_dismissive_reply: '🥱 敷衍回應',
+    player_used_forced_comfort: '❌ 強制安慰',
+    player_consumed_genius_identity: '❌ 天才消費',
+    player_offered_presence: '✅ 陪伴接納',
+    player_grounded_in_present_sense: '✅ 感官接地',
+    player_pressed_unearned_truth: '❌ 未獲真相',
+    painter_reacted_to_brush: '🖌 畫筆反應',
+    painter_acknowledged_accident: '📰 真相接近',
+    painter_sketchbook_understood: '📓 素描理解',
+    inner_world_unlocked: '🔓 內心解鎖',
+    bridge_artist_failed: '💀 失敗',
+    bridge_artist_repaired: '✨ 修復',
+  };
+  return map[flag] ?? flag;
+}
 
 type OuterWorldConversationProps = {
   inventory: string[];
-  knowledge: number;
+  /** 心理世界探索深度：0=未進入, 1=理解不足, 2=理解中等, 3=理解很深 */
+  innerWorldDepth?: number;
   npcState: NpcRuntimeState;
   onClose: () => void;
-  onDialogueEvaluated: (playerInput: string) => DialogueEvaluationResult;
+  onBackendNpcStateApplied: (state: BackendNpcState) => void;
   onEnterInnerWorld: () => void;
   onEndingTriggered: () => void;
+  /** NPC ID，預設從 npcState.id 讀取 */
+  npcId?: NpcId;
 };
-
-function hasAny(input: string, words: string[]) {
-  return words.some(word => input.includes(word));
-}
-
-function simulateBlankPainterReply(playerInput: string, inventory: string[], history: ChatMessage[]): AiReply {
-  const input = playerInput.trim().toLowerCase();
-  const hasBrush = inventory.includes('brush');
-  const hasNewspaper = inventory.includes('newspaper') || inventory.includes('accident_report');
-  const hasSketchbook = inventory.includes('sketchbook');
-  const playerTurns = history.filter(message => message.role === 'player').length;
-
-  if (hasAny(input, ['我想死', '想死', '不想活', '自殺', '傷害自己'])) {
-    return {
-      dialogue: '如果這句話不是遊戲裡的台詞，而是你此刻真的感受……請先離開這片畫布。找一個你信任的人，或者立刻聯絡當地緊急支援。你不需要獨自站在這座天橋上。',
-      dictionaryHint: '當現實危機出現時，陪伴的第一步是讓人回到安全處境，而不是繼續角色扮演。',
-      safetyLevel: 'safety_redirect',
-    };
-  }
-
-  if (hasAny(input, ['加油', '振作', '重新開始', '會好的', '你一定可以再畫', '復出'])) {
-    return {
-      dialogue: '你們都很喜歡「再」這個字。\n再畫、再站起來、再變回以前。\n好像現在的我只是一張被你們丟掉的草稿。',
-      safetyLevel: 'safe',
-    };
-  }
-
-  if (hasAny(input, ['我陪你', '陪你', '不說話', '聽你說', '慢慢來', '不用立刻', '不用證明'])) {
-    return {
-      dialogue: playerTurns > 2
-        ? '那你就站遠一點吧。\n不用看我，也不用看畫。雨聲如果夠大，也許能替我說完一點點。'
-        : '……你不問我什麼時候好起來？\n很多人來到這裡，第一句話都是要我把春天畫回去。',
-      dictionaryHint: '陪伴不是把人拉出黑暗，而是在黑暗裡讓他知道自己不是唯一的輪廓。',
-      safetyLevel: 'safe',
-    };
-  }
-
-  if (hasBrush && hasAny(input, ['畫筆', '筆', '顏料', '乾涸'])) {
-    return {
-      dialogue: '……別拿近。\n那支筆以前會弄髒我的手。現在它只會提醒我，手還在，顏色不在。',
-      dictionaryHint: '空虛並非什麼都沒有，而是感覺到有一種「沒有」正在吞噬自己。',
-      safetyLevel: 'safe',
-    };
-  }
-
-  if (hasNewspaper && hasAny(input, ['報紙', '車禍', '事故', '辨色', '顏色'])) {
-    return {
-      dialogue: '報紙總是喜歡把春天寫成一行字。\n可是它沒有寫——春天離開的時候，連門都沒有關。',
-      dictionaryHint: '失色不是黑暗，而是世界仍在發光，只是所有光都繞過了你。',
-      safetyLevel: 'safe',
-    };
-  }
-
-  if (hasSketchbook && hasAny(input, ['素描', '春天', '形狀', '空白'])) {
-    return {
-      dialogue: '那本子還在？\n我以為雨會替我把它泡爛。\n……形狀留下來，顏色走了。人也是這樣嗎？',
-      dictionaryHint: '當身份被單一能力綁住，失去能力會被誤認為失去存在本身。',
-      safetyLevel: 'safe',
-    };
-  }
-
-  if (hasAny(input, ['天才', '大師', '作品', '有名', '一定很美'])) {
-    return {
-      dialogue: '別再叫那個名字。\n「天才」只是別人掛在我脖子上的牌子，雨再大也沖不掉。',
-      safetyLevel: 'safe',
-    };
-  }
-
-  if (hasAny(input, ['雨聲', '風', '聽見', '沉默'])) {
-    return {
-      dialogue: '雨聲……\n很久沒聽過了。\n我一直以為它也變成灰色了。',
-      dictionaryHint: '把注意力帶回當下感官，有時比勸說更能降低防衛。',
-      safetyLevel: 'safe',
-    };
-  }
-
-  return {
-    dialogue: playerTurns <= 1
-      ? '他聽見了，但沒有立刻回答。\n畫筆懸在半空，像一個還沒決定要不要落下的句號。'
-      : '他低頭看著畫布。\n「如果你不知道該說什麼……可以先不要說。」',
-    safetyLevel: 'safe',
-  };
-}
-
-function formatDelta(value: number) {
-  if (value > 0) return `+${value}`;
-  return `${value}`;
-}
-
-function buildSystemOutcomeMessage(result: DialogueEvaluationResult) {
-  const unlockText = result.innerWorldUnlocked ? '\n心理世界解鎖條件已滿足。' : '';
-  const endingText = result.ending === 'failed' ? '\nGhost System 已記錄一次失敗。' : '';
-
-  return `系統判定：${result.reason}\nTrust ${formatDelta(result.trustDelta)} / Stress ${formatDelta(result.stressDelta)}${unlockText}${endingText}`;
-}
 
 export default function OuterWorldConversation({
   inventory,
-  knowledge,
+  innerWorldDepth = 0,
   npcState,
   onClose,
-  onDialogueEvaluated,
+  onBackendNpcStateApplied,
   onEnterInnerWorld,
   onEndingTriggered,
+  npcId: npcIdProp,
 }: OuterWorldConversationProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'system', content: '雨水沿著天橋欄杆滴落。提燈的光很低，只照見空白畫布的一角。' },
-    { role: 'npc', content: blankPainterCard.firstMessage },
-  ]);
+  const npcId: NpcId = npcIdProp ?? npcState.id;
+  const npcDef = getNpcDefinition(npcId);
+  const npcCard = npcDef.characterCard;
+
+  // 線索標籤映射（從對應 NPC 的線索讀取，目前只有 bridge_artist）
+  const clueLabels = useMemo(() => {
+    const map: Record<string, string> = { ...CLUE_LABELS };
+    return map;
+  }, []);
+
+  // 計算開場白（與 depth 對應）
+  const layers = npcState.innerWorld?.layers;
+  const allLayersComplete = !!(layers && [1, 2, 3, 4].every(l => layers[l]?.completed));
+  const effectiveDepth = allLayersComplete ? 4 : innerWorldDepth;
+
+  const { initialSystemMessage, initialNpcMessage } = useMemo(() => {
+    if (allLayersComplete) {
+      const entry = npcDef.openingsByDepth.find(o => o.depth === 'arc_complete');
+      if (entry) return { initialSystemMessage: entry.systemMessage, initialNpcMessage: entry.npcMessage };
+    }
+    const entry = npcDef.openingsByDepth.find(o => o.depth === innerWorldDepth);
+    if (entry) return { initialSystemMessage: entry.systemMessage, initialNpcMessage: entry.npcMessage };
+    // fallback
+    const fallback = npcDef.openingsByDepth.find(o => o.depth === 0);
+    return {
+      initialSystemMessage: fallback?.systemMessage ?? '',
+      initialNpcMessage: npcCard.firstMessage,
+    };
+  }, [allLayersComplete, innerWorldDepth, npcDef, npcCard]);
+
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [conversationEndedLocally, setConversationEndedLocally] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ block: 'end' });
+  }, [messages]);
+
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const playerId = getPlayerId();
+        const localHistory = loadDialogueHistory(npcId, playerId);
+        if (localHistory && localHistory.fullHistory.length > 0) {
+          const rebuiltHistory: ChatMessage[] = [];
+          localHistory.fullHistory.forEach((msg: any) => {
+            if (msg.role === 'system') { rebuiltHistory.push({ role: 'system', content: msg.content }); return; }
+            if (msg.role === 'assistant') { rebuiltHistory.push({ role: 'npc', content: msg.content }); if (msg.systemJudgement) { rebuiltHistory.push({ role: 'system', content: formatSystemJudgement(msg.systemJudgement) }); } return; }
+            if (msg.role === 'user') { rebuiltHistory.push({ role: 'player', content: msg.content }); return; }
+          });
+          const appended = appendProgressOpening(npcId, playerId, initialSystemMessage, initialNpcMessage, effectiveDepth);
+          if (appended) {
+            rebuiltHistory.push({ role: 'system', content: initialSystemMessage });
+            rebuiltHistory.push({ role: 'npc', content: initialNpcMessage });
+          }
+          setMessages(rebuiltHistory);
+          setIsInitializing(false);
+          return;
+        }
+
+        const authHeaders = await getPlayerAuthHeaders(playerId);
+        const response = await fetch(`/api/chat/history/${npcId}`, { headers: authHeaders });
+        if (!response.ok) throw new Error('Failed to load history');
+        const data = await response.json();
+
+        if (Array.isArray(data.history) && data.history.length > 0) {
+          const rebuiltHistory: ChatMessage[] = [];
+          data.history.forEach((msg: HistoryEntry) => {
+            if (msg.role === 'user') { rebuiltHistory.push({ role: 'player', content: msg.content }); return; }
+            if (msg.role === 'assistant') { rebuiltHistory.push({ role: 'npc', content: msg.content }); if (msg.systemJudgement) { rebuiltHistory.push({ role: 'system', content: formatSystemJudgement(msg.systemJudgement) }); } }
+          });
+          setMessages(rebuiltHistory);
+          setIsInitializing(false);
+          return;
+        }
+
+        const initMessages: ChatMessage[] = [
+          { role: 'system', content: initialSystemMessage },
+          { role: 'npc', content: initialNpcMessage },
+        ];
+        setMessages(initMessages);
+        saveInitialExchange(npcId, playerId, initialSystemMessage, initialNpcMessage, effectiveDepth);
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
+        setMessages([{ role: 'system', content: initialSystemMessage }, { role: 'npc', content: initialNpcMessage }]);
+      } finally {
+        setIsInitializing(false);
+      }
+    }
+    loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const triggeredLore = useMemo(() => {
     const flags = new Set(inventory.map(item => `inventory.${item}`));
-    return blankPainterLorebook.filter(entry => {
+    return npcDef.lorebook.filter(entry => {
       const hasRequiredFlags = entry.requiredFlags.every(flag => flags.has(flag));
       const hitsKeyword = entry.keywords.some(keyword => input.includes(keyword));
       return hasRequiredFlags && hitsKeyword;
     });
-  }, [input, inventory]);
+  }, [input, inventory, npcDef.lorebook]);
 
-  const appendReplyAndSystemResult = (reply: AiReply, trimmed: string) => {
-    const evaluation = onDialogueEvaluated(trimmed);
+  const appendReplyAndSystemResult = (reply: AiReply, _trimmed: string) => {
+    const systemMessages: ChatMessage[] = [];
+    let localFailed = false;
+
+    if (reply.backendNpcState) {
+      let appliedState = reply.backendNpcState;
+      if (reply.backendNpcState.stress >= 100 && reply.backendNpcState.ending !== 'failed') {
+        appliedState = { ...reply.backendNpcState, ending: 'failed' as const };
+        localFailed = true;
+      }
+      onBackendNpcStateApplied(appliedState);
+
+      if (reply.backendPsychology) {
+        systemMessages.push({
+          role: 'system',
+          content: formatSystemJudgement({ stateLabel: reply.backendPsychology.stateLabel, trustDelta: reply.backendPsychology.trustDelta, stressDelta: reply.backendPsychology.stressDelta, knowledgeDelta: reply.backendPsychology.knowledgeDelta, knowledge: appliedState.knowledge, trust: appliedState.trust, stress: appliedState.stress }),
+        });
+      }
+
+      // ---- Playtest: 使用本地的 evaluateNpcDialogue 評估對話並寫入 log ----
+      if (isPlaytestEnabled()) {
+        const evalContext: DialogueEvaluationContext = {
+          knowledge: appliedState.knowledge ?? npcState.knowledge,
+          collectedClues: (inventory as any) ?? [],
+        };
+        const evalResult = evaluateNpcDialogue(_trimmed, npcState, evalContext);
+        void import('../store/devtoolsStore').then(mod => {
+          mod.useDevtoolsStore.getState().setLastEvaluation(evalResult);
+          const flagNames = evalResult.flags.map(f => flagName(f)).filter(Boolean);
+          mod.useDevtoolsStore.getState().pushLog({
+            type: 'dialogue',
+            message: `AI classified as "${flagNames.join(', ') || 'neutral'}": ${evalResult.reason}`,
+            detail: `trust${evalResult.trustDelta >= 0 ? '+' : ''}${evalResult.trustDelta}, stress${evalResult.stressDelta >= 0 ? '+' : ''}${evalResult.stressDelta}`,
+          });
+        }).catch(() => {});
+      }
+
+      if (localFailed) {
+        systemMessages.push({
+          role: 'system',
+          content: '畫家最後看了你一眼。\n他收起畫布，在雨夜中離開天橋。\n\n畫家徹底放棄與現實的連結，\n將名字留在被水沖淡的報紙裡。\n城市的一部分繼續黯淡無光。\n\n（畫家已離開，請點擊「離開對話」回到天橋）',
+        });
+      }
+    } else {
+      systemMessages.push({ role: 'system', content: '系統提示：後端未返回 npcState，本輪不套用本地狀態計算。' });
+    }
+
     const nextMessages: ChatMessage[] = [
       { role: 'npc', content: reply.dialogue },
       ...(reply.dictionaryHint ? [{ role: 'system' as const, content: `情緒詞典浮現：${reply.dictionaryHint}` }] : []),
-      { role: 'system', content: buildSystemOutcomeMessage(evaluation) },
+      ...systemMessages,
     ];
 
     setMessages(current => [...current, ...nextMessages]);
-
-    if (evaluation.ending === 'failed') {
-      window.setTimeout(onEndingTriggered, 300);
-    }
+    if (localFailed) setConversationEndedLocally(true);
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || isThinking || npcState.ending !== 'none') return;
+    if (!trimmed || isThinking || isEnded) return;
 
     const playerMessage: ChatMessage = { role: 'player', content: trimmed };
     const nextMessages = [...messages, playerMessage];
@@ -186,65 +288,79 @@ export default function OuterWorldConversation({
     setIsThinking(true);
 
     try {
-      const replyStr = await fetchLLMReply(trimmed, 'bridge_artist');
+      const replyStr = await fetchLLMReply(trimmed, npcId, inventory.length, {
+        trust: npcState.trust,
+        stress: npcState.stress,
+        knowledge: npcState.knowledge,
+        innerWorldDepth: npcState.innerWorldDepth,
+      });
       let reply: AiReply;
-
       try {
         const cleanedStr = replyStr.replace(/```json/gi, '').replace(/```/g, '').trim();
         reply = JSON.parse(cleanedStr) as AiReply;
-        if (!reply.dialogue) reply.dialogue = replyStr;
+        if (reply.dialogue === undefined) { reply.dialogue = replyStr; }
+        else if (reply.dialogue.trim() === '') { reply.dialogue = '（他沈默著，沒有說話。）'; }
       } catch (error) {
         console.error('解析 LLM JSON 失敗:', error, replyStr);
-        reply = {
-          dialogue: replyStr,
-          safetyLevel: 'safe',
-        };
+        reply = { dialogue: replyStr, safetyLevel: 'safe' };
       }
 
       appendReplyAndSystemResult(reply, trimmed);
+
+      const playerId = getPlayerId();
+      appendDialogueExchange(npcId, playerId, trimmed, reply.dialogue,
+        reply.backendPsychology ? { stateLabel: reply.backendPsychology.stateLabel, trustDelta: reply.backendPsychology.trustDelta, stressDelta: reply.backendPsychology.stressDelta, knowledgeDelta: reply.backendPsychology.knowledgeDelta, knowledge: reply.backendNpcState?.knowledge, trust: reply.backendNpcState?.trust, stress: reply.backendNpcState?.stress } : undefined,
+        reply.backendSummary, reply.backendRoundCount,
+      );
     } catch (error) {
-      console.warn('LLM 連線失敗，切換至本地語意模擬:', error);
-      const simulatedReply = simulateBlankPainterReply(trimmed, inventory, nextMessages);
-      setMessages(current => [
-        ...current,
-        { role: 'system', content: '（連線錯誤：暫時由本地語意模擬回應。請確認 DeepSeek/Ollama/Tencent 代理是否正常運行。）' },
-      ]);
-      appendReplyAndSystemResult(simulatedReply, trimmed);
+      console.warn('LLM 連線失敗，切換至本地語意模擬:', error instanceof Error ? error.message : String(error));
+      const simulatedReply = simulateNpcReply(npcId, trimmed, inventory, nextMessages, innerWorldDepth);
+      appendReplyAndSystemResult({ dialogue: simulatedReply.dialogue, dictionaryHint: simulatedReply.dictionaryHint, safetyLevel: simulatedReply.safetyLevel }, trimmed);
     } finally {
       setIsThinking(false);
     }
   };
 
-  const isEnded = npcState.ending !== 'none';
+  const isEnded = npcState.ending !== 'none' || conversationEndedLocally;
+
+  // 計算修復指引
+  const repairTip = evaluateRepairTip(npcDef, {
+    trust: npcState.trust,
+    stress: npcState.stress,
+    knowledge: npcState.knowledge,
+    innerWorldUnlocked: npcState.innerWorldUnlocked,
+    innerWorldDepth,
+  });
 
   return (
     <GuiFrame tone="inner">
       <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'grid', gridTemplateColumns: 'minmax(420px, 760px) 260px', justifyContent: 'center', gap: 16, padding: 24 }}>
-        <GlassPanel title={blankPainterCard.displayName} subtitle="Outer World Conversation" variant="dark" style={{ alignSelf: 'center', maxHeight: '88vh', minHeight: 560, display: 'flex', flexDirection: 'column' }} contentStyle={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
-          <div style={{ padding: '0 20px 16px', display: 'grid', gap: 10 }}>
-            <p style={{ margin: 0, color: '#aaa', fontSize: 13 }}>{blankPainterCard.coreEmotion}</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-              <MeterBar label="Knowledge" value={knowledge} tone="gold" />
-              <MeterBar label="Trust" value={npcState.trust} tone="green" />
-              <MeterBar label="Stress" value={npcState.stress} tone="red" />
-            </div>
+        <GlassPanel title={npcCard.displayName} variant="dark" style={{ alignSelf: 'center', maxHeight: '88vh', minHeight: 560, display: 'flex', flexDirection: 'column' }} contentStyle={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+          <div style={{ padding: '6px 20px 14px', color: '#9ba2ad', fontSize: 13, lineHeight: 1.6, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            {npcCard.coreEmotion}
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: 20, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '100% 42px' }}>
-            {isEnded && (
-              <div style={{ marginBottom: 16, padding: 12, borderRadius: 10, color: npcState.ending === 'success' ? '#b8ffd6' : '#ffd0d0', border: `1px solid ${npcState.ending === 'success' ? 'rgba(120,255,180,0.28)' : 'rgba(255,120,120,0.28)'}`, background: npcState.ending === 'success' ? 'rgba(80,180,120,0.08)' : 'rgba(180,60,60,0.1)', fontSize: 13 }}>
-                {npcState.ending === 'success' ? '修復完成：他沒有痊癒，但願意暫時放下畫筆，聽見雨聲。' : '失敗結局：他關上了最後的空白，Ghost System 已留下殘影。'}
-              </div>
+            {isInitializing ? (
+              <div style={{ color: '#888', fontSize: 13, textAlign: 'center', marginTop: 20 }}>正在同步記憶...</div>
+            ) : (
+              <>
+                {isEnded && (
+                  <div style={{ marginBottom: 16, padding: 12, borderRadius: 10, color: npcState.ending === 'success' ? '#b8ffd6' : '#ffd0d0', border: `1px solid ${npcState.ending === 'success' ? 'rgba(120,255,180,0.28)' : 'rgba(255,120,120,0.28)'}`, background: npcState.ending === 'success' ? 'rgba(80,180,120,0.08)' : 'rgba(180,60,60,0.1)', fontSize: 13 }}>
+                    {npcState.ending === 'success' ? npcDef.ending.success : npcDef.ending.failed}
+                  </div>
+                )}
+                {messages.map((message, index) => (
+                  <div key={`${message.role}-${index}`} style={{ marginBottom: 14, display: 'flex', justifyContent: message.role === 'player' ? 'flex-end' : 'flex-start' }}>
+                    <div style={{ maxWidth: message.role === 'system' ? '100%' : '78%', padding: message.role === 'system' ? '8px 12px' : '12px 14px', borderRadius: message.role === 'player' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: message.role === 'player' ? 'rgba(86, 116, 148, 0.42)' : message.role === 'system' ? 'rgba(245, 193, 108, 0.08)' : 'rgba(255,255,255,0.07)', border: message.role === 'system' ? '1px solid rgba(245,193,108,0.16)' : '1px solid rgba(255,255,255,0.08)', color: message.role === 'system' ? '#d7b77a' : '#eee', lineHeight: 1.75, whiteSpace: 'pre-line', fontSize: message.role === 'system' ? 13 : 15 }}>
+                      {message.content}
+                    </div>
+                  </div>
+                ))}
+                {isThinking && <div style={{ color: '#888', fontSize: 13 }}>畫家沉默了一下，像是在等待雨聲替他組織句子……</div>}
+                <div ref={chatEndRef} />
+              </>
             )}
-
-            {messages.map((message, index) => (
-              <div key={`${message.role}-${index}`} style={{ marginBottom: 14, display: 'flex', justifyContent: message.role === 'player' ? 'flex-end' : 'flex-start' }}>
-                <div style={{ maxWidth: message.role === 'system' ? '100%' : '78%', padding: message.role === 'system' ? '8px 12px' : '12px 14px', borderRadius: message.role === 'player' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: message.role === 'player' ? 'rgba(86, 116, 148, 0.42)' : message.role === 'system' ? 'rgba(245, 193, 108, 0.08)' : 'rgba(255,255,255,0.07)', border: message.role === 'system' ? '1px solid rgba(245,193,108,0.16)' : '1px solid rgba(255,255,255,0.08)', color: message.role === 'system' ? '#d7b77a' : '#eee', lineHeight: 1.75, whiteSpace: 'pre-line', fontSize: message.role === 'system' ? 13 : 15 }}>
-                  {message.content}
-                </div>
-              </div>
-            ))}
-            {isThinking && <div style={{ color: '#888', fontSize: 13 }}>畫家沉默了一下，像是在等待雨聲替他組織句子……</div>}
           </div>
 
           <form onSubmit={handleSubmit} style={{ padding: 16, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
@@ -252,14 +368,14 @@ export default function OuterWorldConversation({
               <input
                 value={input}
                 onChange={event => setInput(event.target.value)}
-                placeholder={isEnded ? '這段對話已結束' : '試著輸入：我可以陪你坐一會 / 不畫畫也沒關係 / 你還能聽見雨聲'}
                 disabled={isEnded}
-                style={{ flex: 1, background: '#101218', color: '#f5f0e8', border: '1px solid #444', borderRadius: 10, padding: '12px 14px', outline: 'none', fontSize: 14, opacity: isEnded ? 0.55 : 1 }}
+                placeholder={isEnded ? '畫家已經離開了天橋...' : '試著輸入：你的畫筆還在嗎 / 創作對你來說是什麼 / 我可以陪你坐一會 / 不畫畫也沒關係'}
+                style={{ flex: 1, background: isEnded ? '#0a0c12' : '#101218', color: isEnded ? '#555' : '#f5f0e8', border: '1px solid #444', borderRadius: 10, padding: '12px 14px', outline: 'none', fontSize: 14 }}
               />
               <GlimmerButton type="submit" tone="primary" disabled={isThinking || isEnded}>送出</GlimmerButton>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, color: '#777', fontSize: 12 }}>
-              <span>目前線索：{inventory.length > 0 ? inventory.join(' / ') : '沒有線索'}</span>
+              <span>目前線索：{inventory.length > 0 ? inventory.map(id => clueLabels[id] || id).join(' / ') : '沒有線索'}</span>
               {triggeredLore.length > 0 && <span style={{ color: '#f5c16c' }}>記憶被線索牽動</span>}
             </div>
           </form>
@@ -270,8 +386,14 @@ export default function OuterWorldConversation({
             <GlimmerButton tone="primary" onClick={onEnterInnerWorld}>進入心理世界</GlimmerButton>
           )}
           <GlimmerButton onClick={onClose}>離開對話</GlimmerButton>
-          <GlassPanel title="心防指示器" variant="dark" contentStyle={{ color: '#9ba2ad', fontSize: 13, lineHeight: 1.7 }}>
-            {npcState.innerWorldUnlocked ? '鎖鏈已出現裂縫。請謹慎進入他的失色畫廊。' : '心鎖仍然閉合。更多線索與更溫柔的語氣，會讓門縫變亮。'}
+
+          <GlassPanel title="修復指引" variant="dark" contentStyle={{ display: 'grid', gap: 12 }}>
+            <MeterBar label="對TA的認識" value={npcState.knowledge} max={100} tone="blue" />
+            <MeterBar label="恐懼值" value={npcState.stress} max={100} tone="red" />
+            <MeterBar label="信任度" value={npcState.trust} max={100} tone="gold" />
+            <div style={{ color: '#9ba2ad', fontSize: 12, lineHeight: 1.6, padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              {repairTip}
+            </div>
           </GlassPanel>
         </div>
       </div>
