@@ -4,7 +4,7 @@
 // 地點資料已遷移至 src/data/locations.ts
 // ============================================================
 
-export type NpcId = 'bridge_artist' | 'victor';
+export type NpcId = 'bridge_artist' | 'victor' | 'rena';
 
 // ---- 向後相容 re-export（避免 import 路徑破壞舊引用） ----
 
