@@ -7,12 +7,14 @@ import type { NpcId } from '../verticalSlice';
 import type { NpcDefinition } from './types';
 import { bridgePainterDefinition } from './bridgePainter';
 import { victorDefinition } from './victor/index';
+import { renaDefinition } from './rena/index';
 
 // ---- 登記表 ----
 
 const npcRegistry: Record<NpcId, NpcDefinition> = {
   bridge_artist: bridgePainterDefinition,
   victor: victorDefinition,
+  rena: renaDefinition,
 };
 
 // ---- 通用入口 ----
