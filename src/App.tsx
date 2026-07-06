@@ -4,6 +4,9 @@ import { useDevtoolsHotkeys, isPlaytestEnabled } from './hooks/useDevtoolsHotkey
 import { useDevtoolsStore } from './store/devtoolsStore';
 import ErrorBoundary from './components/ErrorBoundary';
 import DevtoolsPanel from './devtools/DevtoolsPanel';
+import { getAllPsychLayers } from './data/psychologicalWorlds/index';
+import type { NpcId } from './data/verticalSlice';
+import type { LocationId } from './data/locations';
 import {
   AftermathReport,
   NpcInnerWorld,
@@ -18,6 +21,10 @@ import {
 
 type Screen = 'title' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
 
+function getNpcIdForLocation(_locationId: LocationId): NpcId {
+  return 'bridge_artist';
+}
+
 export default function App() {
   const save = useGameStore(state => state.save);
   const collectClue = useGameStore(state => state.collectClue);
@@ -30,26 +37,35 @@ export default function App() {
   const advancePsychLayer = useGameStore(state => state.advancePsychLayer);
   const forceUnlockInnerWorld = useGameStore(state => state.forceUnlockInnerWorld);
   const addFlagToNpc = useGameStore(state => state.addFlagToNpc);
+  const setPlayerPos = useGameStore(state => state.setPlayerPos);
 
   const [screen, setScreen] = useState<Screen>('title');
   const [returnScreen, setReturnScreen] = useState<Screen>('city');
   const [arcFailureActive, setArcFailureActive] = useState(false);
+  const [currentNpcId, setCurrentNpcId] = useState<NpcId>('bridge_artist');
+  const [devtoolsNpcId, setDevtoolsNpcId] = useState<NpcId>('bridge_artist');
+
+  const currentNpc = save.npcs[currentNpcId];
 
   // ---- Devtools callbacks ----
+  // F7 / F9 / S+F9 等熱鍵針對「Devtools Panel 中選中的角色」執行，
+  // 與畫面上主要互動的 NPC 解耦，方便在測試時靈活切換檢查對象。
   const onForceUnlock = useCallback(() => {
-    forceUnlockInnerWorld();
-  }, [forceUnlockInnerWorld]);
+    forceUnlockInnerWorld(devtoolsNpcId);
+  }, [forceUnlockInnerWorld, devtoolsNpcId]);
 
   const onEnterInnerWorld = useCallback(() => {
+    setCurrentNpcId(devtoolsNpcId);
     setReturnScreen(screen === 'innerWorld' ? 'city' : screen);
     setScreen('innerWorld');
-  }, [screen]);
+  }, [screen, devtoolsNpcId]);
 
   const onSelectChapter = useCallback((depth: number) => {
-    setInnerWorldDepth(depth - 1);
+    setCurrentNpcId(devtoolsNpcId);
+    setInnerWorldDepth(depth - 1, devtoolsNpcId);
     setReturnScreen(screen === 'innerWorld' ? 'city' : screen);
     setScreen('innerWorld');
-  }, [screen, setInnerWorldDepth]);
+  }, [screen, setInnerWorldDepth, devtoolsNpcId]);
 
   // ---- Devtools: hotkeys + QA panel ----
   const { active: devtoolsActive, demoMode } = useDevtoolsHotkeys({
@@ -59,11 +75,9 @@ export default function App() {
   });
   const chapterSelectorOpen = useDevtoolsStore((s) => s.chapterSelectorOpen);
 
-  const bridgeArtist = save.npcs.bridge_artist;
-
   const openScreenWithReturn = (nextScreen: Screen) => {
     if (nextScreen === 'aftermath') {
-      const ending = save.npcs.bridge_artist.ending;
+      const ending = currentNpc.ending;
       if (ending === 'none') return;
     }
     setReturnScreen(screen);
@@ -100,23 +114,25 @@ export default function App() {
     }
 
     if (screen === 'conversation') {
+      const maxLayer = getAllPsychLayers(currentNpcId).length;
+      const layerNumbers = Array.from({ length: maxLayer }, (_, i) => i + 1);
       return (
         <OuterWorldConversation
           inventory={save.collectedClues}
-          innerWorldDepth={bridgeArtist.innerWorldDepth}
-          npcState={bridgeArtist}
-          npcId="bridge_artist"
+          innerWorldDepth={currentNpc.innerWorldDepth}
+          npcState={currentNpc}
+          npcId={currentNpcId}
           onClose={() => {
-            const layers = save.npcs.bridge_artist.innerWorld?.layers;
-            const allLayersComplete = layers && [1, 2, 3, 4].every(l => layers[l]?.completed);
-            if (allLayersComplete && bridgeArtist.ending === 'none') {
-              completeNpcSuccess('bridge_artist');
+            const layers = currentNpc.innerWorld?.layers;
+            const allLayersComplete = layers && layerNumbers.every(l => layers[l]?.completed);
+            if (allLayersComplete && currentNpc.ending === 'none') {
+              completeNpcSuccess(currentNpcId);
               setScreen('aftermath');
             } else {
               setScreen('city');
             }
           }}
-          onBackendNpcStateApplied={(state) => applyBackendNpcState('bridge_artist', state)}
+          onBackendNpcStateApplied={(state) => applyBackendNpcState(currentNpcId, state)}
           onEnterInnerWorld={() => setScreen('innerWorld')}
           onEndingTriggered={() => setScreen('aftermath')}
         />
@@ -126,17 +142,17 @@ export default function App() {
     if (screen === 'innerWorld') {
       return (
         <NpcInnerWorld
-          npcId="bridge_artist"
+          npcId={currentNpcId}
           arcFailure={arcFailureActive}
           onOpenReport={() => {
             setArcFailureActive(false);
             openScreenWithReturn('aftermath');
           }}
           onReturnToSurface={(depth) => {
-            setInnerWorldDepth(depth);
+            setInnerWorldDepth(depth, currentNpcId);
             setScreen('conversation');
           }}
-          onAdvanceLayer={(layer) => advancePsychLayer(layer)}
+          onAdvanceLayer={(layer) => advancePsychLayer(layer, currentNpcId)}
         />
       );
     }
@@ -175,12 +191,17 @@ export default function App() {
         onOpenDictionary={() => openScreenWithReturn('dictionary')}
         onOpenTavern={() => openScreenWithReturn('tavern')}
         onOpenReport={() => openScreenWithReturn('aftermath')}
-        onEnterInnerWorld={() => setScreen('innerWorld')}
+        onEnterInnerWorld={() => {
+          setCurrentNpcId(getNpcIdForLocation(save.currentLocation));
+          setScreen('innerWorld');
+        }}
         addFlagToNpc={addFlagToNpc}
         onOpenArcFailure={() => {
           setArcFailureActive(true);
           setScreen('innerWorld');
         }}
+        onSwitchNpc={setCurrentNpcId}
+        setPlayerPos={setPlayerPos}
       />
     );
   })();
@@ -191,7 +212,11 @@ export default function App() {
 
       {/* Devtools QA Panel (整合版) */}
       {isPlaytestEnabled() && devtoolsActive && !demoMode && (
-        <DevtoolsPanel currentScreen={screen} />
+        <DevtoolsPanel
+          currentScreen={screen}
+          selectedNpcId={devtoolsNpcId}
+          onSelectNpcId={setDevtoolsNpcId}
+        />
       )}
 
       {/* Chapter Selector Modal (Shift+F9) */}

@@ -3,7 +3,7 @@ import { GlimmerButton, GlassPanel, GuiFrame } from '../components';
 import MeterBar from '../components/MeterBar';
 import { getNpcDefinition } from '../data/npcs/registry';
 import { evaluateRepairTip } from '../data/npcs/types';
-import { bridgeArtistClues } from '../data/npcs/bridgePainter';
+import { ALL_CLUES } from '../data/verticalSlice';
 import type { NpcId } from '../data/verticalSlice';
 import type { NpcRuntimeState, DialogueEvaluationContext } from '../systems/npcStateEngine';
 import { evaluateNpcDialogue } from '../systems/npcStateEngine';
@@ -15,7 +15,7 @@ import { isPlaytestEnabled } from '../hooks/narrativePlaytest';
 
 // 线索 ID → 中文描述映射（支持所有已知 NPC 線索）
 const CLUE_LABELS: Record<string, string> = {};
-for (const c of Object.values(bridgeArtistClues)) {
+for (const c of Object.values(ALL_CLUES)) {
   CLUE_LABELS[c.id] = c.shortLabel;
 }
 
@@ -126,7 +126,12 @@ export default function OuterWorldConversation({
 
   // 計算開場白（與 depth 對應）
   const layers = npcState.innerWorld?.layers;
-  const allLayersComplete = !!(layers && [1, 2, 3, 4].every(l => layers[l]?.completed));
+  const maxLayer = useMemo(() => {
+    const def = getNpcDefinition(npcId);
+    return def.visualRegistry.floatingTextsByLayer ? Object.keys(def.visualRegistry.floatingTextsByLayer).length : 4;
+  }, [npcId]);
+
+  const allLayersComplete = !!(layers && Array.from({ length: maxLayer }, (_, i) => i + 1).every(l => layers[l]?.completed));
   const effectiveDepth = allLayersComplete ? 4 : innerWorldDepth;
 
   const { initialSystemMessage, initialNpcMessage } = useMemo(() => {
@@ -257,9 +262,12 @@ export default function OuterWorldConversation({
       }
 
       if (localFailed) {
+        const failedMessage = npcId === 'aoi'
+          ? '小葵最後看了你一眼。\n她從鞦韆上站起來，頭也不回地走進夜色。\n\n這裡曾經有一個小女孩，靜靜坐在鞦韆上。\n風輕輕推著她的影子，彷彿時間也不忍打擾。\n可如今，她的身影已不在，空蕩的座位孤獨地搖晃著，像是在呼喚，卻永遠等不到回應。\n夜色吞沒了她的背影，只留下公園裡一片寂靜，提醒著人們——她曾經來過，卻再也不會回來。\n\n（小葵已離開，請點擊「離開對話」回到公園）'
+          : '畫家最後看了你一眼。\n他收起畫布，在雨夜中離開天橋。\n\n畫家徹底放棄與現實的連結，\n將名字留在被水沖淡的報紙裡。\n城市的一部分繼續黯淡無光。\n\n（畫家已離開，請點擊「離開對話」回到天橋）';
         systemMessages.push({
           role: 'system',
-          content: '畫家最後看了你一眼。\n他收起畫布，在雨夜中離開天橋。\n\n畫家徹底放棄與現實的連結，\n將名字留在被水沖淡的報紙裡。\n城市的一部分繼續黯淡無光。\n\n（畫家已離開，請點擊「離開對話」回到天橋）',
+          content: failedMessage,
         });
       }
     } else {
@@ -322,6 +330,14 @@ export default function OuterWorldConversation({
   };
 
   const isEnded = npcState.ending !== 'none' || conversationEndedLocally;
+  const hasPlayerMessaged = useMemo(() => messages.some(m => m.role === 'player'), [messages]);
+
+  const placeholderText = useMemo(() => {
+    if (isEnded) return `${npcCard.displayName}已經離開了...`;
+    if (hasPlayerMessaged) return '輸入訊息...';
+    const suggestions = npcCard.exampleDialogues?.map(d => d.player).join(' / ');
+    return suggestions ? `試著輸入：${suggestions}` : '輸入訊息...';
+  }, [isEnded, hasPlayerMessaged, npcCard]);
 
   // 計算修復指引
   const repairTip = evaluateRepairTip(npcDef, {
@@ -340,6 +356,13 @@ export default function OuterWorldConversation({
             {npcCard.coreEmotion}
           </div>
 
+          {npcCard.conversationTip && (
+            <div style={{ padding: '10px 20px', background: 'rgba(245, 193, 108, 0.05)', borderBottom: '1px solid rgba(245, 193, 108, 0.1)', color: '#d7b77a', fontSize: 12, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <span style={{ opacity: 0.8 }}>💡</span>
+              <span style={{ lineHeight: 1.5 }}>{npcCard.conversationTip}</span>
+            </div>
+          )}
+
           <div style={{ flex: 1, overflowY: 'auto', padding: 20, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '100% 42px' }}>
             {isInitializing ? (
               <div style={{ color: '#888', fontSize: 13, textAlign: 'center', marginTop: 20 }}>正在同步記憶...</div>
@@ -357,7 +380,7 @@ export default function OuterWorldConversation({
                     </div>
                   </div>
                 ))}
-                {isThinking && <div style={{ color: '#888', fontSize: 13 }}>畫家沉默了一下，像是在等待雨聲替他組織句子……</div>}
+                {isThinking && <div style={{ color: '#888', fontSize: 13 }}>{npcCard.displayName}沉默了一下，像是在等待雨聲替他組織句子……</div>}
                 <div ref={chatEndRef} />
               </>
             )}
@@ -369,25 +392,75 @@ export default function OuterWorldConversation({
                 value={input}
                 onChange={event => setInput(event.target.value)}
                 disabled={isEnded}
-                placeholder={isEnded ? '畫家已經離開了天橋...' : '試著輸入：你的畫筆還在嗎 / 創作對你來說是什麼 / 我可以陪你坐一會 / 不畫畫也沒關係'}
+                placeholder={placeholderText}
                 style={{ flex: 1, background: isEnded ? '#0a0c12' : '#101218', color: isEnded ? '#555' : '#f5f0e8', border: '1px solid #444', borderRadius: 10, padding: '12px 14px', outline: 'none', fontSize: 14 }}
               />
               <GlimmerButton type="submit" tone="primary" disabled={isThinking || isEnded}>送出</GlimmerButton>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, color: '#777', fontSize: 12 }}>
-              <span>目前線索：{inventory.length > 0 ? inventory.map(id => clueLabels[id] || id).join(' / ') : '沒有線索'}</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 8px', maxWidth: '80%' }}>
+                <span>目前線索：</span>
+                {inventory.length > 0 
+                  ? inventory
+                      .filter(id => {
+                        const clue = ALL_CLUES[id as import('../data/verticalSlice').ClueId];
+                        return clue && clue.worldId === npcId;
+                      })
+                      .map(id => {
+                        const clue = ALL_CLUES[id as import('../data/verticalSlice').ClueId];
+                        return (
+                          <span 
+                            key={id} 
+                            title={clue?.content}
+                            style={{ color: '#aaa', borderBottom: '1px dotted #555', cursor: 'help' }}
+                          >
+                            {clueLabels[id] || id}
+                          </span>
+                        );
+                      }) 
+                  : <span>沒有線索</span>}
+              </div>
+
               {triggeredLore.length > 0 && <span style={{ color: '#f5c16c' }}>記憶被線索牽動</span>}
             </div>
           </form>
         </GlassPanel>
 
         <div style={{ alignSelf: 'center', display: 'grid', gap: 10 }}>
-          {npcState.innerWorldUnlocked && npcState.ending === 'none' && (
-            <GlimmerButton tone="primary" onClick={onEnterInnerWorld}>進入心理世界</GlimmerButton>
+          {npcState.ending === 'none' && (
+            <GlimmerButton 
+              tone={npcState.innerWorldUnlocked ? "primary" : "ghost"} 
+              onClick={onEnterInnerWorld}
+              disabled={!npcState.innerWorldUnlocked}
+              fullWidth
+            >
+              進入心理世界
+            </GlimmerButton>
           )}
-          <GlimmerButton onClick={onClose}>離開對話</GlimmerButton>
+          <GlimmerButton onClick={onClose} fullWidth>離開對話</GlimmerButton>
 
-          <GlassPanel title="修復指引" variant="dark" contentStyle={{ display: 'grid', gap: 12 }}>
+          <GlassPanel 
+            title="修復指引" 
+            variant="dark" 
+            contentStyle={{ display: 'grid', gap: 12 }}
+            style={{ position: 'relative' }}
+          >
+            {!npcState.innerWorldUnlocked && npcState.ending === 'none' && (
+              <div style={{ 
+                padding: '8px 10px', 
+                background: 'rgba(245, 193, 108, 0.08)', 
+                borderRadius: 8, 
+                border: '1px solid rgba(245, 193, 108, 0.15)',
+                fontSize: 11,
+                color: '#d7b77a',
+                marginBottom: 4,
+                lineHeight: 1.4
+              }}>
+                <strong>解鎖條件：</strong><br/>
+                認識度 ≥ {npcState.knowledgeRequired} (目前 {npcState.knowledge})<br/>
+                信任度 ≥ {npcState.trustRequired} (目前 {npcState.trust})
+              </div>
+            )}
             <MeterBar label="對TA的認識" value={npcState.knowledge} max={100} tone="blue" />
             <MeterBar label="恐懼值" value={npcState.stress} max={100} tone="red" />
             <MeterBar label="信任度" value={npcState.trust} max={100} tone="gold" />

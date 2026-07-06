@@ -27,6 +27,34 @@
       "description": "當所有人都期待他復出，他反而更加確信自己已經不配被期待。那些溫柔的關心，在他耳裡全是「你應該好起來」的責備。",
       "relatedClues": ["accident_report"],
       "unlockCondition": "accident_report"
+    },
+    {
+      "id": "fear_of_happiness",
+      "name": "對快樂的恐懼",
+      "description": "小葵曾經在跳舞時感到自由，但父母的爭吵把這份快樂毀滅。此後她不敢再擁有快樂，彷彿快樂會引來懲罰。",
+      "relatedClues": ["muddy_red_dance_shoes"],
+      "unlockCondition": "muddy_red_dance_shoes"
+    },
+    {
+      "id": "mislabeled_failure",
+      "name": "被誤貼的失敗標籤",
+      "description": "缺點通告讓她認定自己是「壞孩子」，但真正的問題是她被迫在家庭裡擔任情緒調解者，沒有餘力當學生。",
+      "relatedClues": ["demerit_notice"],
+      "unlockCondition": "demerit_notice"
+    },
+    {
+      "id": "suppressed_expression",
+      "name": "壓抑的自我表達",
+      "description": "日記本裡被撕掉的頁面，是她「想說卻不敢說」的證據。她害怕表達自己會引發更多衝突。",
+      "relatedClues": ["torn_diary"],
+      "unlockCondition": "torn_diary"
+    },
+    {
+      "id": "maintaining_peace",
+      "name": "維持和平的魔方",
+      "description": "這是她不斷解決父母吵架的問題、維持父母關係才漸漸喜歡的玩具，但是從沒成功過。她轉動魔方的每一面，就像她試圖轉動家裡的氣氛——但方塊永遠對不齊，家裡的爭吵聲也從未真正停止。",
+      "relatedClues": ["rubiks_cube"],
+      "unlockCondition": "rubiks_cube"
     }
   ]
 }

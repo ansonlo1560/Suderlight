@@ -36,13 +36,15 @@ export async function switchCharacter(name: string): Promise<void> {
  * 發送對話並獲取其回覆的相容 Stub (直接呼叫後端 Express /api/chat)
  * 保留此方法以防止其他模組因 import 遺失而導致編譯錯誤
  */
-export async function sendMessage(text: string): Promise<{ reply: string; emotion?: string }> {
+export async function sendMessage(text: string, npcIdOrName = 'bridge_artist'): Promise<{ reply: string; emotion?: string }> {
   try {
+    const validNpcIds = ['bridge_artist', 'victor', 'aoi'];
+    const finalNpcId = validNpcIds.includes(npcIdOrName) ? npcIdOrName : 'bridge_artist';
     const authHeaders = await getPlayerAuthHeaders();
     const res = await fetch(`/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders },
-      body: JSON.stringify({ npcId: 'bridge_artist', message: text })
+      body: JSON.stringify({ npcId: finalNpcId, message: text })
     });
     if (!res.ok) {
       throw new Error(`Express backend sendMessage error: ${res.status} ${res.statusText}`);
@@ -77,14 +79,9 @@ export type ClientNpcState = {
 
 export async function fetchLLMReply(playerMessage: string, npcIdOrName = 'bridge_artist', collectedClueCount?: number, clientNpcState?: ClientNpcState): Promise<string> {
   try {
-    // 智慧轉換角色名稱：若傳入的是大字串或中文名，自動對應回後端識別的 'bridge_artist'
-    let finalNpcId = 'bridge_artist';
-    if (npcIdOrName !== 'bridge_artist' && (npcIdOrName.includes('天橋畫家') || npcIdOrName.includes('artist'))) {
-      finalNpcId = 'bridge_artist';
-    } else if (npcIdOrName !== 'bridge_artist') {
-      // 預留：如果傳入的是不匹配的長提示詞（如 system prompt 等），保證其不會作為無效 npcId 傳給後端
-      finalNpcId = 'bridge_artist';
-    }
+    // 支援的 NPC ID 列表，若傳入的不在列表中則 fallback 到 bridge_artist
+    const validNpcIds = ['bridge_artist', 'victor', 'aoi'];
+    const finalNpcId = validNpcIds.includes(npcIdOrName) ? npcIdOrName : 'bridge_artist';
 
     const authHeaders = await getPlayerAuthHeaders();
     const playerId = getPlayerId();

@@ -18,16 +18,36 @@ export type WindowDef = {
 export type Building = {
   id: string;
   name: string;
-  locationId: string;
   pos: Point;
   size: { x: number; y: number };
   tall: number;
   baseColor: string;
   windows?: WindowDef[];
-  decorations?: (isRepaired: boolean) => React.ReactNode;
+  decorations?: (ctx: {
+    isRepaired: boolean;
+    points: {
+      s0: { left: number; top: number };
+      s1: { left: number; top: number };
+      s2: { left: number; top: number };
+      s3: { left: number; top: number };
+      t0: { left: number; top: number };
+      t1: { left: number; top: number };
+      t2: { left: number; top: number };
+      t3: { left: number; top: number };
+    };
+  }) => React.ReactNode;
 };
 
 export type RoadDef = Point[][];
+
+export type SceneryItem = {
+  id: string;
+  type: 'swing' | 'slide' | 'tree' | 'grass';
+  pos: Point;
+  size?: number;
+  rotation?: number;
+  label?: string;
+};
 
 export type Cliff = {
   boundingBox: { minX: number; maxX: number; minY: number; maxY: number };
@@ -83,6 +103,8 @@ export type OuterWorldDefinition = {
   }) => EntityTemplate[];
   locationDisplay: LocationDisplay;
   locationOffsets: Record<string, { x: number; y: number }>;
+  /** 場景裝飾：不具互動性的地圖元素，例如公園的鞦韆、滑梯、樹、草 */
+  scenery?: SceneryItem[];
   getElevation: (pos: Point) => number;
   getMaxX: (locationId: string) => number;
   getMaxY: (locationId: string) => number;
@@ -102,6 +124,7 @@ export type OuterWorldDefinition = {
       onEnterInnerWorld: () => void;
       onOpenArcFailure: () => void;
       onOpenReport: () => void;
+      onShowModal: (modal: { title: string; content: string; actions?: Array<{ label: string; tone?: string; onClick: () => void }> } | null) => void;
     },
   ) => string | { title: string; content: string; actions?: Array<{ label: string; tone?: string; onClick: () => void }> } | null;
 };

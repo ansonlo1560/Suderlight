@@ -83,6 +83,7 @@ type LayerPhase =
 type SchemeColors = ReturnType<typeof getSchemeColors>;
 
 function getSchemeColors(scheme: LayerColorScheme) {
+  if (typeof scheme === 'object') return scheme;
   const map = {
     gold:   { accent:'#d4a35e', text:'#d8c29b', sub:'#b0a58b', cellEmpty:'rgba(255,255,255,0.12)', cellNorm:'rgba(255,255,255,0.08)', cellDisc:'rgba(255,255,255,0.10)', cellInsight:'linear-gradient(135deg, rgba(214,163,94,0.16), rgba(138,91,45,0.1))', border:'rgba(214,163,94,0.12)', gridBg:'radial-gradient(ellipse at center, rgba(45,36,22,0.5), rgba(18,14,10,0.85))' },
     cold:  { accent:'#6b9ec4', text:'#b0c8dd', sub:'#7a8fa0', cellEmpty:'rgba(160,180,200,0.14)', cellNorm:'rgba(160,180,200,0.10)', cellDisc:'rgba(160,180,200,0.12)', cellInsight:'linear-gradient(135deg, rgba(107,158,196,0.16), rgba(60,110,150,0.1))', border:'rgba(107,158,196,0.12)', gridBg:'radial-gradient(ellipse at center, rgba(12,22,35,0.5), rgba(4,8,14,0.88))' },

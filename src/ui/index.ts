@@ -14,5 +14,3 @@ export { default as TitlePortal } from './TitlePortal';
 // Devtools 已整合到 devtools/DevtoolsPanel，以下保留向後相容
 // （ChapterSelectorModal 由 DevtoolsPanel 內部 tab 管理，不再作為獨立 export）
 export { default as ChapterSelectorModal } from './ChapterSelectorModal';
-export { default as NarrativePlaytestDashboard } from './NarrativePlaytestDashboard';
-export { default as NarrativeDebugOverlay } from './NarrativeDebugOverlay';

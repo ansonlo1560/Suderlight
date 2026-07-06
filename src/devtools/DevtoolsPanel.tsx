@@ -6,9 +6,10 @@
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { useDevtoolsStore, CHAPTERS } from '../store/devtoolsStore';
-import { bridgeArtistClues } from '../data/npcs/bridgePainter';
+import { useDevtoolsStore } from '../store/devtoolsStore';
+import { type NpcId, locations, type LocationId } from '../data/verticalSlice';
 import type { NpcRuntimeState } from '../systems/npcStateEngine';
+import { getAllPsychLayers } from '../data/psychologicalWorlds/index';
 
 // ---- Style Tokens ----
 const PANEL: React.CSSProperties = {
@@ -120,15 +121,20 @@ function flagName(flag: string): string {
     player_used_dismissive_reply: '🥱 敷衍回應',
     player_used_forced_comfort: '❌ 強制安慰',
     player_consumed_genius_identity: '❌ 天才消費',
+    player_consumed_good_child_identity: '❌ 懂事消費',
     player_offered_presence: '✅ 陪伴接納',
     player_grounded_in_present_sense: '✅ 感官接地',
+    player_grounded_in_safe_place: '✅ 安全場景',
     player_pressed_unearned_truth: '❌ 未獲真相',
     painter_reacted_to_brush: '🖌 畫筆反應',
     painter_acknowledged_accident: '📰 真相接近',
     painter_sketchbook_understood: '📓 素描理解',
+    aoi_family_topic_triggered: '🚪 觸及家庭',
     inner_world_unlocked: '🔓 內心解鎖',
-    bridge_artist_failed: '💀 失敗',
-    bridge_artist_repaired: '✨ 修復',
+    bridge_artist_failed: '💀 天橋畫家 失敗',
+    bridge_artist_repaired: '✨ 天橋畫家 修復',
+    aoi_failed: '💀 小葵 失敗',
+    aoi_repaired: '✨ 小葵 修復',
   };
   return map[flag] ?? flag;
 }
@@ -153,30 +159,60 @@ function timeAgo(ts: number): string {
 
 type Branch = { label: string; trigger: string; available: boolean; requirement: string };
 
-function computeBranches(clues: string[]): { unlocked: Branch[]; locked: Branch[] } {
-  const all: Branch[] = [
+/** 各 NPC 專屬的對話分支（包含通用安全分支 + 角色專屬反應） */
+function computeBranches(npcId: NpcId, clues: string[]): { unlocked: Branch[]; locked: Branch[] } {
+  const common: Branch[] = [
     { label: '安全攔截', trigger: '危機詞', available: true, requirement: '永遠可用' },
     { label: '敵意/侮辱', trigger: '廢物/去死…', available: true, requirement: '永遠可用' },
     { label: '敷衍回應', trigger: '隨便/算了…', available: true, requirement: '永遠可用' },
     { label: '強制安慰', trigger: '加油/振作…', available: true, requirement: '永遠可用' },
-    { label: '天才消費', trigger: '天才/大師…', available: true, requirement: '永遠可用' },
     { label: '陪伴接納', trigger: '陪伴/慢慢來…', available: true, requirement: '永遠可用' },
     { label: '感官接地', trigger: '雨聲/風…', available: true, requirement: '永遠可用' },
-    { label: '畫筆反應', trigger: '畫筆', available: clues.includes('brush'), requirement: '需收集：畫筆' },
-    { label: '真相對話', trigger: '車禍/報紙…', available: clues.includes('newspaper') || clues.includes('accident_report'), requirement: '需收集：報紙 or 車禍報導' },
-    { label: '素描理解', trigger: '素描/春天…', available: clues.includes('sketchbook'), requirement: '需收集：素描本' },
   ];
-  return { unlocked: all.filter(b => b.available), locked: all.filter(b => !b.available) };
+
+  if (npcId === 'bridge_artist') {
+    const all: Branch[] = [
+      ...common,
+      { label: '天才消費', trigger: '天才/大師…', available: true, requirement: '永遠可用' },
+      { label: '畫筆反應', trigger: '畫筆', available: clues.includes('brush'), requirement: '需收集：畫筆' },
+      { label: '真相對話', trigger: '車禍/報紙…', available: clues.includes('newspaper') || clues.includes('accident_report'), requirement: '需收集：報紙 or 車禍報導' },
+      { label: '素描理解', trigger: '素描/春天…', available: clues.includes('sketchbook'), requirement: '需收集：素描本' },
+    ];
+    return { unlocked: all.filter(b => b.available), locked: all.filter(b => !b.available) };
+  }
+
+  if (npcId === 'aoi') {
+    const all: Branch[] = [
+      ...common,
+      { label: '懂事消費', trigger: '懂事/堅強…', available: true, requirement: '永遠可用' },
+      { label: '安全場景', trigger: '公園/鞦韆…', available: true, requirement: '永遠可用' },
+      { label: '觸及家庭', trigger: '父母/家裡…', available: true, requirement: '永遠可用' },
+    ];
+    return { unlocked: all.filter(b => b.available), locked: all.filter(b => !b.available) };
+  }
+
+  if (npcId === 'victor') {
+    return {
+      unlocked: common,
+      locked: [{ label: '（尚無專屬分支）', trigger: '—', available: false, requirement: '待骨架完成' }],
+    };
+  }
+
+  return { unlocked: common, locked: [] };
 }
 
 // ============================================================
 // Tab Components
 // ============================================================
 
-function OverviewTab({ npc, collectedClues }: { npc: NpcRuntimeState; collectedClues: string[] }) {
-  const innerWorldEvents = useDevtoolsStore(s => s.innerWorldEvents);
-  const branches = useMemo(() => computeBranches(collectedClues), [collectedClues]);
-  const completedCount = innerWorldEvents.filter(e => e.completed).length;
+function OverviewTab({ npc, collectedClues, npcId }: { npc: NpcRuntimeState; collectedClues: string[]; npcId: NpcId }) {
+  // 使用選定 NPC 的心理世界層計算 Inner World 進度
+  const psychLayers = useMemo(() => getAllPsychLayers(npcId), [npcId]);
+  const iw = npc.innerWorld;
+  const completedCount = psychLayers.filter(l => iw?.layers?.[l.layerNumber]?.completed).length;
+  const discoveredCount = psychLayers.filter(l => (iw?.layers?.[l.layerNumber]?.discoveredItems?.length ?? 0) > 0).length;
+
+  const branches = useMemo(() => computeBranches(npcId, collectedClues), [npcId, collectedClues]);
 
   // ---- Stat Control local state ----
   const setNpcStat = useGameStore(s => s.setNpcStat);
@@ -184,12 +220,12 @@ function OverviewTab({ npc, collectedClues }: { npc: NpcRuntimeState; collectedC
   const [localStress, setLocalStress] = useState(npc.stress);
   const [localKnowledge, setLocalKnowledge] = useState(npc.knowledge);
   const [autoSave, setAutoSave] = useState(true);
-  useEffect(() => { setLocalTrust(npc.trust); }, [npc.trust]);
-  useEffect(() => { setLocalStress(npc.stress); }, [npc.stress]);
-  useEffect(() => { setLocalKnowledge(npc.knowledge); }, [npc.knowledge]);
+  useEffect(() => { setLocalTrust(npc.trust); }, [npc.trust, npcId]);
+  useEffect(() => { setLocalStress(npc.stress); }, [npc.stress, npcId]);
+  useEffect(() => { setLocalKnowledge(npc.knowledge); }, [npc.knowledge, npcId]);
   const applyStat = useCallback((stat: 'trust' | 'stress' | 'knowledge', value: number) => {
-    setNpcStat('bridge_artist', stat, value);
-  }, [setNpcStat]);
+    setNpcStat(npcId, stat, value);
+  }, [setNpcStat, npcId]);
   const adjustStat = useCallback((stat: 'trust' | 'stress' | 'knowledge', delta: number) => {
     const current = stat === 'trust' ? localTrust : stat === 'stress' ? localStress : localKnowledge;
     const next = Math.max(0, Math.min(100, Math.round(current + delta)));
@@ -197,7 +233,7 @@ function OverviewTab({ npc, collectedClues }: { npc: NpcRuntimeState; collectedC
     if (stat === 'stress') setLocalStress(next);
     if (stat === 'knowledge') setLocalKnowledge(next);
     if (autoSave) applyStat(stat, next);
-  }, [localTrust, localStress, localKnowledge, autoSave, applyStat]);
+  }, [localTrust, localStress, localKnowledge, autoSave, applyStat, npcId]);
 
   return (
     <>
@@ -213,7 +249,7 @@ function OverviewTab({ npc, collectedClues }: { npc: NpcRuntimeState; collectedC
         <div style={ROW}><span style={LBL}>Knowledge</span><Bar value={npc.knowledge} max={100} color="#2196f3" /></div>
         {npc.flags.length > 0 && (
           <div style={{ marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 6 }}>
-            <div style={{ ...LBL, marginBottom: 4 }}>Flags</div>
+            <div style={{ ...LBL, marginBottom: 4 }}>Flags ({npc.flags.length})</div>
             {npc.flags.map((f, i) => (
               <div key={i} style={{ color: '#aab', fontSize: 10, padding: '1px 0' }}>  {flagName(f)}</div>
             ))}
@@ -252,18 +288,29 @@ function OverviewTab({ npc, collectedClues }: { npc: NpcRuntimeState; collectedC
         </div>
       </div>
 
-      {/* Inner World Progress */}
+      {/* Inner World Progress (per-NPC) */}
       <div style={SECTION}>
-        <div style={SEC_TITLE}>Inner World ({completedCount}/{innerWorldEvents.length} insight)</div>
-        {innerWorldEvents.map(ev => (
-          <div key={ev.id} style={{ fontSize: 10, padding: '1px 0', display: 'flex', justifyContent: 'space-between', color: ev.completed ? '#c9a' : ev.discovered ? '#887' : '#556' }}>
-            <span>  {ev.completed ? '✦' : ev.discovered ? '○' : '·'} {ev.name}</span>
-            <span style={{ fontSize: 9, color: ev.completed ? '#a6c' : '#556' }}>{ev.completed ? 'insight' : ev.discovered ? 'found' : 'hidden'}</span>
-          </div>
-        ))}
+        <div style={SEC_TITLE}>Inner World ({completedCount}/{psychLayers.length} 層完成 · {discoveredCount} 層已探索)</div>
+        {psychLayers.length === 0 ? (
+          <div style={{ color: '#556', fontSize: 10 }}>此角色尚無心理世界資料。</div>
+        ) : psychLayers.map(layer => {
+          const layerState = iw?.layers?.[layer.layerNumber];
+          const isCompleted = layerState?.completed;
+          const isUnlocked = iw?.unlockedLayers?.includes(layer.layerNumber);
+          const discovered = (layerState?.discoveredItems?.length ?? 0);
+          const understood = (layerState?.understoodItems?.length ?? 0);
+          return (
+            <div key={layer.layerNumber} style={{ fontSize: 10, padding: '1px 0', display: 'flex', justifyContent: 'space-between', color: isCompleted ? '#c9a' : isUnlocked ? '#8c9' : '#556' }}>
+              <span>  {isCompleted ? '✦' : isUnlocked ? '○' : '🔒'} L{layer.layerNumber} {layer.layerName} <span style={{ color: '#667' }}>{layer.symbol}</span></span>
+              <span style={{ fontSize: 9, color: isCompleted ? '#a6c' : '#556' }}>
+                {isCompleted ? `insight ${understood}/${layer.interactables.length}` : isUnlocked ? `${discovered} found` : 'locked'}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Dialogue Branches */}
+      {/* Dialogue Branches (per-NPC) */}
       <div style={SECTION}>
         <div style={SEC_TITLE}>Dialogue Branches</div>
         <div style={{ color: '#4caf50', fontSize: 9.5, marginBottom: 3 }}>▸ 已解鎖 ({branches.unlocked.length})</div>
@@ -287,33 +334,47 @@ function OverviewTab({ npc, collectedClues }: { npc: NpcRuntimeState; collectedC
   );
 }
 
-function ChaptersTab({ npc }: { npc: NpcRuntimeState }) {
+function ChaptersTab({ npc, npcId }: { npc: NpcRuntimeState; npcId: NpcId }) {
   const unlockChapterAction = useGameStore(s => s.unlockChapter);
   const undoUnlockChapterAction = useGameStore(s => s.undoUnlockChapter);
-  const chapterProgress = CHAPTERS.map(ch => ({
-    ...ch,
-    unlocked: npc.trust >= ch.requiredTrust && npc.knowledge >= ch.requiredKnowledge,
-  }));
+  const psychLayers = useMemo(() => getAllPsychLayers(npcId), [npcId]);
+  const chapterRequirements: Record<number, { trust: number; knowledge: number }> = {
+    1: { trust: 0, knowledge: 0 },
+    2: { trust: 30, knowledge: 40 },
+    3: { trust: 50, knowledge: 70 },
+    4: { trust: 70, knowledge: 90 },
+  };
+  const chapterProgress = psychLayers.map(layer => {
+    const req = chapterRequirements[layer.layerNumber] ?? { trust: 0, knowledge: 0 };
+    return {
+      depth: layer.layerNumber,
+      title: `第${['一','二','三','四','五','六','七','八'][layer.layerNumber - 1]}章 · ${layer.layerName}`,
+      description: layer.atmosphere,
+      requiredTrust: req.trust,
+      requiredKnowledge: req.knowledge,
+      unlocked: npc.trust >= req.trust && npc.knowledge >= req.knowledge,
+    };
+  });
+  // ...
 
   const unlockChapter = (depth: number) => {
     const stressTargets: Record<number, number> = { 1: 100, 2: 75, 3: 55, 4: 35 };
     const targetStress = stressTargets[depth] ?? 35;
-    unlockChapterAction(depth, targetStress);
+    unlockChapterAction(depth, targetStress, npcId);
 
-    const ch = CHAPTERS[depth - 1];
+    const ch = chapterProgress.find(c => c.depth === depth);
     useDevtoolsStore.getState().pushLog({
       type: 'force_unlock',
-      message: `Ch.${depth} 解鎖：信任≥${ch?.requiredTrust ?? 0}, 知識≥${ch?.requiredKnowledge ?? 0}`,
+      message: `Ch.${depth} 解鎖 (${npcId})：信任≥${ch?.requiredTrust ?? 0}, 知識≥${ch?.requiredKnowledge ?? 0}`,
       detail: `Stress 降至 ${targetStress}，前 ${depth - 1} 層前 4 物品已解鎖`,
     });
   };
 
   const undoUnlock = (depth: number) => {
-    undoUnlockChapterAction(depth);
-    const ch = CHAPTERS[depth - 1];
+    undoUnlockChapterAction(depth, npcId);
     useDevtoolsStore.getState().pushLog({
       type: 'force_unlock',
-      message: `Ch.${depth} 取消解鎖`,
+      message: `Ch.${depth} 取消解鎖 (${npcId})`,
       detail: `已重置 Ch.${depth} 及其後所有層的紀錄`,
     });
   };
@@ -380,21 +441,32 @@ function EventLogTab() {
 // Main DevtoolsPanel
 // ============================================================
 
-type Props = { currentScreen: string };
+type Props = {
+  currentScreen: string;
+  selectedNpcId: NpcId;
+  onSelectNpcId: (id: NpcId) => void;
+};
 
-export default function DevtoolsPanel({ currentScreen }: Props) {
+const NPC_NAMES: Record<NpcId, string> = {
+  bridge_artist: '天橋畫家',
+  victor: '維克多',
+  aoi: '小葵',
+};
+
+export default function DevtoolsPanel({ currentScreen, selectedNpcId, onSelectNpcId }: Props) {
   const save = useGameStore(s => s.save);
   const toggle = useDevtoolsStore(s => s.toggle);
   const demoMode = useDevtoolsStore(s => s.demoMode);
 
-  const npc = save.npcs.bridge_artist;
+  const npc = save.npcs[selectedNpcId];
+  const loc = locations[save.currentLocation as LocationId];
 
   return (
     <div style={PANEL}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div>
-          <span style={{ color: '#7ec8ff', fontWeight: 700, letterSpacing: 1, fontSize: 12 }}>DEVTOOLS QA</span>
+          <span style={{ color: '#7ec8ff', fontWeight: 700, letterSpacing: 1, fontSize: 12 }}>PLAYTEST DASHBOARD</span>
           {demoMode && <span style={{ marginLeft: 8, padding: '1px 6px', borderRadius: 3, background: 'rgba(255,152,0,0.2)', color: '#ff9800', fontSize: 9, fontWeight: 700 }}>DEMO</span>}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -403,22 +475,60 @@ export default function DevtoolsPanel({ currentScreen }: Props) {
         </div>
       </div>
 
-      <div style={{ color: '#556', fontSize: 9.5, marginBottom: 8 }}>screen: {currentScreen}</div>
+      <div style={{ 
+        color: '#fff', 
+        fontSize: 14, 
+        fontWeight: 600, 
+        marginBottom: 10, 
+        padding: '8px 12px', 
+        background: 'rgba(126,200,255,0.1)', 
+        borderRadius: 6,
+        border: '1px solid rgba(126,200,255,0.2)'
+      }}>
+        當前地圖：{loc ? `${loc.name} (${save.currentLocation})` : currentScreen}
+      </div>
 
       {/* Hotkeys */}
       <div style={{ ...SECTION, padding: '6px 10px', marginBottom: 10 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', fontSize: 9.5, color: '#667' }}>
-          <span><b style={{ color: '#7ec8ff' }}>F7</b> 強制解鎖</span>
+          <span><b style={{ color: '#7ec8ff' }}>F7</b> 強制解鎖 <span style={{ color: '#556' }}>({NPC_NAMES[selectedNpcId]})</span></span>
           <span><b style={{ color: '#7ec8ff' }}>F8</b> 切換面板</span>
-          <span><b style={{ color: '#7ec8ff' }}>F9</b> 進入內心</span>
+          <span><b style={{ color: '#7ec8ff' }}>F9</b> 進入內心 <span style={{ color: '#556' }}>({NPC_NAMES[selectedNpcId]})</span></span>
           <span><b style={{ color: '#7ec8ff' }}>S+F9</b> 選章節</span>
           <span><b style={{ color: '#ff9800' }}>F10</b> Demo</span>
         </div>
       </div>
 
+      {/* NPC Chips Row */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+        {(['bridge_artist', 'aoi', 'victor'] as NpcId[]).map(id => {
+          const isActive = selectedNpcId === id;
+          const targetNpc = save.npcs[id];
+          return (
+            <button
+              key={id}
+              onClick={() => onSelectNpcId(id)}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 14,
+                fontSize: 10.5,
+                cursor: 'pointer',
+                background: isActive ? '#7ec8ff' : 'rgba(255,255,255,0.06)',
+                color: isActive ? '#0a0c12' : '#889',
+                border: isActive ? '1px solid #7ec8ff' : '1px solid rgba(255,255,255,0.1)',
+                fontWeight: 600,
+                transition: 'all 0.2s',
+              }}
+            >
+              {NPC_NAMES[id]}{targetNpc.innerWorldUnlocked ? ' 🔓' : ''}
+            </button>
+          );
+        })}
+      </div>
+
       {/* All sections in one scrollable panel */}
-      <OverviewTab npc={npc} collectedClues={save.collectedClues} />
-      <ChaptersTab npc={npc} />
+      <OverviewTab npc={npc} collectedClues={save.collectedClues} npcId={selectedNpcId} />
+      <ChaptersTab npc={npc} npcId={selectedNpcId} />
       <EventLogTab />
 
       <div style={{ color: '#334', fontSize: 9, textAlign: 'center', marginTop: 6 }}>

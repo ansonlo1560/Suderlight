@@ -88,7 +88,11 @@ router.post('/', async (req, res, next) => {
     await withPlayerLock(playerId, async () => {
       const ts = Date.now();
       const npc = saveService.getNpc(npcId, playerId);
-      if (!npc) throw new NotFoundError('NPC', npcId);
+      if (!npc) {
+        const availableNpcs = Object.keys(saveService.readNpcs());
+        logger.error(`[chat] NPC "${npcId}" not found. Available: ${availableNpcs.join(', ')}`);
+        throw new NotFoundError('NPC', npcId);
+      }
 
       // 若前端傳來了客戶端 NPC 狀態（如 playtest dashboard 修改），覆蓋/補充後端值
       const clientNpcState = req.body.clientNpcState;
@@ -109,7 +113,9 @@ router.post('/', async (req, res, next) => {
         personality: npcCard.personality || '',
         description: npcCard.description || '',
         system_prompt: npcCard.system_prompt || '',
+        role_keywords: npcCard.role_keywords || [],
       };
+
       const recentMessages = memoryService.getRecentDialogue(npcId, 10, playerId);
       const recentInputTypes = memoryService.getRecentTypes(npcId, playerId);
       // 传递 npc 状态（含 ending / innerWorldDepth），用于 promptBuilder 判断是否使用 post-completion 规则

@@ -78,6 +78,11 @@ function createApp() {
   const app = express();
   const apiPrefix = process.env.API_PREFIX || '';
 
+  // 显式声明信任 1 层反向代理（Nginx 入口层），
+  // 否则 express-rate-limit 在收到 X-Forwarded-For 时会抛 ERR_ERL_UNEXPECTED_X_FORWARDED_FOR。
+  // 详见 https://express-rate-limit.github.io/ERR_ERL_UNEXPECTED_X_FORWARDED_FOR/
+  app.set('trust proxy', 1);
+
   // Infrastructure middleware
   app.use(requestIdMiddleware);
   app.use(playerIdMiddleware);

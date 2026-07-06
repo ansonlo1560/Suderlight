@@ -17,10 +17,12 @@ const DIALOGUE_TYPES = {
   comfort:      { label: '表面安慰', description: '只說一句膚淺表面的鼓勵（如「加油」「你可以的」「你畢竟是畫家一定行的吧」）、主觀主張他可以/不可以什麼，沒有真正理解 NPC 當下狀態' },
   empathy:      { label: '真誠接納', description: '真正接納當下狀態、陪伴而不試圖修復、身同感受地理解、給出空間而非催促' },
   contradict:   { label: '反駁質疑', description: '否定NPC感受、與NPC觀點對立、說教、指責NPC逃避' },
-  neutral:      { label: '無關話題', description: '與NPC當下狀態和情境完全無關的日常閒聊、隨口提及，或連續重複相同/極相似的句子' },
-  role_related: { label: '角色相關', description: '涉及NPC專業或身份（如繪畫、藝術、創作）的中性/正面討論，不強迫不催促' },
+  neutral:      { label: '無關話題', description: '日常閒聊、連續重複、或者是【其他 NPC】的經歷與專屬線索' },
+  role_related: { label: '角色相關', description: '涉及【當前 NPC】核心身分、專業或設定中明確提到的經歷' },
+
   ordinary:     { label: '普通對話', description: '不屬於以上任何類別的一般性對話' },
 };
+
 
 // ---- 構建上下文摘要（給 AI 看的） ----
 function buildContextSummary(recentContext) {
@@ -111,7 +113,10 @@ ${typeList}
    - 否定 NPC 當下感受或狀態、說教 → contradict
    - 真正接納 NPC、陪伴而不試圖修復 → empathy
    - 無關日常閒聊或連續重複發言 → neutral
-   - 涉及 NPC 創作/藝術的中性/正面討論 → role_related
+   - 涉及 NPC 核心身分、專業或其設定中明確提到的過去經歷的中性/正面討論 → role_related。
+   - ★ 重要：僅當話題與【當前 NPC】設定直接相關時才判定為 role_related。如果涉及其他角色（例如對畫家提到魔方、對小葵提到畫筆/車禍），必須判定為 neutral，絕對不能判定為 ordinary 或 role_related。
+
+
 
 【輸出格式】
 嚴格只輸出以下 JSON，不要有任何其他文字（不要 markdown 代碼塊）：
@@ -211,8 +216,9 @@ async function classifyDialogueWithAI(message, npcSettings, recentContext) {
   }
 
   // 任何失敗都回退到關鍵詞分類
-  const fallback = classifyDialogueLegacy(message, recentContext);
+  const fallback = classifyDialogueLegacy(message, recentContext, npcSettings);
   return { type: fallback, reason: '（AI 不可用，使用關鍵詞分類）' };
+
 }
 
 /** 獲取最近一條玩家訊息 */
@@ -234,9 +240,9 @@ const contradict = ['不應該', '不同意', '不是這樣', '其實還是', '�
 const irrelevant = ['午餐', '咖哩', '手機', '沒電', '天氣預報', '放晴', '看到一隻貓', '電腦', '鍵盤'];
 const hostile = ['廢物', '去死', '沒用', '垃圾', '活該', '可悲', '軟弱', '懦夫', '裝病', '演的', '滾', '閉嘴', '殺', '爛'];
 const dismiss = ['隨便', '算了', '反正', '不重要', '無所謂', '懶得管', '不關我的事', '無聊'];
-const roleRelated = ['畫', '藝術', '創作', '色彩', '顏料', '畫布'];
+const roleRelatedFallback = ['畫', '畫筆', '藝術', '創作', '色彩', '顏料', '畫布', '舞蹈', '跳舞', '舞鞋', '魔方', '通告', '功課', '日記', '紅舞鞋', '日記本', '缺點', '學校'];
 
-function classifyDialogueLegacy(message, recentContext = []) {
+function classifyDialogueLegacy(message, recentContext = [], npcSettings = null) {
   const input = String(message || '').trim().toLowerCase();
 
   // 重複檢測：連續重複 → 強制 neutral
@@ -252,9 +258,21 @@ function classifyDialogueLegacy(message, recentContext = []) {
   if (hasAny(input, empathyWords) || hasAny(input, grounding)) return 'empathy';
   if (hasAny(input, contradict)) return 'contradict';
   if (hasAny(input, irrelevant)) return 'neutral';
-  if (hasAny(input, roleRelated)) return 'role_related';
+
+  // 角色相關判定：優先使用 NPC 專屬關鍵詞
+  const specificKeywords = npcSettings && Array.isArray(npcSettings.role_keywords) ? npcSettings.role_keywords : [];
+  if (specificKeywords.length > 0) {
+    if (hasAny(input, specificKeywords)) return 'role_related';
+    // 如果在全局列表中但不在當前角色列表中，視為跨角色線索 -> neutral
+    if (hasAny(input, roleRelatedFallback)) return 'neutral';
+  } else {
+    // 沒有專屬關鍵詞時使用全局 fallback
+    if (hasAny(input, roleRelatedFallback)) return 'role_related';
+  }
+
   return 'ordinary';
 }
+
 
 // ---- 新版對話分類（主入口 — async，支援 AI 上下文理解） ----
 async function classifyDialogue(message, npcSettings = null, recentContext = []) {
@@ -264,9 +282,10 @@ async function classifyDialogue(message, npcSettings = null, recentContext = [])
     return result.type;
   }
 
-  // Fallback：沒有 NPC 設定或沒有 API Key 時，使用關鍵詞分類
-  return classifyDialogueLegacy(message, recentContext);
+  // Fallback：使用關鍵詞分類
+  return classifyDialogueLegacy(message, recentContext, npcSettings);
 }
+
 
 // ---- 同步版分類（向後兼容，供 getDialogueDelta fallback 使用） ----
 function classifyDialogueSync(message) {
