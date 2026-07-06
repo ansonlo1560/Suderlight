@@ -359,7 +359,6 @@ function AoiRecorderPlaceholder({ name, coord, onClick, isCollected }: AoiRecord
       <div style={{ marginTop: 2, color: isCollected ? '#ffd54f' : '#eee', fontSize: 11, fontWeight: 'bold', padding: '2px 8px', background: 'rgba(0,0,0,0.72)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.18)', whiteSpace: 'nowrap' }}>
         {name}{isCollected && ' ✦'}
       </div>
-      <div style={{ fontSize: 10, color: '#aaa', background: 'rgba(0,0,0,0.6)', borderRadius: 8, padding: '1px 6px' }}>預留圖片</div>
     </button>
   );
 }
