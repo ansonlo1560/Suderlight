@@ -13,6 +13,7 @@ import sketchbookImage from '../../images/item/ChatGPT Image 2026年5月29日 �
 import muddyRedDanceShoesImage from '../../images/aoi/map-danceShoe.png';
 import demeritNoticeImage from '../../images/aoi/map-demeritNotice.png';
 import tornDiaryImage from '../../images/aoi/map-brokenDairy.png';
+import rubiksCubeImage from '../../images/aoi/map-cube.png';
 import aoiImage from '../../images/aoi/Aoi.png';
 import aoiGoneImage from '../../images/aoi/AoiGone.png';
 import painterImage from '../../images/character/IMG_3556.png';
@@ -61,6 +62,7 @@ const CLUE_IMAGE_MAP: Partial<Record<ClueId, string>> = {
   muddy_red_dance_shoes: muddyRedDanceShoesImage,
   demerit_notice: demeritNoticeImage,
   torn_diary: tornDiaryImage,
+  rubiks_cube: rubiksCubeImage,
 };
 
 function clueName(clueId: ClueId) {
