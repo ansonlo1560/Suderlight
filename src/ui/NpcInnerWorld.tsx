@@ -428,7 +428,8 @@ function ObservingPanel({ phase, colors, onLookCloser, onStartReflection, onChoo
   );
 }
 
-function InsightPanel({ phase, onClose }: { phase: LayerPhase & { type:'insight_revealed' }; onClose: () => void; }) {
+function InsightPanel({ phase, colors, onClose }: { phase: LayerPhase & { type:'insight_revealed' }; colors: SchemeColors; onClose: () => void; }) {
+
   const { target, reward } = phase;
 
   return (

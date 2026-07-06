@@ -1,5 +1,6 @@
 import type { ClueId, LocationId, NpcId } from '../data/verticalSlice';
-import { createBridgeArtistState, createRenaState, createAoiState, createDefaultInnerWorldSave, type NpcRuntimeState } from './npcStateEngine';
+import { createBridgeArtistState, createRenaState, createAoiState, createVictorState, createDefaultInnerWorldSave, type NpcRuntimeState } from './npcStateEngine';
+
 
 export type GhostRecord = {
   npc: NpcId;
@@ -28,6 +29,7 @@ export function createInitialSave(): GameSave {
       bridge_artist: createBridgeArtistState(),
       rena: createRenaState(),
       aoi: createAoiState(),
+      victor: createVictorState(),
     },
 
     ghosts: [],
