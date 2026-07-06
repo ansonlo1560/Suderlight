@@ -17,9 +17,11 @@ services:
       - API_PREFIX=/api
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-YOUR_KEY}
       - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
-    # 持久化玩家数据 (saves + memories)，静态数据由镜像提供
+    # 持久化玩家动态数据，静态模板由镜像提供
     volumes:
-      - suderlight_data:/app/server/data
+      - suderlight_saves:/app/server/data/saves
+      - suderlight_memories:/app/server/data/memories
 
 volumes:
-  suderlight_data:
+  suderlight_saves:
+  suderlight_memories:

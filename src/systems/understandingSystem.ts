@@ -59,7 +59,7 @@ export function tryAddInsight(
   state: UnderstandingState;
   reward: UnderstandingReward | null;
 } {
-  const reward = getUnderstandingReward(interactableId, choseInsight, layerNumber);
+  const reward = getUnderstandingReward(interactableId, choseInsight, layerNumber, npcId);
 
   if (!reward) {
     return { state, reward: null };
@@ -79,10 +79,10 @@ export function tryAddInsight(
 }
 
 /** 取得當前層級已累積的理解度總分 */
-export function getCurrentLayerUnderstanding(state: UnderstandingState, layerNumber: number): number {
+export function getCurrentLayerUnderstanding(state: UnderstandingState, layerNumber: number, npcId?: NpcId): number {
   let total = 0;
   for (const id of state.insightIds) {
-    const reward = getUnderstandingReward(id, true, layerNumber);
+    const reward = getUnderstandingReward(id, true, layerNumber, npcId);
     if (reward) total += reward.amount;
   }
   return total;
@@ -96,9 +96,9 @@ export function hasInsight(state: UnderstandingState, id: string): boolean {
 }
 
 /** 取得所有已獲得的理解片段文字 */
-export function getInsightFragments(state: UnderstandingState): string[] {
+export function getInsightFragments(state: UnderstandingState, npcId?: NpcId): string[] {
   return state.insightIds
-    .map(id => getInteractable(id))
+    .map(id => getInteractable(id, npcId))
     .filter((obj): obj is PsychInteractable => obj !== undefined)
     .map(obj => obj.insight);
 }

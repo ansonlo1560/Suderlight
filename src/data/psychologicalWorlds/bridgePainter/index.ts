@@ -6,13 +6,25 @@
 // ---- 類型定義 ----
 
 /** 心理世界層級標識 */
-export type PsychLayerId = "glory_gallery" | "accident_site" | "fading_maze" | "blank_frame_chamber";
+export type PsychLayerId = "glory_gallery" | "accident_site" | "fading_maze" | "blank_frame_chamber" | "broken_home" | "dance_recital_disaster" | "silent_swing";
 
 /** 心理世界層級編號 */
 export type PsychLayerNumber = 1 | 2 | 3 | 4;
 
 /** 層級視覺色調 */
-export type LayerColorScheme = 'gold' | 'cold' | 'faded' | 'void';
+export type LayerColorScheme = 'gold' | 'cold' | 'faded' | 'void' | {
+  accent: string;
+  text: string;
+  sub: string;
+  cellEmpty: string;
+  cellNorm: string;
+  cellDisc: string;
+  cellInsight: string;
+  border: string;
+  gridBg: string;
+  bg?: string;
+  dim?: string;
+};
 
 /** 玩家反思選項 */
 export interface ReflectionChoice {
@@ -24,10 +36,14 @@ export interface ReflectionChoice {
 export interface PsychInteractable {
   id: string;
   name: string;
-  category: string;
+  category?: string;
   /** 在當前層的網格位置（row, col） */
-  row: number;
-  col: number;
+  row?: number;
+  col?: number;
+  /** 在當前層的相對位置（x, y 百分比），用於外層世界或自由定位 */
+  pos?: { x: number; y: number };
+  /** 顯示圖示（可選） */
+  icon?: string;
   /** 玩家第一眼看到的表面資訊 */
   surfaceInfo: string;
   /** 觀察後揭露的深層心理訊息 */

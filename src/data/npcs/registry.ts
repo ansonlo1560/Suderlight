@@ -9,12 +9,15 @@ import { bridgePainterDefinition } from './bridgePainter';
 import { victorDefinition } from './victor/index';
 import { renaDefinition } from './rena/index';
 
+import { aoiDefinition } from './aoi';
+
 // ---- 登記表 ----
 
 const npcRegistry: Record<NpcId, NpcDefinition> = {
   bridge_artist: bridgePainterDefinition,
   victor: victorDefinition,
-  rena: renaDefinition,
+  renaDefinition: renaDefinition,
+  aoi: aoiDefinition,
 };
 
 // ---- 通用入口 ----

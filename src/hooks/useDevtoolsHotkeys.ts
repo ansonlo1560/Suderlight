@@ -41,11 +41,11 @@ const KONAMI = [
 ];
 
 export type DevtoolsCallbacks = {
-  /** F7 — 強制滿足內心世界觸發條件 */
+  /** F7 — 強制滿足內心世界觸發條件（針對 Devtools 選中 NPC） */
   onForceUnlock: () => void;
-  /** F9 — 直接進入內心世界（chapter 預設為當前深度+1 或 1） */
+  /** F9 — 直接進入內心世界（針對 Devtools 選中 NPC） */
   onEnterInnerWorld: () => void;
-  /** Shift+F9 — 選擇章節後進入 */
+  /** Shift+F9 — 選擇章節後進入（針對 Devtools 選中 NPC） */
   onSelectChapter: (depth: number) => void;
 };
 

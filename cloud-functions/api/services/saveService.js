@@ -19,12 +19,14 @@ import INLINE_CLUES from '../data/clues.js';
 function loadStaticDataOnce() {
   // 优先从持久化层加载 (fs 模式下为 JSON 文件)，回退到 inline 模块
   const persistedNpcs = readPersistedNpcs();
-  if (Object.keys(persistedNpcs).length > 0) {
+  if (persistedNpcs && Object.keys(persistedNpcs).length > 0) {
     memoryStore.npcs = persistedNpcs;
-    logger.info('Static NPC data loaded (persisted)');
-  } else if (Object.keys(memoryStore.npcs).length === 0 && INLINE_NPC) {
+    logger.info(`Static NPC data loaded (persisted, keys: ${Object.keys(persistedNpcs).join(', ')})`);
+  } else if (INLINE_NPC && Object.keys(INLINE_NPC).length > 0) {
     memoryStore.npcs = INLINE_NPC;
     logger.info('Static NPC data loaded (inline)');
+  } else {
+    logger.error('CRITICAL: No NPC templates loaded! Check npcs.json existence and format.');
   }
 
   const persistedClues = readPersistedClues();

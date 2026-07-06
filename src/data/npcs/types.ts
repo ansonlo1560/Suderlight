@@ -30,6 +30,8 @@ export type NpcCharacterCard = {
   exampleDialogues: Array<{ player: string; npc: string }>;
   hiddenTruth: string;
   safetyRule: string;
+  /** 給玩家的對話建議提示 */
+  conversationTip?: string;
 };
 
 // ---- 線索定義 ----
@@ -47,6 +49,10 @@ export type ClueDefinition = {
   icon: string;
   content: string;
   dictionaryHint: string;
+  /** 線索收集後金色 box 的標題（如果 API 沒有返回詞典條目） */
+  insightTitle?: string;
+  /** 線索收集後金色 box 的描述（如果 API 沒有返回詞典條目） */
+  insightDesc?: string;
 };
 
 // ---- Lorebook ----

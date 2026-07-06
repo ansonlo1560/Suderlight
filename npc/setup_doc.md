@@ -1,7 +1,8 @@
 # NPC 新增完整設定指南
 
-> 適用版本：Suderlight（《情緒修復師：微光城市》）v1.0+  
-> 參考範例：天橋畫家 (bridge_artist / 已完成)
+> 適用版本：Suderlight（《情緒修復師：微光城市》）v1.1+  
+> 參考範例：天橋畫家 (bridge_artist / 已完成) · 小葵 (aoi / 已完成)  
+> **架構更新**：自 v1.1 起，每個 NPC 的表世界與心理世界資料獨立存放，`OuterWorldExplorer.tsx` 改為通用協調器，透過 `outerWorlds/index.ts` 註冊中心動態載入。
 
 ---
 
@@ -9,15 +10,19 @@
 
 新增一個可遊玩的 NPC 需要以下七大步驟，涉及 **後端 (cloud-functions)** 和 **前端 (src/data + src/ui)** 兩個範疇：
 
-| # | 範圍 | 說明 | 檔案數 |
-|---|------|------|--------|
-| 1 | NPC 定義 | 角色卡、NpcId 類型、註冊中心 | 3 |
-| 2 | 線索系統 | 線索定義、收集邏輯、線索 ID 聯合類型 | 2 |
-| 3 | 心理世界 | 四層情感弧線 + 可互動物件 | 1+ |
-| 4 | 表世界地圖 | 等角地圖：建築、道路、碰撞、實體 | 2 |
-| 5 | NPC 狀態引擎 | 對話評估規則、初始狀態、關鍵詞 | 1 |
-| 6 | 後端資料 | 線索、心理世界、NPC 狀態、Prompt | 5 |
-| 7 | UI 整合 | 心理世界視覺、地圖實體互動、傳送點、存檔 | 3+ |
+> **架構原則**：自 v1.1 起，每個 NPC 的**表世界**資料獨立存放在 `src/data/outerWorlds/<npc>/`，**心理世界**資料獨立存放在 `src/data/psychologicalWorlds/<npc>/`。`OuterWorldExplorer.tsx` 不再硬編碼 NPC 專屬邏輯，而是透過 `outerWorlds/index.ts` 註冊中心動態載入對應的世界模組。
+
+> **階段性 Git Commit 建議**：每完成一個大步驟（1–7），執行一次 `git add -A && git commit -m "feat: add <npcId> — <step description>"`。這樣可以在出錯時快速回滾，也方便 Code Review。
+
+| # | 範圍 | 說明 | 檔案數 | 建議 Commit 訊息 |
+|---|------|------|--------|-----------------|
+| 1 | NPC 定義 | 角色卡、NpcId 類型、註冊中心 | 3 | `feat: add <npcId> — NPC definition & registry` |
+| 2 | 線索系統 | 線索定義、收集邏輯、線索 ID 聯合類型 | 2 | `feat: add <npcId> — clue system & verticalSlice` |
+| 3 | 心理世界 | 四層情感弧線 + 可互動物件 | 1+ | `feat: add <npcId> — psychological world layers` |
+| 4 | 表世界地圖 | 等角地圖：建築、道路、碰撞、實體 | 2 | `feat: add <npcId> — outer world map & teleport` |
+| 5 | NPC 狀態引擎 | 對話評估規則、初始狀態、關鍵詞 | 1 | `feat: add <npcId> — state engine & dialogue evaluation` |
+| 6 | 後端資料 | 線索、心理世界、NPC 狀態、Prompt | 5 | `feat: add <npcId> — backend data sync` |
+| 7 | UI 整合 | 心理世界視覺、地圖實體互動、傳送點、存檔 | 3+ | `feat: add <npcId> — UI integration & testing` |
 
 ---
 
@@ -116,6 +121,11 @@ const ending = {
 };
 ```
 
+> ✅ **第一步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — NPC definition & registry"
+> ```
+
 ---
 
 ## 第二步：線索系統
@@ -182,6 +192,11 @@ function getNpcIdForClue(clueId: ClueId): NpcId {
 
 同樣更新導入和查詢。
 
+> ✅ **第二步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — clue system & verticalSlice"
+> ```
+
 ---
 
 ## 第三步：心理世界（四層情感弧線）
@@ -238,6 +253,26 @@ const layer1: PsychLayerData = {
 | `reflectionChoices` | 反思選項（含正確/錯誤答案） |
 | `understandingReward` | 理解度獎勵數值 (7-10) |
 
+### reflectionChoices 設計規範
+
+每個 `reflectionChoices` 必須包含 **4 個選項**，每個選項應該是：
+- **更模糊、更意象化的關鍵詞語**（例如：「才華」、「消失」、「沉默」、「形狀」）
+- **避免使用完整的判斷句或詳細解釋**（例如：不要寫「你應該接受自己的空白」或「這不是你的錯」）
+- 4 個選項中只有 1 個是 `insight: true`（正確選項），其餘 3 個為 `insight: false`
+- 正確選項的關鍵詞應該與該 NPC 的核心創傷主題產生隱晦共鳴，而不是直接說出答案
+- 選項是隨機排列（是hardcode而不是每次session都random）
+
+```ts
+reflectionChoices: [
+  { text: '才華', insight: false },      // 模糊詞語，觸碰但非正解
+  { text: '消失', insight: true },      // 正確選項：與核心創傷共鳴
+  { text: '沉默', insight: false },
+  { text: '形狀', insight: false },
+]
+```
+
+這種設計讓玩家必須透過**情感直覺**而非**邏輯推理**來選擇，強化心理世界的沉浸感。
+
 ### 3.4 視覺註冊 (visualRegistry)
 
 在 NPC 定義中設定 `visualRegistry`：
@@ -293,6 +328,11 @@ const psychWorldRegistry: Record<NpcId, PsychLayerData[]> = {
 1. 在 `ComingSoonVisual` 中為新 NPC 加入主題視覺設定
 2. 在渲染區塊中加入新 NPC 的條件分支（可參考 victor 的實作）
 
+> ✅ **第三步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — psychological world layers"
+> ```
+
 ---
 
 ## 第四步：表世界地圖（等角地圖）
@@ -301,55 +341,160 @@ const psychWorldRegistry: Record<NpcId, PsychLayerData[]> = {
 
 **目錄**: `src/data/outerWorlds/yourNewNpc/`
 
-**檔案**: `src/data/outerWorlds/yourNewNpc/types.ts`
-```ts
-export type Point = { x: number; y: number };
-```
+每個 NPC 的表世界資料獨立存放。必須包含 `index.ts`（主資料檔），可選 `types.ts`（型別）。
 
 **檔案**: `src/data/outerWorlds/yourNewNpc/index.ts`
 
-必須匯出以下常數與函數：
+必須匯出一個完整的 `OuterWorldModule` 物件，結構如下：
 
 ```ts
-export const MAP_WIDTH = 2400;
-export const MAP_HEIGHT = 1600;
-export const TILE_W = 96;
-export const TILE_H = 48;
-export const ORIGIN_X = MAP_WIDTH / 2;
-export const ORIGIN_Y = 160;
-export const PLAYER_SPEED = 0.055;
+import type {
+  Building, CollisionZone, ElevationFn, EntityTemplate, LocationDisplay, RoadDef,
+} from '../types';
+import type { Point } from '../bridgePainter/types';
 
-// 等角座標轉換
-export function isoToScreen(pos: Point) { /* … */ }
-export function worldToScreen(pos: Point) { return isoToScreen(pos); }
-export function distance(a: Point, b: Point) { return Math.hypot(a.x - b.x, a.y - b.y); }
-export function clamp(v: number, min: number, max: number) { /* … */ }
-export function lerp(a: number, b: number, t: number) { /* … */ }
-export function getOffsetPos(locationId: string, pos: Point) { /* … */ }
+// 建議：若與 bridgePainter 共用同一套等角座標系，直接 re-export 工具函數
+import {
+  MAP_WIDTH, MAP_HEIGHT, TILE_W, TILE_H, ORIGIN_X, ORIGIN_Y, PLAYER_SPEED,
+  clamp, lerp, isoToScreen, distance, getOffsetPos,
+} from '../bridgePainter';
 
-// 地圖描述
+export {
+  MAP_WIDTH, MAP_HEIGHT, TILE_W, TILE_H, ORIGIN_X, ORIGIN_Y, PLAYER_SPEED,
+  clamp, lerp, isoToScreen, distance, getOffsetPos,
+} from '../bridgePainter';
+
+// ---- 地圖描述 ----
 export const locationDisplay: LocationDisplay = {
-  id: 'your_location', name: '地圖名稱', subtitle: '副標題',
-  description: '地圖描述…', ambient: '氛圍描述…',
+  id: 'your_location',
+  name: '地圖名稱',
+  subtitle: '副標題',
+  description: '地圖描述…',
+  ambient: '氛圍描述…',
 };
 
-// 建築物
-export const buildings: Building[] = [ /* Building[] */ ];
+// ---- 建築物 ----
+export const buildings: Building[] = [
+  {
+    id: 'building_id',
+    name: '建築名稱',
+    locationId: 'your_location',
+    pos: { x: 17, y: 5 },
+    size: { x: 5, y: 4 },
+    tall: 200,
+    baseColor: '#37474f',
+    windows: [
+      { side: 'left', x: 0.1, y: 0.2, w: 0.2, h: 0.3 },
+    ],
+  },
+];
 
-// 道路定義
-export const roadDefs = (locationId: string): RoadDef => { /* Point[][] */ };
+// ---- 道路定義 ----
+export const roadDefs = (locationId: string): RoadDef => {
+  if (locationId !== 'your_location') return [];
+  return [
+    [{ x: 4, y: 8 }, { x: 19, y: 8 }, { x: 19, y: 10 }, { x: 4, y: 10 }],
+  ];
+};
 
-// 碰撞區域
-export const collisionZones: Record<string, CollisionZone> = { /* … */ };
+// ---- 碰撞區域 ----
+export const collisionZones: Record<string, CollisionZone> = {
+  your_location: {
+    id: 'your_location',
+    walkableRegions: [
+      { minX: 4.5, maxX: 19.0, minY: 8.5, maxY: 10.0 },
+    ],
+    maxX: 28,
+    maxY: 22,
+  },
+};
 
-// 實體生成
-export function getEntities(ctx: { /* … */ }): EntityTemplate[] { /* … */ }
+// ---- 實體生成 ----
+export function getEntities(ctx: {
+  npcEnding: string;
+  npcInnerWorldUnlocked: boolean;
+  collectedClues: string[];
+  locationId: string;
+}): EntityTemplate[] {
+  const list: EntityTemplate[] = [];
+  if (ctx.locationId !== 'your_location') return list;
 
-// 海拔函數
-export const getElevation: ElevationFn = () => 0;
+  // NPC 實體
+  list.push({
+    id: 'your_npc', label: 'NPC 名稱', type: 'npc',
+    pos: { x: 13, y: 9 },
+    color: ctx.npcEnding === 'success' ? '#7acc7a' : '#ffaa33',
+    icon: ctx.npcEnding === 'success' ? '光' : '圖',
+  });
 
-// 互動邏輯
-export function getInteraction(entityId: string, ctx: { /* … */ }) { /* … */ }
+  // 傳送點（雙向）
+  list.push({
+    id: 'skybridge_portal', label: '天橋', type: 'portal',
+    pos: { x: 16, y: 14 }, color: '#ffaa33', icon: '🧭',
+  });
+
+  return list;
+}
+
+// ---- 海拔函數 ----
+export function getElevation(_pos: Point): number { return 0; }
+
+// ---- 互動邏輯 ----
+export function getInteraction(
+  entityId: string,
+  ctx: {
+    npcEnding: string;
+    npcInnerWorldUnlocked: boolean;
+    npcFlags: string[];
+    collectedClues: string[];
+    onOpenConversation: () => void;
+    onEnterInnerWorld: () => void;
+    onOpenArcFailure: () => void;
+    onOpenReport: () => void;
+    onShowModal: (modal: { title: string; content: string; actions?: Array<{ label: string; tone?: string; onClick: () => void }> } | null) => void;
+  },
+): { title: string; content: string; actions?: Array<{ label: string; tone?: string; onClick: () => void }> } | null {
+  if (entityId === 'your_npc') {
+    if (ctx.npcEnding === 'success') {
+      return {
+        title: '成功結局',
+        content: '結局描述…',
+        actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: ctx.onOpenReport }],
+      };
+    }
+    return null; // 信號：開啟對話
+  }
+  return null;
+}
+
+// ---- 出入口 ----
+export const getMaxX = (_locationId: string) => 28;
+export const getMaxY = (_locationId: string) => 22;
+
+// ---- 世界模組物件（註冊中心使用）----
+export const yourNpcOuterWorld = {
+  id: 'your_npc',
+  mapWidth: 2400,
+  mapHeight: 1600,
+  tileW: 96,
+  tileH: 48,
+  originX: 1200,
+  originY: 160,
+  playerSpeed: 0.055,
+  buildings,
+  roadDefs,
+  collisionZones,
+  getEntities,
+  locationDisplay,
+  locationOffsets: {
+    // 若其他地點的實體需要偏移顯示在此地圖上，可在此定義
+    // skybridge: { x: 10, y: 6.5 },
+  },
+  getElevation,
+  getMaxX,
+  getMaxY,
+  getInteraction,
+};
 ```
 
 ### 4.2 建築物 (Building)
@@ -374,7 +519,26 @@ export function getInteraction(entityId: string, ctx: { /* … */ }) { /* … */
 
 建議 2-3 棟建築物，對應到 `LocationId` 的地點。
 
-### 4.3 更新 LocationId 類型
+### 4.3 註冊表世界模組
+
+**檔案**: `src/data/outerWorlds/index.ts`
+
+將新世界模組加入 `worldRegistry`：
+
+```ts
+import { yourNpcOuterWorld } from './yourNewNpc';
+
+const worldRegistry: Record<LocationId, OuterWorldModule> = {
+  skybridge: bridgePainterOuterWorld as OuterWorldModule,
+  newsstand: bridgePainterOuterWorld as OuterWorldModule,
+  park: aoiOuterWorld as OuterWorldModule,
+  your_location: yourNpcOuterWorld as OuterWorldModule,  // ← 新增
+};
+```
+
+**無需修改 `OuterWorldExplorer.tsx`** — 它會自動透過 `getWorldForLocation(locationId)` 動態載入對應的世界模組。
+
+### 4.4 更新 LocationId 類型
 
 **檔案**: `src/data/locations.ts`
 
@@ -385,32 +549,33 @@ export type LocationId = 'skybridge' | 'newsstand' | 'park'
   | 'your_location_1' | 'your_location_2';
 ```
 
-並在 `locations` 物件中新增對應的 `LocationData`。
-
-### 4.4 更新 OuterWorldExplorer
-
-**檔案**: `src/ui/OuterWorldExplorer.tsx`
-
-1. 導入新 NPC 的地圖資料（參考 victor 的導入方式）
-2. 在 `mapData` 選擇器中加入新 NPC 的分支
-3. 在 `entities` 生成中加入新 NPC 的實體邏輯
-4. 在 `interact` 函數中加入新 NPC 的互動邏輯
-5. 更新 `EntityId` 類型、`displayLoc`、提燈筆記
-6. 加入與其他地圖之間的雙向傳送點
+並在 `locations` 物件中新增對應的 `LocationData`（含 `spawn` 座標）。
 
 ### 4.5 傳送點
 
-在天橋或其他現有地圖上新增傳送點實體，同時在新 NPC 地圖上新增返回傳送點：
+傳送點應定義為 `type: 'portal'` 的實體，由 `OuterWorldExplorer` 統一處理：
 
 ```ts
-// 在天橋 entities 中加入：
-list.push({ id: 'your_npc_portal', label: '地圖名稱 · 傳送點', type: 'clue',
-  pos: { x: 5.5, y: 4.5 }, color: '#66bb6a', icon: '傳' });
-
-// 在新 NPC entities 中加入返回傳送點：
-list.push({ id: 'return_portal', label: '返回天橋 · 傳送點', type: 'clue',
-  pos: { x: 9, y: 17 }, color: '#ffaa33', icon: '返' });
+// 在新 NPC 地圖的 getEntities 中加入返回傳送點：
+list.push({
+  id: 'skybridge_portal', label: '天橋', type: 'portal',
+  pos: { x: 16, y: 14 }, color: '#ffaa33', icon: '🧭',
+});
 ```
+
+同時，在 `bridgePainter` 的 `getEntities` 中（或對應的連接地點）加入前往新地圖的傳送點：
+
+```ts
+list.push({
+  id: 'your_location_portal', label: '新地點', type: 'portal',
+  pos: { x: 5, y: 9 }, color: '#66bb6a', icon: '🧭',
+});
+```
+
+> ✅ **第四步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — outer world map & teleport"
+> ```
 
 ---
 
@@ -491,6 +656,11 @@ export function evaluateNpcDialogue(…) {
 ### 5.5 更新 gameStore.ts
 
 在 `getNpcIdForClue`、`findClueById`、以及存檔系統中加入新 NPC 的支援。
+
+> ✅ **第五步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — state engine & dialogue evaluation"
+> ```
 
 ---
 
@@ -585,6 +755,11 @@ export function evaluateNpcDialogue(…) {
 
 確保新 NPC 的場景條目 `unlockedByDefault: true`（若為可遊玩 NPC）。
 
+> ✅ **第六步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — backend data sync"
+> ```
+
 ---
 
 ## 第七步：前端 UI 整合
@@ -601,20 +776,18 @@ export function evaluateNpcDialogue(…) {
 
 **檔案**: `src/ui/OuterWorldExplorer.tsx`
 
-1. 導入新 NPC 的地圖、線索資料
-2. 在 `mapData` 選擇器中加入分支
-3. 在 `entities` useMemo 中加入新 NPC 的實體生成邏輯
-4. 在 `interact` 函數中加入新 NPC 的互動處理
-5. 更新 `EntityId` 聯合類型
-6. 更新提燈筆記（`GlassPanel`）的動態文字
-7. 加入 `isPill` / `isPortal` 渲染邏輯
+> ⚠️ **自 v1.1 起，此檔案已改為通用協調器**。新增 NPC 時**無需修改此檔案**。只要完成以下步驟即可：
+> 1. 在 `src/data/outerWorlds/index.ts` 註冊中心加入新世界模組
+> 2. 在 `src/data/verticalSlice.ts` 中擴展 `ClueId` 和 `NpcId` 類型
+> 3. 更新 `src/data/locations.ts` 中的 `LocationId` 和 `locations` 資料
+> 4. 若有線索圖片，在 `CLUE_IMAGE_MAP` 中新增映射（可選）
 
 ### 7.3 NpcInnerWorld
 
 **檔案**: `src/ui/NpcInnerWorld.tsx`
 
-1. 在 `ComingSoonVisual` 中加入新 NPC 的主題視覺設定
-2. 在渲染分支中加入新 NPC 的互動 pin 渲染
+1. 在 `ComingSoonVisual` 中為新 NPC 加入主題視覺設定
+2. 在渲染區塊中加入新 NPC 的互動 pin 渲染
 3. 確保 `floatingTextsByLayer` 和 `pinCoordinates` 正確載入
 
 ### 7.4 NarrativeDebugOverlay / NarrativePlaytestDashboard
@@ -629,6 +802,11 @@ export function evaluateNpcDialogue(…) {
 **目錄**: `images/character/`
 
 放置 PNG 角色圖片（例如 `YourNpc.png`）。
+
+> ✅ **第七步完成後請執行**：
+> ```bash
+> git add -A && git commit -m "feat: add <npcId> — UI integration & testing"
+> ```
 
 ---
 
@@ -646,12 +824,13 @@ export function evaluateNpcDialogue(…) {
 - [ ] `pinCoordinates` 已設定所有層級的所有互動物件座標
 - [ ] `LocationId` 類型已擴展
 - [ ] 表世界地圖資料已建立（buildings, roadDefs, collisionZones, getEntities, getInteraction）
+- [ ] **表世界模組已在 `outerWorlds/index.ts` 註冊中心登記**
 - [ ] 對話評估關鍵詞與函數已新增
 - [ ] 初始狀態 `createYourNpcState()` 已定義
 - [ ] `getNpcIdForClue` 已加入新 NPC
 - [ ] 後端 clues.js, innerWorlds.js, npc.json, character-cards.js, prompts, worldbook 已更新
-- [ ] `OuterWorldExplorer` 已支援新 NPC 的地圖、實體、互動
-- [ ] 雙向傳送點已設定
+- [ ] `OuterWorldExplorer` 已自動支援（無需硬編碼修改）
+- [ ] 雙向傳送點已設定（`type: 'portal'`）
 - [ ] `NpcInnerWorld` 已加入新 NPC 主題視覺
 - [ ] `App.tsx` 的 `switchToNpc` 已支援
 - [ ] 角色圖片已放置

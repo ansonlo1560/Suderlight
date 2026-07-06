@@ -29,5 +29,30 @@
         "theme": "接納／存在本身即價值"
       }
     ]
+  },
+  "aoi": {
+    "modelVersion": 2,
+    "name": "公園記憶（三層模型）",
+    "emotion": "被剝奪的快樂",
+    "layers": [
+      {
+        "layerNumber": 1,
+        "layerId": "broken_home",
+        "layerName": "破碎的家",
+        "theme": "原生家庭／情感粘合劑／被剝奪的童年"
+      },
+      {
+        "layerNumber": 2,
+        "layerId": "dance_recital_disaster",
+        "layerName": "舞蹈會災難",
+        "theme": "創傷／羞恥／被否認的夢想"
+      },
+      {
+        "layerNumber": 3,
+        "layerId": "silent_swing",
+        "layerName": "靜止的鞦韆",
+        "theme": "接納／允許自己快樂／核心自我"
+      }
+    ]
   }
 }

@@ -1,5 +1,5 @@
 import type { ClueId, LocationId, NpcId } from '../data/verticalSlice';
-import { createBridgeArtistState, createVictorState, createDefaultInnerWorldSave, type NpcRuntimeState } from './npcStateEngine';
+import { createBridgeArtistState, createVictorState, createAoiState, createDefaultInnerWorldSave, type NpcRuntimeState } from './npcStateEngine';
 
 export type GhostRecord = {
   npc: NpcId;
@@ -13,6 +13,9 @@ export type GameSave = {
   collectedClues: ClueId[];
   npcs: Record<NpcId, NpcRuntimeState>;
   ghosts: GhostRecord[];
+  /** 玩家地圖座標（用於退出對話/心理世界後返回原位） */
+  playerX?: number;
+  playerY?: number;
 };
 
 const SAVE_KEY = 'glimmer_city_vertical_slice_save_v1';
@@ -24,6 +27,7 @@ export function createInitialSave(): GameSave {
     npcs: {
       bridge_artist: createBridgeArtistState(),
       victor: createVictorState(),
+      aoi: createAoiState(),
     },
     ghosts: [],
   };
@@ -68,6 +72,16 @@ export function loadSave(): GameSave | null {
       if (victor.innerWorldDepth === undefined) victor.innerWorldDepth = 0;
       if (victor.innerWorldLayer === undefined) victor.innerWorldLayer = 0;
       if (!victor.innerWorld) victor.innerWorld = createDefaultInnerWorldSave();
+    }
+    // 旧存档没有 aoi → 初始化
+    if (!parsed.npcs.aoi) {
+      parsed.npcs.aoi = createAoiState();
+    } else {
+      const aoi = parsed.npcs.aoi;
+      if (aoi.knowledge === undefined) aoi.knowledge = 0;
+      if (aoi.innerWorldDepth === undefined) aoi.innerWorldDepth = 0;
+      if (aoi.innerWorldLayer === undefined) aoi.innerWorldLayer = 0;
+      if (!aoi.innerWorld) aoi.innerWorld = createDefaultInnerWorldSave('aoi');
     }
 
     // 移除旧的 player 字段（兼容旧存档格式）
