@@ -6,9 +6,7 @@ import type { CollectClueResult } from '../store/gameStore';
 import type { GameSave } from '../systems/saveSystem';
 import { getWorldForLocation, getBoundsForLocation } from '../data/outerWorlds';
 import type { OuterWorldModule } from '../data/outerWorlds';
-import {
-  isoToScreen, worldToScreen, distance, clamp, lerp,
-} from '../data/outerWorlds/bridgePainter';
+import {isoToScreen, worldToScreen, distance, clamp, lerp,} from '../data/outerWorlds/bridgePainter';
 import brushImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_49_08.png';
 import newspaperImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_50_17.png';
 import sketchbookImage from '../../images/item/ChatGPT Image 2026年5月29日 下午10_51_17.png';
