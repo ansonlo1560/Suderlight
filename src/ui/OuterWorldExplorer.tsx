@@ -80,11 +80,15 @@ function adjustColorBrightness(hex: string, percent: number) {
 }
 
 // ---- 位置 → NPC 對應表（未來可移至註冊中心） ----
-function getNpcIdForLocation(_locationId: LocationId): NpcId {
+function getNpcIdForLocation(locationId: LocationId): NpcId {
+  if (locationId === 'skybridge') return 'bridge_artist';
+  if (locationId === 'comedy_club_entrance' || locationId === 'comedy_club_backstage' || locationId === 'hospital_ward') return 'rena';
   return 'bridge_artist';
 }
 
-function getNpcStateForLocation(locationId: LocationId, save: GameSave) {
+function getNpcStateForLocation(locationId: LocationId, save: GameSave, entityId?: string) {
+  if (entityId === 'rena') return save.npcs['rena'];
+  if (entityId === 'aoi') return save.npcs['aoi'];
   const npcId = getNpcIdForLocation(locationId);
   return save.npcs[npcId];
 }
@@ -365,9 +369,11 @@ export default function OuterWorldExplorer({
   // ---- 動態取得當前世界模組 ----
   const world = useMemo<OuterWorldModule>(() => getWorldForLocation(save.currentLocation), [save.currentLocation]);
   const bounds = useMemo(() => getBoundsForLocation(save.currentLocation), [save.currentLocation]);
-  const npcState = useMemo(() => getNpcStateForLocation(save.currentLocation, save), [save.currentLocation, save]);
-  const npcId = useMemo(() => getNpcIdForLocation(save.currentLocation), [save.currentLocation]);
-  const isRepaired = npcState?.ending === 'success';
+  
+  // 1. 取得場景主導的 NPC 狀態（用於場景渲染）
+  const primaryNpcId = useMemo(() => getNpcIdForLocation(save.currentLocation), [save.currentLocation]);
+  const primaryNpcState = useMemo(() => save.npcs[primaryNpcId], [save, primaryNpcId]);
+  const isRepaired = primaryNpcState?.ending === 'success';
 
   const displayLoc = useMemo(() => {
     return { ...world.locationDisplay, id: save.currentLocation as LocationId, spawn: locations[save.currentLocation].spawn };
@@ -378,11 +384,13 @@ export default function OuterWorldExplorer({
 
     // 由世界模組提供實體
     const worldEntities = world.getEntities({
-      npcEnding: npcState?.ending ?? 'none',
-      npcInnerWorldUnlocked: npcState?.innerWorldUnlocked ?? false,
+      npcEnding: primaryNpcState?.ending ?? 'none',
+      npcInnerWorldUnlocked: primaryNpcState?.innerWorldUnlocked ?? false,
       collectedClues: save.collectedClues,
       locationId: save.currentLocation,
-    });
+      save, // 傳入完整的 save 供 map 模組獲取其他 NPC 狀態
+    } as any);
+
     list.push(...worldEntities.map(e => ({ ...e, type: e.type as 'npc' | 'clue' | 'portal' })));
 
     // 線索實體
@@ -396,9 +404,14 @@ export default function OuterWorldExplorer({
     });
 
     return list;
-  }, [world, npcState, save.collectedClues, save.currentLocation]);
+  }, [world, primaryNpcState, save.collectedClues, save.currentLocation]);
 
   const nearbyEntity = entities.find(e => distance(e.pos, playerPos) <= 1.35);
+
+  // 2. 計算當前活躍的 NPC 狀態（用於 HUD 顯示）
+  const activeNpcState = useMemo(() => getNpcStateForLocation(save.currentLocation, save, nearbyEntity?.id), [save.currentLocation, save, nearbyEntity?.id]);
+
+
 
   const focusCameraOnPlayer = (pos: Point) => {
     const base = isoToScreen(pos);
@@ -438,8 +451,9 @@ export default function OuterWorldExplorer({
     }
 
     // 委派給世界模組的互動邏輯
-    const targetNpcState = entity?.id === 'aoi' ? save.npcs['aoi'] : npcState;
+    const targetNpcState = getNpcStateForLocation(save.currentLocation, save, entity?.id);
     const interaction = world.getInteraction?.(targetId, {
+
       npcEnding: targetNpcState?.ending ?? 'none',
       npcInnerWorldUnlocked: targetNpcState?.innerWorldUnlocked ?? false,
       npcFlags: targetNpcState?.flags ?? [],
@@ -475,6 +489,8 @@ export default function OuterWorldExplorer({
     if (entity?.type === 'npc') {
       if (entity.id === 'aoi') {
         onSwitchNpc?.('aoi');
+      } else if (entity.id === 'rena') {
+        onSwitchNpc?.('rena');
       } else {
         onSwitchNpc?.('bridge_artist');
       }
@@ -605,16 +621,16 @@ export default function OuterWorldExplorer({
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', cursor: isDragging ? 'grabbing' : 'grab', background: '#080a0d', filter: traumaFilter }} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
       <GlassPanel title="提燈筆記" variant="dark" style={{ position: 'absolute', top: 20, left: 20, zIndex: 100, width: 270 }} contentStyle={{ display: 'grid', gap: 12, padding: 16 }}>
         <div style={{ fontSize: 13, lineHeight: 1.7, color: '#bbb' }}>
-          {npcState?.innerWorldUnlocked
+          {activeNpcState?.innerWorldUnlocked
             ? '天橋盡頭出現了微弱的門縫光。'
             : '雨聲仍很密，故事還沒有拼合。'}
           <br />
-          {npcState?.ending === 'success' && (
+          {activeNpcState?.ending === 'success' && (
             <span style={{ color: '#b8ffd6' }}>
               畫家終於聽見了雨聲。
             </span>
           )}
-          {(npcState?.ending === 'failed' || save.npcs['aoi']?.ending === 'failed') && (
+          {(activeNpcState?.ending === 'failed' || save.npcs['aoi']?.ending === 'failed') && (
             <span style={{ color: '#ffd0d0' }}>
               {save.npcs['aoi']?.ending === 'failed' ? '公園的鞦韆上，只剩風還在輕輕推著空盪的座位。' : '天橋上只剩下一張被撕碎的空白畫布。'}
             </span>
@@ -670,7 +686,7 @@ export default function OuterWorldExplorer({
           const bh = isTC ? 82 : (isImg ? 112 : (isPill ? 36 : (isAoi ? 140 : (entity.type === 'npc' ? 84 : 48))));
           return (
             <button key={entity.id} onClick={e => handleEntityClick(e, entity)} style={{ position: 'absolute', left: s.left, top: s.top, transform: 'translate(-50%, -100%)', width: bw, height: bh, border: isTC ? '2px dashed #5a5a6e' : ((isPtr || isAoi) ? 'none' : `2px solid ${entity.color}`), borderRadius: (isPtr || isAoi) ? '0' : isTC ? '8px 14px 10px 4px' : isImg ? '14px' : isPill ? '999px' : entity.type === 'npc' ? '36px 36px 18px 18px' : '50%', padding: (isPtr || isAoi) ? '0' : isTC ? '4px' : isImg ? '4px' : isPill ? '0 8px' : '0', background: isTC ? 'rgba(20,22,30,0.94)' : (isPtr || isAoi) ? 'transparent' : isImg ? 'rgba(14,18,25,0.92)' : entity.type === 'npc' ? 'rgba(255,170,51,0.12)' : 'rgba(255,255,255,0.08)', color: isTC ? '#8a8a9c' : entity.color, cursor: 'pointer', zIndex: Math.round(s.top) + (isGDoor ? 500 : 0), boxShadow: isTC ? (isNear ? '0 0 28px rgba(120,120,140,0.35)' : '0 0 10px rgba(120,120,140,0.15)') : isPtr ? (isNear ? '0 0 26px rgba(255,196,132,0.65)' : 'none') : isAoi ? 'none' : (isNear ? `0 0 36px ${entity.color}` : `0 0 18px ${entity.color}55`), fontWeight: 'bold', userSelect: 'none', transition: 'box-shadow 0.18s, transform 0.18s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} title={entity.label}>
-              {isPtr ? <img src={npcState?.ending === 'success' ? painterUnlockedImage : painterImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: isNear ? 'drop-shadow(0 0 20px rgba(255,196,132,0.45))' : 'none' }} />
+              {isPtr ? <img src={save.npcs['bridge_artist']?.ending === 'success' ? painterUnlockedImage : painterImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: isNear ? 'drop-shadow(0 0 20px rgba(255,196,132,0.45))' : 'none' }} />
               : isAoi ? <img src={save.npcs['aoi']?.ending === 'failed' ? aoiGoneImage : aoiImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: save.npcs['aoi']?.ending === 'success' ? (isNear ? 'drop-shadow(0 0 20px rgba(255,170,51,0.45))' : 'none') : save.npcs['aoi']?.ending === 'failed' ? 'none' : 'grayscale(1)' }} />
               : isImg && cImg ? <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', width: '100%', height: '100%' }}><img src={cImg} alt={entity.label} style={{ width: '100%', height: 72, objectFit: 'cover', borderRadius: 9, border: '1px solid rgba(255,255,255,0.18)', boxShadow: '0 3px 10px rgba(0,0,0,0.35)' }} /><span style={{ fontSize: 11, lineHeight: 1.2, letterSpacing: 0.2, color: '#f7f0dc', textShadow: '0 0 6px rgba(0,0,0,0.45)' }}>{entity.label}</span></div>
               : isPill ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', height: '100%', whiteSpace: 'nowrap' }}><span style={{ fontSize: 13, fontWeight: 'bold', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', width: 22, height: 22, minWidth: 22, minHeight: 22, flexShrink: 0, flexGrow: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{entity.icon}</span><span style={{ fontSize: 11, letterSpacing: 0.5, fontWeight: 'bold' }}>{entity.label}</span></div>

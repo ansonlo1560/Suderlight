@@ -3,6 +3,8 @@ import type { GameSave } from '../systems/saveSystem';
 import type { NpcId } from '../data/verticalSlice';
 import { getNpcDefinition } from '../data/npcs/registry';
 import { bridgeArtistAftermath } from '../data/npcs/bridgePainter';
+import { renaAftermath } from '../data/npcs/rena';
+import { aoiAftermath } from '../data/npcs/aoi';
 
 type AftermathReportProps = {
   save: GameSave;
@@ -13,8 +15,11 @@ type AftermathReportProps = {
 };
 
 function getAftermathContent(npcId: NpcId) {
-  // 向後相容：依 npcId 回傳對應文案
+  // 依 npcId 回傳對應文案
   if (npcId === 'bridge_artist') return bridgeArtistAftermath;
+  if (npcId === 'rena') return renaAftermath;
+  if (npcId === 'aoi') return aoiAftermath;
+  
   const def = getNpcDefinition(npcId);
   return {
     title: `靈魂軌跡：${def.characterCard.displayName}`,

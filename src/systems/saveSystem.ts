@@ -1,5 +1,5 @@
 import type { ClueId, LocationId, NpcId } from '../data/verticalSlice';
-import { createBridgeArtistState, createVictorState, createAoiState, createDefaultInnerWorldSave, type NpcRuntimeState } from './npcStateEngine';
+import { createBridgeArtistState, createRenaState, createAoiState, createDefaultInnerWorldSave, type NpcRuntimeState } from './npcStateEngine';
 
 export type GhostRecord = {
   npc: NpcId;
@@ -26,9 +26,10 @@ export function createInitialSave(): GameSave {
     collectedClues: [],
     npcs: {
       bridge_artist: createBridgeArtistState(),
-      victor: createVictorState(),
+      rena: createRenaState(),
       aoi: createAoiState(),
     },
+
     ghosts: [],
   };
 }
@@ -66,13 +67,11 @@ export function loadSave(): GameSave | null {
       // 旧存档没有 innerWorld → 初始化
       if (!bridgeArtist.innerWorld) bridgeArtist.innerWorld = createDefaultInnerWorldSave();
     }
-    const victor = parsed.npcs.victor;
-    if (victor) {
-      if (victor.knowledge === undefined) victor.knowledge = 0;
-      if (victor.innerWorldDepth === undefined) victor.innerWorldDepth = 0;
-      if (victor.innerWorldLayer === undefined) victor.innerWorldLayer = 0;
-      if (!victor.innerWorld) victor.innerWorld = createDefaultInnerWorldSave();
+    // 移除 victor (根據 playtest 要求)
+    if (parsed.npcs.victor) {
+      delete parsed.npcs.victor;
     }
+
     // 旧存档没有 aoi → 初始化
     if (!parsed.npcs.aoi) {
       parsed.npcs.aoi = createAoiState();
@@ -83,6 +82,18 @@ export function loadSave(): GameSave | null {
       if (aoi.innerWorldLayer === undefined) aoi.innerWorldLayer = 0;
       if (!aoi.innerWorld) aoi.innerWorld = createDefaultInnerWorldSave('aoi');
     }
+
+    // 舊存檔沒有 rena → 初始化
+    if (!parsed.npcs.rena) {
+      parsed.npcs.rena = createRenaState();
+    } else {
+      const rena = parsed.npcs.rena;
+      if (rena.knowledge === undefined) rena.knowledge = 0;
+      if (rena.innerWorldDepth === undefined) rena.innerWorldDepth = 0;
+      if (rena.innerWorldLayer === undefined) rena.innerWorldLayer = 0;
+      if (!rena.innerWorld) rena.innerWorld = createDefaultInnerWorldSave('rena');
+    }
+
 
     // 移除旧的 player 字段（兼容旧存档格式）
     const result = parsed as GameSave;

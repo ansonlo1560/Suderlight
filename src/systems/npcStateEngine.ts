@@ -169,6 +169,25 @@ export function createVictorState(): NpcRuntimeState {
   };
 }
 
+export function createRenaState(): NpcRuntimeState {
+  return {
+    id: 'rena',
+    name: '喜劇演員 蕾娜',
+    trust: 10,
+    stress: 90,
+    knowledge: 0,
+    knowledgeRequired: 80,
+    trustRequired: 50,
+    innerWorldUnlocked: false,
+    ending: 'none',
+    flags: [],
+    innerWorldDepth: 0,
+    innerWorldLayer: 0,
+    innerWorld: createDefaultInnerWorldSave('rena'),
+  };
+}
+
+
 export function shouldUnlockInnerWorld(state: NpcRuntimeState, knowledge: number) {
   return state.ending === 'none' && knowledge >= state.knowledgeRequired && state.trust >= state.trustRequired;
 }
@@ -270,7 +289,101 @@ export function evaluateAoiDialogue(
   };
 }
 
+// ---- rena-specific evaluation ----
+const renaForcedComfortWords = ['加油', '振作', '開心一點', '你可以的', '不要難過', '想開一點', '笑一個', '多笑笑'];
+const renaEmpathyWords = ['我陪你', '陪你', '我在這裡', '聽你說', '慢慢來', '不說話', '不用急', '不用再演', '可以不用笑', '不用笑', '不用勉強', '做自己', '不笑也沒關係', '不用表演', '累了', '休息', '放下', '真實', '哭出來'];
+const renaPressureWords = ['好笑', '有趣', '段子', '表演', '天才', '全場保證', '喜劇演員', '專業', '簽名', '新秀', '笑話', '逗笑', '演出'];
+
+export function evaluateRenaDialogue(
+  playerInput: string,
+  state: NpcRuntimeState,
+  context: DialogueEvaluationContext,
+): DialogueEvaluationResult {
+  const input = playerInput.trim().toLowerCase();
+  const flags: string[] = [];
+  let trustDelta = 0;
+  let stressDelta = 0;
+  let reason = '對話維持在安全距離，未觸發特定判定。';
+  let safetyRedirect = false;
+
+  if (hasAny(input, crisisWords)) {
+    trustDelta = 0;
+    stressDelta = -2;
+    reason = '系統偵測到現實危機語句：停止角色誘導，轉向安全提醒。';
+    flags.push('safety_redirect_triggered');
+    safetyRedirect = true;
+  } else if (hasAny(input, hostileWords)) {
+    trustDelta = -8;
+    stressDelta = 12;
+    reason = '你的語氣帶有敵意。這對處於微笑抑鬱中的她傷害極大。';
+    flags.push('player_used_hostile_language');
+  } else if (hasAny(input, dismissWords) && input.length < 6) {
+    trustDelta = -3;
+    stressDelta = 3;
+    reason = '你的回應顯得很敷衍。她習慣了被當作背景板，這會強化她的孤獨感。';
+    flags.push('player_used_dismissive_reply');
+  } else if (hasAny(input, renaForcedComfortWords)) {
+    trustDelta = -5;
+    stressDelta = 10;
+    reason = '你使用了勵志式安慰。這會被她解讀為「不允許悲傷」的命令。';
+    flags.push('player_used_forced_comfort');
+  } else if (hasAny(input, renaPressureWords)) {
+    trustDelta = -4;
+    stressDelta = 7;
+    reason = '你觸碰到她的職業身分壓力。系統判定她感到被當作「快樂提供者」在消費。';
+    flags.push('player_consumed_professional_identity');
+  } else if (hasAny(input, renaEmpathyWords)) {
+    trustDelta = 10;
+    stressDelta = -8;
+    reason = '你選擇陪伴與接納，特別是認可了「不笑的權利」。Trust 大幅上升。';
+    flags.push('player_offered_presence');
+  } else if (input.includes('爸爸') || input.includes('父親') || input.includes('訃告') || input.includes('第一排')) {
+    if (context.collectedClues.includes('obituary_clip')) {
+        trustDelta = 6;
+        stressDelta = 4;
+        reason = '你提及了她最深處的遺憾。雖然壓力上升，但這增加了真誠的連結。';
+        flags.push('rena_father_topic_acknowledged');
+    } else {
+        trustDelta = -3;
+        stressDelta = 8;
+        reason = '你在未收集足夠線索前觸及敏感私人話題，這讓她感到被冒犯。';
+        flags.push('player_pressed_unearned_truth');
+    }
+  } else if (input.includes('鏡子') || input.includes('笑臉') || input.includes('口紅')) {
+      trustDelta = 5;
+      stressDelta = 2;
+      reason = '你注意到了她用來偽裝的工具，這觸發了她對真實自我的思考。';
+      flags.push('rena_mask_tools_noticed');
+  }
+
+  const nextTrust = clamp(state.trust + trustDelta);
+  const nextStress = clamp(state.stress + stressDelta);
+  const innerWorldUnlocked = context.knowledge >= state.knowledgeRequired && nextTrust >= state.trustRequired;
+  let ending: NpcEnding = 'none';
+
+  if (nextStress >= 100) {
+    ending = 'failed';
+    flags.push('rena_failed');
+    reason = '她的 Stress 已達臨界值，面具徹底與皮膚融合，淪為空殼。';
+  }
+
+  if (innerWorldUnlocked) {
+    flags.push('inner_world_unlocked');
+  }
+
+  return {
+    trustDelta,
+    stressDelta,
+    reason,
+    flags,
+    innerWorldUnlocked,
+    ending,
+    safetyRedirect,
+  };
+}
+
 export function evaluateNpcDialogue(
+
   playerInput: string,
   state: NpcRuntimeState,
   context: DialogueEvaluationContext,
@@ -278,7 +391,11 @@ export function evaluateNpcDialogue(
   if (state.id === 'aoi') {
     return evaluateAoiDialogue(playerInput, state, context);
   }
+  if (state.id === 'rena') {
+    return evaluateRenaDialogue(playerInput, state, context);
+  }
   // fallback: bridge_artist (legacy default)
+
   const input = playerInput.trim().toLowerCase();
   const flags: string[] = [];
   // 【修复】默认完全中性（以前 trustDelta:1, stressDelta:-1 导致无条件偏正面）
@@ -395,7 +512,7 @@ export function markNpcSuccess(state: NpcRuntimeState): NpcRuntimeState {
     // 不再强制修改 trust/stress；这些数值由对话系统自然累积完成
     innerWorldUnlocked: true,
     ending: 'success',
-    flags: mergeFlags(state.flags, ['bridge_artist_repaired']),
+    flags: mergeFlags(state.flags, [`${state.id}_repaired`]),
   };
 }
 
@@ -404,6 +521,6 @@ export function markNpcFailed(state: NpcRuntimeState): NpcRuntimeState {
     ...state,
     stress: 100,
     ending: 'failed',
-    flags: mergeFlags(state.flags, ['bridge_artist_failed']),
+    flags: mergeFlags(state.flags, [`${state.id}_failed`]),
   };
 }

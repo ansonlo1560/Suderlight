@@ -26,12 +26,15 @@ export {
 } from './bridgePainter/index';
 
 import { aoiPsychLayers } from './aoi/index';
+import { renaPsychLayers } from './rena/index';
 
 const psychWorldRegistry: Record<NpcId, PsychLayerData[]> = {
   bridge_artist: ALL_PSYCH_LAYERS,
   victor: victorPsychLayers,
   aoi: aoiPsychLayers,
+  rena: renaPsychLayers,
 };
+
 
 /**
  * 根據 npcId 取得對應的心理世界層列表

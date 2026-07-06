@@ -14,12 +14,14 @@ import {
   MAP_WIDTH, MAP_HEIGHT, TILE_W, TILE_H, ORIGIN_X, ORIGIN_Y, PLAYER_SPEED,
   isoToScreen, worldToScreen, distance, clamp, lerp,
 } from './bridgePainter';
+import { renaOuterWorld } from './rena';
 
 // ---- 統一工具函數（以 bridgePainter 為基準座標系） ----
 export {
   MAP_WIDTH, MAP_HEIGHT, TILE_W, TILE_H, ORIGIN_X, ORIGIN_Y, PLAYER_SPEED,
   isoToScreen, worldToScreen, distance, clamp, lerp,
 } from './bridgePainter';
+
 
 // ---- 模組型別 ----
 export type OuterWorldModule = {
@@ -66,7 +68,11 @@ export type OuterWorldModule = {
 // ---- 註冊表：LocationId → 世界模組 ----
 const worldRegistry: Record<LocationId, OuterWorldModule> = {
   skybridge: bridgePainterOuterWorld as OuterWorldModule,
+  comedy_club_entrance: renaOuterWorld as OuterWorldModule,
+  comedy_club_backstage: renaOuterWorld as OuterWorldModule,
+  hospital_ward: renaOuterWorld as OuterWorldModule,
 };
+
 
 // ---- 輔助函數 ----
 

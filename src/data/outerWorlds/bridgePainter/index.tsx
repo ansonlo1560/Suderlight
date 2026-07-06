@@ -194,8 +194,26 @@ export function getEntities(ctx: {
       pos: { x: 25, y: 24.5 },
       color: '#ffaa33', icon: '葵',
     });
+
+    const renaState = (ctx as any).save?.npcs?.rena;
+    const renaEnding = renaState?.ending ?? 'none';
+    if (renaEnding === 'failed') {
+       list.push({
+        id: 'rena_legacy', label: '斑駁的笑臉倒影', type: 'clue',
+        pos: { x: 7, y: 13.5 }, color: '#7a7a8a', icon: '影',
+      });
+    } else {
+      list.push({
+        id: 'rena', label: '蕾娜', type: 'npc',
+        pos: { x: 7, y: 17.5 },
+        color: renaEnding === 'success' ? '#7acc7a' : '#ffaa33',
+        icon: renaEnding === 'success' ? '光' : '娜',
+      });
+    }
+
     list.push({
       id: 'gallery_door', label: '畫廊大門', type: 'clue',
+
       pos: { x: 18.0, y: 7.0 }, color: '#ec407a', icon: '門',
     });
   }
@@ -384,6 +402,47 @@ export function getInteraction(
     }
     return null; // 信號：應該開對話頁（ OuterWorldExplorer 處理 onSwitchNpc + onOpenConversation ）
   }
+
+  if (entityId === 'rena') {
+    if (ctx.npcEnding === 'success') {
+      return {
+        title: '成功結局：不再表演的微笑',
+        content: [
+          '她站在報攤旁邊，手裡拿著一支無色的護唇膏。',
+          '「……你來了。」',
+          '',
+          '她看著你，臉上沒有那個標準的、燦爛的笑容。她只是平靜地看著你。',
+          '「我剛剛去了一趟醫院。雖然那裡還是很有消毒水的味道，但這一次，我沒有在走廊上對著鏡子練習笑容。」',
+          '',
+          '她低頭看了看手裡的護唇膏。',
+          '「那支紅色的口紅，我把它收起來了。不是因為它不好看，而是因為我發現……我不需要它來幫我畫出一張臉。」',
+          '',
+          '她抬起頭，眼神裡有一種前所未有的清透。',
+          '「謝謝你。在那間只有鏡子的房間裡，是你告訴我，不笑也沒關係。」',
+          '「這是我這輩子聽過最好的段子。因為它是真的。」',
+          '',
+          '她微微笑了一下——這一次，笑容很小，甚至有點笨拙。但那是她自己的笑容。',
+          '「我現在要回俱樂部了。今晚我有一場表演。我打算跟觀眾說，今晚我想講一個不好笑的故事。」',
+          '「如果你有空的話，隨時來聽。不用鼓掌也沒關係。」',
+        ].join('\n'),
+        actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: ctx.onOpenReport }],
+      };
+    }
+    if (ctx.npcEnding === 'failed') {
+      return {
+        title: '面具的餘音',
+        content: [
+          '蕾娜不在這裡。',
+          '但在報攤的玻璃上，你彷彿看到了一個模糊的、永遠定格在燦爛大笑中的影子。',
+          '那是面具徹底吞噬真實自我後留下的殘響。',
+          '她已經走進了永恆的表演中，再也不會回來了。',
+        ].join('\n'),
+        actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: ctx.onOpenReport }],
+      };
+    }
+    return null; // 開啟對話
+  }
+
 
   if (entityId === 'torn_canvas') {
     const hasInteracted = ctx.npcFlags.includes('torn_canvas_first_interaction');

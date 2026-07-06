@@ -26,5 +26,20 @@
     "innerWorldUnlocked": false,
     "ending": "none",
     "worldbookUnlockIds": [8, 9]
+  },
+  "rena": {
+    "id": "rena",
+    "name": "喜劇演員 蕾娜",
+    "background": "出生於演藝世家的喜劇演員。父親在首場演出前過世，被迫強撐演完，從此再也無法做出除了大笑以外的表情。",
+    "trauma": "自我價值完全綁定在「讓別人快樂」上。最痛苦的是被大眾定義為快樂的提供者，從而失去了表達悲傷、疲倦等自然情緒的權利。",
+    "emotion": "微笑抑鬱症、空虛、面具化、渴望接納",
+    "trust": 10,
+    "stress": 90,
+    "knowledge": 0,
+    "knowledgeRequired": 80,
+    "innerWorldUnlocked": false,
+    "ending": "none",
+    "worldbookUnlockIds": [10, 11]
   }
 }
+

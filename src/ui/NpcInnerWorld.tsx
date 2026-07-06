@@ -402,7 +402,13 @@ function getIcon(id: string): string {
     broken_bear_doll:'🧸',family_photo:'🖼️',corner_aoi:'👧',arguing_parents:'💢',voice_recorder:'🎙️',
     stage_spotlight:'🔦',audience_seats:'👥',parents_arguing_silhouette:'💔',faltering_dance_steps:'💃',red_dance_shoes_scene:'👠',
     static_swing:'🎠',school_bag:'🎒',muddy_shoes:'👠',recording_pen_scene:'🎙️',
+    spotlight_stage:'🔦',
+    applause_banner:'🚩',joke_scripts_desk:'📓',
+    hospital_phone:'☎️',backstage_mirror:'🪞',frozen_clock:'⏰',dressing_room_door:'🚪',contract_papers:'📜',
+    lipstick_mirror:'💄',tearful_reflection:'😢',flying_masks:'🎭',broken_shards:'💎',tissue_box_corner:'📦',
+    empty_frame:'🖼️',sofa_chair:'🛋️',faded_poster:'📜',clean_lip_balm:'💄',
   };
+
   return m[id]??'📦';
 }
 
@@ -422,8 +428,9 @@ function ObservingPanel({ phase, colors, onLookCloser, onStartReflection, onChoo
   );
 }
 
-function InsightPanel({ phase, colors, onClose }: { phase: LayerPhase & { type:'insight_revealed' }; colors: SchemeColors; onClose: () => void; }) {
+function InsightPanel({ phase, onClose }: { phase: LayerPhase & { type:'insight_revealed' }; onClose: () => void; }) {
   const { target, reward } = phase;
+
   return (
     <GlassPanel title="理解片段" subtitle={target.name} variant="paper" style={{ position:'absolute',left:'50%',top:'50%',transform:'translate(-50%, -50%)',zIndex:4,width:380 }}>
       <div style={{ padding:'16px 0',color:'#3a2a14',fontSize:15,lineHeight:2,fontStyle:'italic',textAlign:'center' }}>「{reward.reason}」</div>
@@ -655,7 +662,13 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
         mid: '從懷疑到恐懼，從恐懼到崩潰。\n他沒有等到那個能走進他內心所有房間的人。',
         bottom: '連接在臨界點斷裂。信任從未真正建立。',
       },
+      rena: {
+        subtitle: 'The laughter stops · The mask becomes permanent · Truth buried',
+        mid: '從表演到崩解，從崩解到木然。\n她沒能等到那個告訴她「不笑也沒關係」的人。',
+        bottom: '後台的燈熄滅了。她帶著那張用口紅畫出的、永遠不會消失的笑臉，走進了永恆的表演中。\n恐懼值達到臨界，真實自我被面具徹底吞噬。\n喜劇俱樂部的掌聲依舊，但蕾娜已經不在了。',
+      },
     };
+
     const ft = failureTexts[npcId] ?? failureTexts.bridge_artist;
     return (
       <GuiFrame tone="inner">
@@ -734,7 +747,12 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
         mid: '情感弧線已完成。',
         bottom: '連接已建立。',
       },
+      rena: {
+        mid: '從聚光燈下的表演，到接到電話後的麻木，\n從鏡面迷宮的掙扎，到無鏡房間的真實。',
+        bottom: '她依然站在舞台上，但這一次，她是為了自己而說出那個不好笑的故事。',
+      },
     };
+
     const ct = completeTexts[npcId] ?? completeTexts.bridge_artist;
     return (
       <GuiFrame tone="inner">
@@ -850,9 +868,32 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                   </div>
                 </div>
               );
-            })() : (
+            })() : npcId === 'rena' ? (
+              <div style={{ width: 'min(95vw, 100%)', height: 'min(95vh, 100%)', borderRadius: 20, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.8)', border: `1px solid ${colors.border}`, background: colors.gridBg as string }}>
+                  {/* 動態背景效果：如果是第三層（鏡面迷宮），增加一些閃爍效果 */}
+                  {layerNum === 3 && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.05) 75%, transparent 75%, transparent 100%)', backgroundSize: '100px 100px', opacity: 0.3, pointerEvents: 'none' }} />
+                  )}
+                  {/* 層級標題背景裝飾 */}
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.05, pointerEvents: 'none', userSelect: 'none' }}>
+                      <div style={{ fontSize: 120, fontWeight: 'bold', transform: 'rotate(-15deg)' }}>{layer.layerName}</div>
+                  </div>
+                  <div style={{ position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' }}>
+                    <FloatingComments layerNum={layer.layerNumber} floatingTextsByLayer={floatingTextsByLayer} />
+                  </div>
+                  <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'auto' }}>
+                    {layer.interactables.map(obj => {
+                      const coord = pinCoordinates[obj.id] || { top:'50%',left:'50%' };
+                      const isDisc = discoveredIds.includes(obj.id);
+                      const hasIn = hasInsight(understanding, obj.id);
+                      return (<InteractivePin key={obj.id} icon={getIcon(obj.id)} name={obj.name} isCollected={hasIn} isDiscovered={isDisc} onClick={() => handleClickObject(obj)} style={{ top:coord.top,left:coord.left,transform:'translate(-50%, -50%)' }} />);
+                    })}
+                  </div>
+              </div>
+            ) : (
               <ComingSoonVisual layerNum={layerNum} npcId={npcId} />
             )}
+
           </div>
 
           <div style={{ position:'absolute',bottom:14,left:'50%',transform:'translateX(-50%)',zIndex:8,display:'flex',flexDirection:'column',gap:6,alignItems:'center',width:'calc(100% - 28px)',maxWidth:600,padding:'6px 12px',background:'rgba(255,255,255,0.06)',borderRadius:12,border:'1px solid rgba(255,255,255,0.12)',backdropFilter:'blur(2px)',pointerEvents:'auto' }}>

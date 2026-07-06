@@ -21,7 +21,9 @@ import {
 
 type Screen = 'title' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
 
-function getNpcIdForLocation(_locationId: LocationId): NpcId {
+function getNpcIdForLocation(locationId: LocationId): NpcId {
+  if (locationId === 'skybridge') return 'bridge_artist';
+  if (locationId === 'comedy_club_entrance' || locationId === 'comedy_club_backstage' || locationId === 'hospital_ward') return 'rena';
   return 'bridge_artist';
 }
 

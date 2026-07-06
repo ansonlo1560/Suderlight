@@ -84,9 +84,16 @@ function flagName(flag: string): string {
     painter_reacted_to_brush: '🖌 畫筆反應',
     painter_acknowledged_accident: '📰 真相接近',
     painter_sketchbook_understood: '📓 素描理解',
+    player_consumed_professional_identity: '❌ 專業消費',
+    rena_father_topic_acknowledged: '🕯 提及家人',
+    rena_mask_tools_noticed: '💄 察覺偽裝',
     inner_world_unlocked: '🔓 內心解鎖',
     bridge_artist_failed: '💀 失敗',
     bridge_artist_repaired: '✨ 修復',
+    rena_failed: '💀 失敗',
+    rena_repaired: '✨ 修復',
+    aoi_failed: '💀 失敗',
+    aoi_repaired: '✨ 修復',
   };
   return map[flag] ?? flag;
 }

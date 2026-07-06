@@ -16,7 +16,7 @@ import { aoiDefinition } from './aoi';
 const npcRegistry: Record<NpcId, NpcDefinition> = {
   bridge_artist: bridgePainterDefinition,
   victor: victorDefinition,
-  renaDefinition: renaDefinition,
+  rena: renaDefinition,
   aoi: aoiDefinition,
 };
 

@@ -38,7 +38,7 @@ export async function switchCharacter(name: string): Promise<void> {
  */
 export async function sendMessage(text: string, npcIdOrName = 'bridge_artist'): Promise<{ reply: string; emotion?: string }> {
   try {
-    const validNpcIds = ['bridge_artist', 'victor', 'aoi'];
+    const validNpcIds = ['bridge_artist', 'victor', 'aoi', 'rena'];
     const finalNpcId = validNpcIds.includes(npcIdOrName) ? npcIdOrName : 'bridge_artist';
     const authHeaders = await getPlayerAuthHeaders();
     const res = await fetch(`/api/chat`, {
@@ -80,7 +80,7 @@ export type ClientNpcState = {
 export async function fetchLLMReply(playerMessage: string, npcIdOrName = 'bridge_artist', collectedClueCount?: number, clientNpcState?: ClientNpcState): Promise<string> {
   try {
     // 支援的 NPC ID 列表，若傳入的不在列表中則 fallback 到 bridge_artist
-    const validNpcIds = ['bridge_artist', 'victor', 'aoi'];
+    const validNpcIds = ['bridge_artist', 'victor', 'aoi', 'rena'];
     const finalNpcId = validNpcIds.includes(npcIdOrName) ? npcIdOrName : 'bridge_artist';
 
     const authHeaders = await getPlayerAuthHeaders();

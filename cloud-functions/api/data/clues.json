@@ -22,5 +22,13 @@
     "npcId": "bridge_artist",
     "knowledge": 15,
     "description": "車禍報導"
-  }
+  },
+  { "id": "muddy_red_dance_shoes", "npcId": "aoi", "knowledge": 13, "description": "沾滿泥土的紅舞鞋" },
+  { "id": "demerit_notice", "npcId": "aoi", "knowledge": 12, "description": "缺點通告" },
+  { "id": "torn_diary", "npcId": "aoi", "knowledge": 12, "description": "缺頁的日記本" },
+  { "id": "rubiks_cube", "npcId": "aoi", "knowledge": 13, "description": "轉不齊的魔方" },
+  { "id": "joke_book", "npcId": "rena", "knowledge": 15, "description": "沾有淚痕的笑話集" },
+  { "id": "dried_lipstick", "npcId": "rena", "knowledge": 15, "description": "乾涸的亮紅色口紅" },
+  { "id": "obituary_clip", "npcId": "rena", "knowledge": 10, "description": "父親的訃告剪報" },
+  { "id": "show_poster", "npcId": "rena", "knowledge": 10, "description": "褪色的脫口秀海報" }
 ]
