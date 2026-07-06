@@ -399,10 +399,10 @@ const layer4: PsychLayerData = {
   nextLayerThreshold: 0,
   colorScheme: {
     bg: '#f7f1e3',
-    text: '#2c3e50',
+    text: '#576574',
     accent: '#706fd3',
-    dim: 'rgba(112, 111, 211, 0.15)',
-    sub: '#474787',
+    dim: 'rgba(162, 155, 254, 0.15)',
+    sub: '#8395a7', // 原為 #474787，調淺為淺灰藍
     cellEmpty: 'rgba(71, 71, 135, 0.12)',
     cellNorm: 'rgba(71, 71, 135, 0.08)',
     cellDisc: 'rgba(71, 71, 135, 0.10)',
