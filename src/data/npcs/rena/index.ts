@@ -23,6 +23,8 @@ export const renaClues: Record<RenaClueId, ClueDefinition> = {
     icon: '集',
     content: '每場脫口秀開始前，總有人將精心寫好的段子一筆一劃抄進這本筆記。 紙頁邊角有好幾處被暈開的墨跡——那不是水，是後台獨處時無聲滴落的眼淚。 笑話越寫越多，模糊的字也越來越多，到後來，連執筆者自己都分不清哪些是段子、哪些是求救。',
     dictionaryHint: '歡笑的表象之下，可能藏著未被聽見的哭泣。真正的聆聽，是在笑話的間隙裡聽見沉默。',
+    insightTitle: '笑話間的求救訊號',
+    insightDesc: '她在每一頁笑話之間藏著無聲的哭泣。那些暈開的墨跡不是失誤，而是她唯一能發出的求救——藏在笑聲的縫隙裡，等一個願意仔細聽的人。',
   },
   dried_lipstick: {
     id: 'dried_lipstick',
@@ -36,6 +38,8 @@ export const renaClues: Record<RenaClueId, ClueDefinition> = {
     icon: '妝',
     content: '這支口紅是第一件化妝品，是登台前夕收到的禮物。 那晚表演結束後，回到休息室，發現再也笑不出來，卻在鏡子裡看見一張流淚的臉。 於是擰開口紅，對著鏡子畫了一個大大的、誇張的笑臉—— 把哭的那張臉，徹底遮住。 口紅後來再也沒擰回去過，就那樣乾涸在「笑」的形狀裡。',
     dictionaryHint: '有些面具不是為了欺騙別人，而是為了讓自己相信一切還撐得下去。',
+    insightTitle: '畫在鏡子上的笑臉',
+    insightDesc: '她用父親送的亮紅色口紅，在鏡子上畫出誇張的笑臉來遮住流淚的倒影。久而久之，那張口紅畫的笑臉比她真正的臉還要像她——她已經分不清哪張才是自己。',
   },
   obituary_clip: {
     id: 'obituary_clip',
@@ -49,6 +53,8 @@ export const renaClues: Record<RenaClueId, ClueDefinition> = {
     icon: '悼',
     content: '一張門票，日期是某位脫口秀演員首場演出那一天。 價錢非常貴，看來是第一排的座位。再次細看，原來是預留給對這位演員很重要的人。 能在這裡撿到這麼好的門票，意味著那位重要的人因為某些原因來不了了。',
     dictionaryHint: '有些遺憾永遠不會被時間稀釋，它們只是被藏進了更深的抽屜裡。',
+    insightTitle: '永遠空著的第一排',
+    insightDesc: '父親在她首場演出當天離世，經紀人卻要求她完成脫口秀。從此她給父親預留第一排座位——那個位置永遠空著，就像她從未被允許完成的哀傷。',
   },
   show_poster: {
     id: 'show_poster',
@@ -62,6 +68,8 @@ export const renaClues: Record<RenaClueId, ClueDefinition> = {
     icon: '報',
     content: '俱樂部門口的演出海報，海報上演員的笑容燦爛得不像真人的。 下方有一排小字：「全場笑聲保證——讓你的煩惱一掃而空！」 海報已經貼了很久，邊角開始泛黃，但笑容依然鮮亮如新。 不知道從什麼時候開始，海報上的日期再也沒有更換過。',
     dictionaryHint: '當一個人被定義為「帶來快樂的人」，她就失去了表達其他情緒的權利。',
+    insightTitle: '快樂的囚徒',
+    insightDesc: '當「全場笑聲保證」變成枷鎖，她失去了表達其他情緒的權利。對她來說，不笑就等於不存在——她的價值被完全綁定在「讓別人快樂」的責任上，從未學過除此之外還有什麼。',
   },
 
 };
