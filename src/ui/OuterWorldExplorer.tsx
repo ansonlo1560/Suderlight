@@ -14,6 +14,10 @@ import muddyRedDanceShoesImage from '../../images/aoi/map-danceShoe.png';
 import demeritNoticeImage from '../../images/aoi/map-demeritNotice.png';
 import tornDiaryImage from '../../images/aoi/map-brokenDairy.png';
 import rubiksCubeImage from '../../images/aoi/map-cube.png';
+import jokeBookImage from '../../images/rena/map-jokeBook.png';
+import driedLipstickImage from '../../images/rena/map-driedLipstick.png';
+import showPosterImage from '../../images/rena/map-poster.png';
+import obituaryClipImage from '../../images/rena/map-ticket.png';
 import aoiImage from '../../images/aoi/Aoi.png';
 import aoiGoneImage from '../../images/aoi/AoiGone.png';
 import painterImage from '../../images/character/IMG_3556.png';
@@ -64,6 +68,10 @@ const CLUE_IMAGE_MAP: Partial<Record<ClueId, string>> = {
   demerit_notice: demeritNoticeImage,
   torn_diary: tornDiaryImage,
   rubiks_cube: rubiksCubeImage,
+  joke_book: jokeBookImage,
+  dried_lipstick: driedLipstickImage,
+  show_poster: showPosterImage,
+  obituary_clip: obituaryClipImage,
 };
 
 function clueName(clueId: ClueId) {
