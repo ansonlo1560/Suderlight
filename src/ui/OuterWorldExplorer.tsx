@@ -694,7 +694,7 @@ export default function OuterWorldExplorer({
           <div style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13, lineHeight: 1.7, marginTop: 10 }}>{displayLoc.description}</div>
         </div>
         {visibleBuildings.map(b => (
-          <IsometricBuilding key={b.id} building={b} isRepaired={b.id === 'pavilion' ? save.npcs['aoi']?.ending === 'success' : isRepaired} mapWidth={world.mapWidth} mapHeight={world.mapHeight} />
+          <IsometricBuilding key={b.id} building={b} isRepaired={b.id === 'pavilion' ? save.npcs['aoi']?.ending === 'success' : b.id === 'theater' ? save.npcs['rena']?.ending === 'success' : isRepaired} mapWidth={world.mapWidth} mapHeight={world.mapHeight} />
         ))}
         {entities.map(entity => {
           const es = isoToScreen(entity.pos); const s = { left: es.left, top: es.top - world.getElevation(entity.pos) };

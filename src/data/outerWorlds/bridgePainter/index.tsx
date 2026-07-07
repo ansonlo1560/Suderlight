@@ -291,7 +291,7 @@ export const parkScenery: SceneryItem[] = [
   { id: 'tree_e4', type: 'tree', pos: { x: 28, y: 25 }, size: 1.2 },
   { id: 'tree_e5', type: 'tree', pos: { x: 28, y: 26.5 }, size: 1.1 },
   { id: 'tree_e6', type: 'tree', pos: { x: 28, y: 28 }, size: 1.1 },
-  { id: 'tree_e5', type: 'tree', pos: { x: 28, y: 29.5 }, size: 1.1 },
+  { id: 'tree_e7', type: 'tree', pos: { x: 28, y: 29.5 }, size: 1.1 },
   // 北邊 y=19 緊鄰道路，移除樹木避免遮蔽道路
   // 南邊 y=28
   { id: 'tree_s1', type: 'tree', pos: { x: 18, y: 30 }, size: 1.1 },
@@ -352,13 +352,13 @@ export const parkScenery: SceneryItem[] = [
   { id: 'grass_40', type: 'grass', pos: { x: 24, y: 27.5 }, size: 1.2 },
   { id: 'grass_41', type: 'grass', pos: { x: 25.5, y: 27.5 }, size: 1.1 },
   { id: 'grass_42', type: 'grass', pos: { x: 27, y: 27.5 }, size: 1.2 },
-  { id: 'grass_36', type: 'grass', pos: { x: 18, y: 28.5 }, size: 1.2 },
-  { id: 'grass_37', type: 'grass', pos: { x: 19.5, y: 28.5 }, size: 1.1 },
-  { id: 'grass_38', type: 'grass', pos: { x: 21, y: 28.5 }, size: 1.2 },
-  { id: 'grass_39', type: 'grass', pos: { x: 22.5, y: 28.5 }, size: 1.1 },
-  { id: 'grass_40', type: 'grass', pos: { x: 24, y: 28.5 }, size: 1.2 },
-  { id: 'grass_41', type: 'grass', pos: { x: 25.5, y: 28.5 }, size: 1.1 },
-  { id: 'grass_42', type: 'grass', pos: { x: 27, y: 28.5 }, size: 1.2 },
+  { id: 'grass_43', type: 'grass', pos: { x: 18, y: 28.5 }, size: 1.2 },
+  { id: 'grass_44', type: 'grass', pos: { x: 19.5, y: 28.5 }, size: 1.1 },
+  { id: 'grass_45', type: 'grass', pos: { x: 21, y: 28.5 }, size: 1.2 },
+  { id: 'grass_46', type: 'grass', pos: { x: 22.5, y: 28.5 }, size: 1.1 },
+  { id: 'grass_47', type: 'grass', pos: { x: 24, y: 28.5 }, size: 1.2 },
+  { id: 'grass_48', type: 'grass', pos: { x: 25.5, y: 28.5 }, size: 1.1 },
+  { id: 'grass_49', type: 'grass', pos: { x: 27, y: 28.5 }, size: 1.2 },
 ];
 
 // ---- 海拔函數 ----
