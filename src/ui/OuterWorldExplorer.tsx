@@ -654,9 +654,13 @@ export default function OuterWorldExplorer({
               畫家終於聽見了雨聲。
             </span>
           )}
-          {(activeNpcState?.ending === 'failed' || save.npcs['aoi']?.ending === 'failed') && (
+          {(activeNpcState?.ending === 'failed' || save.npcs['aoi']?.ending === 'failed' || save.npcs['rena']?.ending === 'failed') && (
             <span style={{ color: '#ffd0d0' }}>
-              {save.npcs['aoi']?.ending === 'failed' ? '公園的鞦韆上，只剩風還在輕輕推著空盪的座位。' : '天橋上只剩下一張被撕碎的空白畫布。'}
+              {save.npcs['aoi']?.ending === 'failed'
+                ? '公園的鞦韆上，只剩風還在輕輕推著空盪的座位。'
+                : save.npcs['rena']?.ending === 'failed'
+                ? '後台的鏡子上，只剩一張口紅畫的笑臉正在慢慢斑駁。'
+                : '天橋上只剩下一張被撕碎的空白畫布。'}
             </span>
           )}
         </div>

@@ -18,7 +18,7 @@ export const renaClues: Record<RenaClueId, ClueDefinition> = {
     knowledge: 15,
     worldId: 'rena',
     locationId: 'skybridge',
-    pos: { x: 10.5, y: 22 },
+    pos: { x: 17.5, y: 22 },
     color: '#fff0d4',
     icon: '集',
     content: '每場脫口秀開始前，總有人將精心寫好的段子一筆一劃抄進這本筆記。 紙頁邊角有好幾處被暈開的墨跡——那不是水，是後台獨處時無聲滴落的眼淚。 笑話越寫越多，模糊的字也越來越多，到後來，連執筆者自己都分不清哪些是段子、哪些是求救。',
