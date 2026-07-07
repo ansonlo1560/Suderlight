@@ -36,6 +36,9 @@ import aoiLayer1Bg from '../../images/aoi/psyWorld-L1-bg.png';
 import aoiLayer2Bg from '../../images/aoi/psyWorld-L2-bg.png';
 import aoiLayer3Bg from '../../images/aoi/psyWorld-L3-bg.png';
 import aoiBearImage from '../../images/aoi/psyWorld-L1-bear.png';
+import renaLayer1Bg from '../../images/rena/psyWorld-L1-bg.png';
+import renaLayer2Bg from '../../images/rena/psyWorld-L2-bg.png';
+import renaL4Portrait from '../../images/rena/psyWorld-L4-Rena.png';
 
 // ============================================================
 // Props
@@ -869,11 +872,85 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                   </div>
                 </div>
               );
-            })() : npcId === 'rena' ? (
-              <div style={{ width: 'min(95vw, 100%)', height: 'min(95vh, 100%)', borderRadius: 20, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.8)', border: `1px solid ${colors.border}`, background: colors.gridBg as string }}>
-                  {/* 動態背景效果：如果是第三層（鏡面迷宮），增加一些閃爍效果 */}
+            })() : npcId === 'rena' ? (() => {
+              const renaLayerBgMap: Record<number, string> = { 1: renaLayer1Bg, 2: renaLayer2Bg };
+              const renaBgImage = renaLayerBgMap[layerNum];
+              return (
+              <div style={{ width: 'min(95vw, 100%)', height: 'min(95vh, 100%)', borderRadius: 20, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.8)', border: `1px solid ${colors.border}`, background: layerNum <= 2 ? '#1a1a1a' : (layerNum === 3 ? '#1a1218' : '#f7f1e3') }}>
+                  {/* 第一、二層：圖片背景 */}
+                  {renaBgImage && (
+                    <img src={renaBgImage} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                  )}
+                  {/* 第三層：CSS 畫的鏡子 + 紅色誇張笑容 */}
                   {layerNum === 3 && (
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.05) 75%, transparent 75%, transparent 100%)', backgroundSize: '100px 100px', opacity: 0.3, pointerEvents: 'none' }} />
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                      {/* 鏡子框 */}
+                      <div style={{ position: 'relative', width: '52%', height: '72%' }}>
+                        {/* 鏡框外層 */}
+                        <div style={{ position: 'absolute', inset: -16, borderRadius: 12, background: 'linear-gradient(145deg, #5c3d2e, #3d2216 40%, #2a150a 70%, #5c3d2e)', boxShadow: '0 0 40px rgba(0,0,0,0.6), inset 0 0 12px rgba(255,255,255,0.06)' }} />
+                        {/*鏡框內層 */}
+                        <div style={{ position: 'absolute', inset: -8, borderRadius: 8, background: 'linear-gradient(145deg, #8b6914, #5c4510 40%, #3d2a06 70%, #8b6914)', boxShadow: 'inset 0 0 8px rgba(0,0,0,0.3)' }} />
+                        {/* 鏡面 */}
+                        <div style={{ position: 'absolute', inset: 4, borderRadius: 6, background: 'linear-gradient(160deg, rgba(200,210,220,0.45), rgba(120,130,145,0.25) 30%, rgba(60,65,80,0.35) 60%, rgba(140,150,165,0.3))', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.5), inset 0 0 120px rgba(0,0,0,0.2)', backdropFilter: 'blur(1px)' }}>
+                          {/* 鏡面玻璃反光 */}
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: '50%', bottom: '30%', borderRadius: '6px 0 0 0', background: 'linear-gradient(160deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.03) 40%, transparent 100%)', pointerEvents: 'none' }} />
+                          {/* 口紅畫的眼睛和嘴巴 */}
+                          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
+                            {/* 左眼 — 口紅畫的橢圓 */}
+                            <div style={{ position: 'absolute', width: '10%', height: '16%', borderRadius: '50%', background: '#cc0022', top: '28%', left: '28%', boxShadow: '0 0 6px rgba(204,0,34,0.4)', border: '2px solid rgba(180,0,20,0.6)' }} />
+                            {/* 右眼 — 口紅畫的橢圓 */}
+                            <div style={{ position: 'absolute', width: '10%', height: '16%', borderRadius: '50%', background: '#cc0022', top: '28%', right: '28%', boxShadow: '0 0 6px rgba(204,0,34,0.4)', border: '2px solid rgba(180,0,20,0.6)' }} />
+                            {/* 嘴巴 — 口紅畫的微笑弧線 */}
+                            <svg style={{ position: 'absolute', top: '65%', left: '22%', width: '56%', height: '28%' }} viewBox="0 0 200 80">
+                              {/* U形大笑 */}
+                              <path d="M30,10 Q100,120 170,10" fill="none" stroke="#cc0022" strokeWidth="14" strokeLinecap="round" opacity="0.85" />
+                              <path d="M30,10 Q100,120 170,10" fill="none" stroke="#ee1133" strokeWidth="7" strokeLinecap="round" opacity="0.6" />
+                              {/* 嘴角上扬 */}
+                              <path d="M30,10 Q18,4 4,0" fill="none" stroke="#cc0022" strokeWidth="12" strokeLinecap="round" opacity="0.75" />
+                              <path d="M170,10 Q182,4 196,0" fill="none" stroke="#cc0022" strokeWidth="12" strokeLinecap="round" opacity="0.75" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      {/* 鏡子周圍的燈泡 */}
+                      {Array.from({ length: 14 }).map((_, i) => {
+                        const angle = (i / 14) * Math.PI * 2 - Math.PI / 2;
+                        const margin = 44;
+                        const isOn = i % 3 !== 0;
+                        return (
+                          <div key={i} style={{
+                            position: 'absolute',
+                            width: 14, height: 14,
+                            borderRadius: '50%',
+                            left: `calc(50% + ${Math.cos(angle) * margin}%)`,
+                            top: `calc(50% + ${Math.sin(angle) * margin * 1.35}%)`,
+                            transform: 'translate(-50%, -50%)',
+                            background: isOn ? 'radial-gradient(circle, rgba(255,240,180,0.9), rgba(255,200,100,0.4))' : 'radial-gradient(circle, rgba(120,100,80,0.5), rgba(60,40,20,0.3))',
+                            boxShadow: isOn ? '0 0 12px rgba(255,220,150,0.6), 0 0 24px rgba(255,180,100,0.3)' : '0 0 4px rgba(80,60,40,0.3)',
+                            zIndex: 0,
+                          }} />
+                        );
+                      })}
+                    </div>
+                  )}
+                  {/* 第四層：CSS 畫的鏡子 + 貼上蕾娜肖像 */}
+                  {layerNum === 4 && (
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                      {/* 鏡子框 */}
+                      <div style={{ position: 'relative', width: '50%', height: '70%' }}>
+                        {/* 鏡框外層 - 溫暖木色 */}
+                        <div style={{ position: 'absolute', inset: -18, borderRadius: 14, background: 'linear-gradient(145deg, #c9a96e, #a07840 40%, #7a5530 70%, #c9a96e)', boxShadow: '0 0 50px rgba(0,0,0,0.25), inset 0 0 14px rgba(255,255,255,0.08)' }} />
+                        {/* 鏡框內層 */}
+                        <div style={{ position: 'absolute', inset: -9, borderRadius: 9, background: 'linear-gradient(145deg, #e8d5b0, #cfb88a 40%, #b59760 70%, #e8d5b0)', boxShadow: 'inset 0 0 6px rgba(0,0,0,0.15)' }} />
+                        {/* 鏡面 */}
+                        <div style={{ position: 'absolute', inset: 5, borderRadius: 6, background: 'linear-gradient(160deg, rgba(220,225,235,0.55), rgba(180,190,205,0.35) 30%, rgba(140,150,170,0.4) 60%, rgba(190,200,215,0.38))', boxShadow: 'inset 0 0 80px rgba(0,0,0,0.3), inset 0 0 160px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
+                          {/* 鏡面玻璃反光 */}
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: '55%', bottom: '35%', borderRadius: '6px 0 0 0', background: 'linear-gradient(160deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 45%, transparent 100%)', pointerEvents: 'none' }} />
+                          {/* 貼上蕾娜肖像 */}
+                          <img src={renaL4Portrait} alt="" style={{ position: 'absolute', top: '12%', left: '50%', transform: 'translateX(-50%)', width: '55%', height: 'auto', maxHeight: '76%', borderRadius: 8, objectFit: 'contain', filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.35))' }} />
+                        </div>
+                      </div>
+                    </div>
                   )}
                   {/* 層級標題背景裝飾 */}
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.05, pointerEvents: 'none', userSelect: 'none' }}>
@@ -891,7 +968,9 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                     })}
                   </div>
               </div>
-            ) : (
+              );
+            })()
+            : (
               <ComingSoonVisual layerNum={layerNum} npcId={npcId} />
             )}
 

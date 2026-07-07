@@ -1,7 +1,7 @@
 // ============================================================
 // 喜劇演員蕾娜 (Rena) NPC 定義
 // 心理困境：微笑抑鬱症、為了迎合他人而抹殺真實情感
-// 裏世界：鏡面迷宮 — 飛舞的假笑面具，鏡中卻在流淚
+// 裏世界：休息室的鏡子前 — 飛舞的假笑面具，鏡中卻在流淚
 // ============================================================
 
 import type { NpcDefinition, RepairTipRule, ClueDefinition } from '../types';
@@ -172,7 +172,7 @@ const repairTipRules: RepairTipRule[] = [
     priority: 100,
     condition: ({ innerWorldUnlocked, trust, knowledge }) =>
       innerWorldUnlocked && trust >= 50 && knowledge >= 80,
-    tip: '門已敞開。她邀請你走進鏡面迷宮。記住：你的任務不是幫她找回笑容，而是讓她在不笑的時候，依然感覺安全。',
+    tip: '門已敞開。她邀請你來到休息室的鏡子前。記住：你的任務不是幫她找回笑容，而是讓她在不笑的時候，依然感覺安全。',
   },
   {
     priority: 95,
@@ -202,7 +202,7 @@ const repairTipRules: RepairTipRule[] = [
   {
     priority: 70,
     condition: ({ innerWorldUnlocked }) => innerWorldUnlocked,
-    tip: '鏡面迷宮的入口已經出現。請謹慎進入——迷宮裡飛舞的不是怪物，是她這些年來戴過的每一張笑臉。',
+    tip: '休息室的鏡子前的入口已經出現。請謹慎進入——這裡飛舞的不是怪物，是她這些年來戴過的每一張笑臉。',
   },
   {
     priority: 60,
@@ -543,7 +543,7 @@ const visualRegistry = {
     frozen_clock: { top: '14%', left: '24%' },
     dressing_room_door: { top: '68%', left: '82%' },
     contract_papers: { top: '78%', left: '18%' },
-    // Layer 3 (鏡面迷宮)
+    // Layer 3 (休息室的鏡子前)
     lipstick_mirror: { top: '36%', left: '50%' },
     tearful_reflection: { top: '54%', left: '22%' },
     flying_masks: { top: '18%', left: '68%' },
