@@ -247,19 +247,12 @@ export function getEntities(ctx: {
 
     const renaState = (ctx as any).save?.npcs?.rena;
     const renaEnding = renaState?.ending ?? 'none';
-    if (renaEnding === 'failed') {
-       list.push({
-        id: 'rena_legacy', label: '斑駁的笑臉倒影', type: 'clue',
-        pos: { x: 7, y: 13.5 }, color: '#7a7a8a', icon: '影',
-      });
-    } else {
-      list.push({
-        id: 'rena', label: '蕾娜', type: 'npc',
-        pos: { x: 14, y: 24 },
-        color: renaEnding === 'success' ? '#7acc7a' : '#ffaa33',
-        icon: renaEnding === 'success' ? '光' : '娜',
-      });
-    }
+    list.push({
+      id: 'rena', label: '蕾娜', type: 'npc',
+      pos: { x: 14, y: 24 },
+      color: renaEnding === 'success' ? '#7acc7a' : '#ffaa33',
+      icon: renaEnding === 'success' ? '光' : '娜',
+    });
 
     list.push({
       id: 'gallery_door', label: '畫廊大門', type: 'clue',
