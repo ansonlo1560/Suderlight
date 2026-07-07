@@ -59,7 +59,7 @@ export function distance(a: Point, b: Point) {
 export const locationDisplay: LocationDisplay = {
   id: 'skybridge',
   name: '表世界',
-  subtitle: '街道、報攤與公園',
+  subtitle: '街道、報攤、劇院與公園',
   description: '天橋、報攤與公園，這些在白晝下失色的微光之處，正透過漫長的道路和臺階連接在一起。往事在這裡延伸，等待著你去探索。',
   ambient: '雨後的車流低鳴、舊報紙的油墨味、潮濕泥土與落葉的微光',
 };
@@ -136,6 +136,48 @@ export const buildings: Building[] = [
       { side: 'right', x: 0.6, y: 0.2, w: 0.15, h: 0.6 },
     ],
   },
+  {
+    id: 'theater',
+    name: '微光劇院',
+    pos: { x: 5.5, y: 22 },
+    size: { x: 7.5, y: 8 },
+    tall: 150,
+    baseColor: '#6a1b9a',
+    windows: [
+      { side: 'left', x: 0.1, y: 0.2, w: 0.2, h: 0.22 },
+      { side: 'left', x: 0.4, y: 0.2, w: 0.2, h: 0.22 },
+      { side: 'left', x: 0.7, y: 0.2, w: 0.2, h: 0.22 },
+      { side: 'left', x: 0.1, y: 0.52, w: 0.2, h: 0.22 },
+      { side: 'left', x: 0.4, y: 0.52, w: 0.2, h: 0.22 },
+      { side: 'left', x: 0.7, y: 0.52, w: 0.2, h: 0.22 },
+      { side: 'right', x: 0.1, y: 0.3, w: 0.15, h: 0.25 },
+      { side: 'right', x: 0.75, y: 0.3, w: 0.15, h: 0.25 },
+    ],
+    decorations: ({ points, isRepaired }) => (
+      <div style={{
+        position: 'absolute',
+        left: points.s2.left + 120,
+        top: points.t2.top - 90,
+        transform: 'skewY(-26.5deg)',
+        background: isRepaired ? 'rgba(106, 27, 154, 0.9)' : 'rgba(30, 30, 34, 0.9)',
+        border: `2px solid ${isRepaired ? '#ffd54f' : '#555'}`,
+        borderRadius: '6px',
+        padding: '4px 14px',
+        color: isRepaired ? '#ffd54f' : '#888',
+        fontSize: '13px',
+        fontWeight: 'bold',
+        letterSpacing: '3px',
+        boxShadow: isRepaired ? '0 0 18px rgba(255, 213, 79, 0.4)' : 'none',
+        pointerEvents: 'none',
+        userSelect: 'none',
+        zIndex: 10,
+        textAlign: 'center',
+        transition: 'all 1.5s ease',
+      }}>
+        ★ 微光劇院 ★
+      </div>
+    ),
+  },
 ];
 
 // ---- 道路定義 ----
@@ -146,6 +188,10 @@ export const roadDefs = (locationId: string): RoadDef => {
     [{ x: 17, y: 4 }, { x: 19, y: 4 }, { x: 19, y: 8 }, { x: 17, y: 8 }],
     [{ x: 4, y: 10 }, { x: 6, y: 10 }, { x: 6, y: 16 }, { x: 4, y: 16 }],
     [{ x: 4, y: 16 }, { x: 28, y: 16 }, { x: 28, y: 19 }, { x: 4, y: 19 }],
+    // [4] 劇院右側垂直路：從地面道路通向劇院大門
+    [{ x: 13, y: 19 }, { x: 17, y: 19 }, { x: 17, y: 30 }, { x: 13, y: 30 }],
+    // [5] 劇院→公園橫向路
+    // [{ x: 11.5, y: 23.5 }, { x: 17, y: 23.5 }, { x: 17, y: 26 }, { x: 11.5, y: 26 }],
   ];
 };
 
@@ -159,6 +205,10 @@ export const collisionZones: Record<string, CollisionZone> = {
       { minX: 4.5, maxX: 6.0, minY: 10.0, maxY: 17.0 },
       { minX: 4.5, maxX: 28.0, minY: 16.5, maxY: 19.0 },
       { minX: 17.0, maxX: 28.0, minY: 19.0, maxY: 28.0 },
+      // 劇院右側垂直路
+      { minX: 13.5, maxX: 17.0, minY: 19.0, maxY: 50.0 },
+      // 劇院→公園橫向路
+      // { minX: 11.5, maxX: 17.0, minY: 23.5, maxY: 26.0 },
     ],
     maxX: 28,
     maxY: 28,
@@ -205,7 +255,7 @@ export function getEntities(ctx: {
     } else {
       list.push({
         id: 'rena', label: '蕾娜', type: 'npc',
-        pos: { x: 7, y: 17.5 },
+        pos: { x: 14, y: 24 },
         color: renaEnding === 'success' ? '#7acc7a' : '#ffaa33',
         icon: renaEnding === 'success' ? '光' : '娜',
       });
@@ -216,6 +266,10 @@ export function getEntities(ctx: {
 
       pos: { x: 18.0, y: 7.0 }, color: '#ec407a', icon: '門',
     });
+    list.push({
+      id: 'theater_door', label: '劇院大門', type: 'clue',
+      pos: { x: 13.5, y: 26.0 }, color: '#6a1b9a', icon: '門',
+    });
   }
 
   // 線索實體由 clueOrder 驅動，此處由呼叫方合併（避免循環依賴）
@@ -225,26 +279,28 @@ export function getEntities(ctx: {
 // ---- 公園場景裝飾：占據地圖右下角 x=17~28, y=19~28 ----
 export const parkScenery: SceneryItem[] = [
   // 西邊 x=17
-  { id: 'tree_w1', type: 'tree', pos: { x: 17, y: 21 }, size: 1.2 },
-  { id: 'tree_w2', type: 'tree', pos: { x: 17, y: 22.5 }, size: 1.3 },
-  { id: 'tree_w3', type: 'tree', pos: { x: 17, y: 23.5 }, size: 1.2 },
-  { id: 'tree_w4', type: 'tree', pos: { x: 17, y: 25 }, size: 1.2 },
-  { id: 'tree_w5', type: 'tree', pos: { x: 17, y: 26.5 }, size: 1.3 },
+  // { id: 'tree_w1', type: 'tree', pos: { x: 17, y: 21 }, size: 1.2 },
+  // { id: 'tree_w2', type: 'tree', pos: { x: 17, y: 22.5 }, size: 1.3 },
+  // { id: 'tree_w3', type: 'tree', pos: { x: 17, y: 23.5 }, size: 1.2 },
+  // { id: 'tree_w4', type: 'tree', pos: { x: 17, y: 25 }, size: 1.2 },
+  // { id: 'tree_w5', type: 'tree', pos: { x: 17, y: 26.5 }, size: 1.3 },
   // 東邊 x=28
   { id: 'tree_e1', type: 'tree', pos: { x: 28, y: 21 }, size: 1.2 },
   { id: 'tree_e2', type: 'tree', pos: { x: 28, y: 22.5 }, size: 1.1 },
   { id: 'tree_e3', type: 'tree', pos: { x: 28, y: 23.5 }, size: 1.2 },
   { id: 'tree_e4', type: 'tree', pos: { x: 28, y: 25 }, size: 1.2 },
   { id: 'tree_e5', type: 'tree', pos: { x: 28, y: 26.5 }, size: 1.1 },
+  { id: 'tree_e6', type: 'tree', pos: { x: 28, y: 28 }, size: 1.1 },
+  { id: 'tree_e5', type: 'tree', pos: { x: 28, y: 29.5 }, size: 1.1 },
   // 北邊 y=19 緊鄰道路，移除樹木避免遮蔽道路
   // 南邊 y=28
-  { id: 'tree_s1', type: 'tree', pos: { x: 18, y: 28 }, size: 1.1 },
-  { id: 'tree_s2', type: 'tree', pos: { x: 19.5, y: 28 }, size: 1.2 },
-  { id: 'tree_s3', type: 'tree', pos: { x: 21, y: 28 }, size: 1.1 },
-  { id: 'tree_s4', type: 'tree', pos: { x: 22.5, y: 28 }, size: 1.3 },
-  { id: 'tree_s5', type: 'tree', pos: { x: 24, y: 28 }, size: 1.1 },
-  { id: 'tree_s6', type: 'tree', pos: { x: 25.5, y: 28 }, size: 1.2 },
-  { id: 'tree_s7', type: 'tree', pos: { x: 27, y: 28 }, size: 1.1 },
+  { id: 'tree_s1', type: 'tree', pos: { x: 18, y: 30 }, size: 1.1 },
+  { id: 'tree_s2', type: 'tree', pos: { x: 19.5, y: 30 }, size: 1.2 },
+  { id: 'tree_s3', type: 'tree', pos: { x: 21, y: 30 }, size: 1.1 },
+  { id: 'tree_s4', type: 'tree', pos: { x: 22.5, y: 30 }, size: 1.3 },
+  { id: 'tree_s5', type: 'tree', pos: { x: 24, y: 30 }, size: 1.1 },
+  { id: 'tree_s6', type: 'tree', pos: { x: 25.5, y: 30 }, size: 1.2 },
+  { id: 'tree_s7', type: 'tree', pos: { x: 27, y: 30 }, size: 1.1 },
   // 內部小樹
   { id: 'tree_i1', type: 'tree', pos: { x: 20, y: 21.5 }, size: 1.1 },
   { id: 'tree_i2', type: 'tree', pos: { x: 22.5, y: 22.5 }, size: 1.2 },
@@ -289,6 +345,20 @@ export const parkScenery: SceneryItem[] = [
   { id: 'grass_33', type: 'grass', pos: { x: 24, y: 26 }, size: 1.2 },
   { id: 'grass_34', type: 'grass', pos: { x: 25.5, y: 26 }, size: 1.1 },
   { id: 'grass_35', type: 'grass', pos: { x: 27, y: 26 }, size: 1.2 },
+  { id: 'grass_36', type: 'grass', pos: { x: 18, y: 27.5 }, size: 1.2 },
+  { id: 'grass_37', type: 'grass', pos: { x: 19.5, y: 27.5 }, size: 1.1 },
+  { id: 'grass_38', type: 'grass', pos: { x: 21, y: 27.5 }, size: 1.2 },
+  { id: 'grass_39', type: 'grass', pos: { x: 22.5, y: 27.5 }, size: 1.1 },
+  { id: 'grass_40', type: 'grass', pos: { x: 24, y: 27.5 }, size: 1.2 },
+  { id: 'grass_41', type: 'grass', pos: { x: 25.5, y: 27.5 }, size: 1.1 },
+  { id: 'grass_42', type: 'grass', pos: { x: 27, y: 27.5 }, size: 1.2 },
+  { id: 'grass_36', type: 'grass', pos: { x: 18, y: 28.5 }, size: 1.2 },
+  { id: 'grass_37', type: 'grass', pos: { x: 19.5, y: 28.5 }, size: 1.1 },
+  { id: 'grass_38', type: 'grass', pos: { x: 21, y: 28.5 }, size: 1.2 },
+  { id: 'grass_39', type: 'grass', pos: { x: 22.5, y: 28.5 }, size: 1.1 },
+  { id: 'grass_40', type: 'grass', pos: { x: 24, y: 28.5 }, size: 1.2 },
+  { id: 'grass_41', type: 'grass', pos: { x: 25.5, y: 28.5 }, size: 1.1 },
+  { id: 'grass_42', type: 'grass', pos: { x: 27, y: 28.5 }, size: 1.2 },
 ];
 
 // ---- 海拔函數 ----
@@ -521,6 +591,53 @@ export function getInteraction(
                   : '【失色迴廊】四下寂靜無聲，只有陰暗的灰階霧氣漂浮。所有的作品都沒有顏色，像一座封存了辨色力與希望的宏大墓碑，這就是他封閉的內心深處。\n\n（提示：你尚未解鎖心理世界的探尋權限，需要與畫家進一步對話並收集更多線索）',
               ].join('\n'),
               actions: [{ label: '回到外表世界', onClick: () => ctx.onShowModal(null) }],
+            });
+          },
+        },
+        { label: '留在外面', onClick: () => { ctx.onShowModal(null); } },
+      ],
+    };
+  }
+
+  if (entityId === 'theater_door') {
+    return {
+      title: '微光劇院',
+      content: [
+        '【微光劇院 · 大門】',
+        '',
+        '你站在微光劇院的入口前。深紫色的帷幕從門縫中若隱若現，',
+        '外牆上褪色的海報還殘留著昔日演出的痕跡。',
+        '',
+        '門上掛著一塊銅牌，字跡已經有些模糊：',
+        '「每一個不曾起舞的日子，都是對生命的辜負。」',
+        '',
+        '劇院的大門虛掩著，門縫裡傳出微弱的燈光和低沉的回音——',
+        '彷彿有一場永遠不會落幕的演出正在進行。',
+        '',
+        ctx.npcEnding === 'success'
+          ? '在治癒之後，門縫中透出的燈光溫暖而柔和，空氣中飄著淡淡的木頭和舊絨布的味道。'
+          : '門框周圍被一層灰暗的霧氣籠罩，但你仍然能感受到裡面有什麼在等待。',
+        '',
+        '是否推開大門進入探索？',
+      ].join('\n'),
+      actions: [
+        {
+          label: '推門進入',
+          tone: 'primary',
+          onClick: () => {
+            ctx.onShowModal({
+              title: '微光劇院 - 內部',
+              content: [
+                '【微光劇院 · 內部】',
+                '',
+                '你推開了大門。偌大的觀眾席空空蕩蕩，只有舞臺上一盞孤獨的聚光燈',
+                '照亮著一張空椅子。空氣中殘留著演出後的寂靜，以及若有若無的笑聲迴響。',
+                '',
+                ctx.npcEnding === 'success'
+                  ? '【治癒共鳴】舞臺兩側的帷幕輕輕飄動，空氣中充滿了溫暖的琥珀色光芒。那些曾經在這裡演出過的故事，已經不再是傷痕，而是溫柔的回憶。'
+                  : '【沉寂舞臺】四下寂靜無聲，只有偶爾從天花板落下的灰塵在燈光中旋轉。舞臺後方的化妝鏡反射出微弱的光芒，彷彿等待著某個永遠不會上臺的演員。',
+              ].join('\n'),
+              actions: [{ label: '回到外面', onClick: () => ctx.onShowModal(null) }],
             });
           },
         },

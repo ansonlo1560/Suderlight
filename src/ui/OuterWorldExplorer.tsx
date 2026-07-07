@@ -23,6 +23,9 @@ import aoiGoneImage from '../../images/aoi/AoiGone.png';
 import painterImage from '../../images/character/IMG_3556.png';
 import painterUnlockedImage from '../../images/character/IMG_3562.png';
 import painterGoneImage from '../../images/painter/painterGone.png';
+import renaImage from '../../images/rena/Rena.png';
+import renaSuccessImage from '../../images/rena/renaSuccess.png';
+import renaGoneImage from '../../images/rena/renaGone.png';
 
 import type { SceneryItem } from '../data/outerWorlds/types';
 
@@ -166,6 +169,13 @@ function IsometricBuilding({ building, isRepaired, mapWidth, mapHeight }: { buil
   const gFPts = gFrame ? getWindowPoints(gFrame, s1, s2, s3, t1, t2, t3) : null;
   const knob = gWin ? getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.78, gWin.y + gWin.h * 0.58, s1, s2, s3, t1, t2, t3) : null;
 
+  const tWin: WindowDef | null = building.id === 'theater' ? { side: 'right', x: 0.35, y: 0.08, w: 0.30, h: 0.62 } : null;
+  const tFrame: WindowDef | null = tWin ? { side: tWin.side, x: tWin.x - 0.03, y: tWin.y - 0.05, w: tWin.w + 0.06, h: tWin.h + 0.08 } : null;
+  const tPts = tWin ? getWindowPoints(tWin, s1, s2, s3, t1, t2, t3) : null;
+  const tFPts = tFrame ? getWindowPoints(tFrame, s1, s2, s3, t1, t2, t3) : null;
+  const tKnob = tWin ? getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.2, tWin.y + tWin.h * 0.5, s1, s2, s3, t1, t2, t3) : null;
+  const tKnob2 = tWin ? getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.8, tWin.y + tWin.h * 0.5, s1, s2, s3, t1, t2, t3) : null;
+
   return (
     <div style={{ position: 'absolute', left: 0, top: 0, width: mapWidth, height: mapHeight, pointerEvents: 'none', zIndex: Math.round(s2.top) }}>
       <svg width={mapWidth} height={mapHeight} style={{ position: 'absolute', left: 0, top: 0, overflow: 'visible' }}>
@@ -181,6 +191,11 @@ function IsometricBuilding({ building, isRepaired, mapWidth, mapHeight }: { buil
         {gPts && <polygon points={gPts} fill={isRepaired ? 'rgba(62,22,48,0.96)' : 'rgba(16,16,18,0.96)'} stroke={isRepaired ? 'rgba(255,196,132,0.28)' : 'rgba(255,255,255,0.08)'} strokeWidth="1" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} />}
         {gWin && <line x1={getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.52, gWin.y, s1, s2, s3, t1, t2, t3).left} y1={getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.52, gWin.y, s1, s2, s3, t1, t2, t3).top} x2={getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.52, gWin.y + gWin.h, s1, s2, s3, t1, t2, t3).left} y2={getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.52, gWin.y + gWin.h, s1, s2, s3, t1, t2, t3).top} stroke={isRepaired ? 'rgba(255,230,180,0.32)' : 'rgba(255,255,255,0.08)'} strokeWidth="0.9" style={{ transition: 'stroke 1.5s ease' }} />}
         {knob && <circle cx={knob.left} cy={knob.top} r={2.3} fill={isRepaired ? '#ffdca8' : '#8a8a92'} stroke={isRepaired ? 'rgba(120,74,22,0.7)' : 'rgba(25,25,28,0.9)'} strokeWidth="0.8" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 5px rgba(255,212,140,0.45))' : 'none' }} />}
+        {tFPts && <polygon points={tFPts} fill={isRepaired ? 'rgba(40,18,62,0.94)' : 'rgba(24,22,28,0.95)'} stroke={isRepaired ? 'rgba(255,214,150,0.45)' : 'rgba(255,255,255,0.12)'} strokeWidth="1.2" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 6px rgba(255,180,120,0.18))' : 'none' }} />}
+        {tPts && <polygon points={tPts} fill={isRepaired ? 'rgba(26,10,42,0.96)' : 'rgba(14,12,16,0.96)'} stroke={isRepaired ? 'rgba(255,196,132,0.28)' : 'rgba(255,255,255,0.08)'} strokeWidth="1" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} />}
+        {tWin && <line x1={getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.5, tWin.y, s1, s2, s3, t1, t2, t3).left} y1={getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.5, tWin.y, s1, s2, s3, t1, t2, t3).top} x2={getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.5, tWin.y + tWin.h, s1, s2, s3, t1, t2, t3).left} y2={getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.5, tWin.y + tWin.h, s1, s2, s3, t1, t2, t3).top} stroke={isRepaired ? 'rgba(255,230,180,0.32)' : 'rgba(255,255,255,0.08)'} strokeWidth="0.9" style={{ transition: 'stroke 1.5s ease' }} />}
+        {tKnob && <circle cx={tKnob.left} cy={tKnob.top} r={2.3} fill={isRepaired ? '#ffdca8' : '#8a8a92'} stroke={isRepaired ? 'rgba(120,74,22,0.7)' : 'rgba(25,25,28,0.9)'} strokeWidth="0.8" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 5px rgba(255,212,140,0.45))' : 'none' }} />}
+        {tKnob2 && <circle cx={tKnob2.left} cy={tKnob2.top} r={2.3} fill={isRepaired ? '#ffdca8' : '#8a8a92'} stroke={isRepaired ? 'rgba(120,74,22,0.7)' : 'rgba(25,25,28,0.9)'} strokeWidth="0.8" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 5px rgba(255,212,140,0.45))' : 'none' }} />}
       </svg>
       <div style={{ position: 'absolute', left: s2.left, top: s0.top - building.tall - 20, transform: 'translateX(-50%)', color: isRepaired ? '#fff' : '#888', fontSize: 11, padding: '2px 6px', background: isRepaired ? 'rgba(30,40,50,0.85)' : 'rgba(0,0,0,0.65)', border: `1px solid ${isRepaired ? '#ffe082' : '#444'}`, borderRadius: 4, boxShadow: isRepaired ? '0 0 10px rgba(255,224,130,0.3)' : 'none', pointerEvents: 'auto', userSelect: 'none' }}>{building.name}</div>
       {building.decorations?.({
@@ -685,18 +700,21 @@ export default function OuterWorldExplorer({
           const es = isoToScreen(entity.pos); const s = { left: es.left, top: es.top - world.getElevation(entity.pos) };
           const isNear = nearbyEntity?.id === entity.id;
           const isGDoor = entity.id === 'gallery_door';
+          const isTDoor = entity.id === 'theater_door';
           const cImg = entity.type === 'clue' ? CLUE_IMAGE_MAP[entity.id as ClueId] : undefined;
           const isImg = entity.type === 'clue' && Boolean(cImg);
           const isPtr = entity.id === 'painter';
           const isAoi = entity.id === 'aoi';
+          const isRena = entity.id === 'rena';
           const isTC = entity.id === 'torn_canvas';
-          const isPill = !isImg && !isPtr && !isAoi && !isTC && (isGDoor || entity.type === 'clue');
-          const bw = isTC ? 82 : (isImg ? 88 : (isPill ? 94 : (isAoi ? 100 : (entity.type === 'npc' ? 64 : 48))));
-          const bh = isTC ? 82 : (isImg ? 112 : (isPill ? 36 : (isAoi ? 140 : (entity.type === 'npc' ? 84 : 48))));
+          const isPill = !isImg && !isPtr && !isAoi && !isRena && !isTC && (isGDoor || entity.type === 'clue');
+          const bw = isTC ? 82 : (isImg ? 88 : (isPill ? 94 : (isAoi ? 100 : (isRena ? 72 : (entity.type === 'npc' ? 64 : 48)))));
+          const bh = isTC ? 82 : (isImg ? 112 : (isPill ? 36 : (isAoi ? 140 : (isRena ? 100 : (entity.type === 'npc' ? 84 : 48)))));
           return (
-            <button key={entity.id} onClick={e => handleEntityClick(e, entity)} style={{ position: 'absolute', left: s.left, top: s.top, transform: 'translate(-50%, -100%)', width: bw, height: bh, border: isTC ? '2px dashed #5a5a6e' : ((isPtr || isAoi) ? 'none' : `2px solid ${entity.color}`), borderRadius: (isPtr || isAoi) ? '0' : isTC ? '8px 14px 10px 4px' : isImg ? '14px' : isPill ? '999px' : entity.type === 'npc' ? '36px 36px 18px 18px' : '50%', padding: (isPtr || isAoi) ? '0' : isTC ? '4px' : isImg ? '4px' : isPill ? '0 8px' : '0', background: isTC ? 'rgba(20,22,30,0.94)' : (isPtr || isAoi) ? 'transparent' : isImg ? 'rgba(14,18,25,0.92)' : entity.type === 'npc' ? 'rgba(255,170,51,0.12)' : 'rgba(255,255,255,0.08)', color: isTC ? '#8a8a9c' : entity.color, cursor: 'pointer', zIndex: Math.round(s.top) + (isGDoor ? 500 : 0), boxShadow: isTC ? (isNear ? '0 0 28px rgba(120,120,140,0.35)' : '0 0 10px rgba(120,120,140,0.15)') : isPtr ? (isNear ? '0 0 26px rgba(255,196,132,0.65)' : 'none') : isAoi ? 'none' : (isNear ? `0 0 36px ${entity.color}` : `0 0 18px ${entity.color}55`), fontWeight: 'bold', userSelect: 'none', transition: 'box-shadow 0.18s, transform 0.18s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} title={entity.label}>
+            <button key={entity.id} onClick={e => handleEntityClick(e, entity)} style={{ position: 'absolute', left: s.left, top: s.top, transform: 'translate(-50%, -100%)', width: bw, height: bh, border: isTC ? '2px dashed #5a5a6e' : ((isPtr || isAoi || isRena) ? 'none' : `2px solid ${entity.color}`), borderRadius: (isPtr || isAoi || isRena) ? '0' : isTC ? '8px 14px 10px 4px' : isImg ? '14px' : isPill ? '999px' : entity.type === 'npc' ? '36px 36px 18px 18px' : '50%', padding: (isPtr || isAoi || isRena) ? '0' : isTC ? '4px' : isImg ? '4px' : isPill ? '0 8px' : '0', background: isTC ? 'rgba(20,22,30,0.94)' : (isPtr || isAoi || isRena) ? 'transparent' : isImg ? 'rgba(14,18,25,0.92)' : entity.type === 'npc' ? 'rgba(255,170,51,0.12)' : 'rgba(255,255,255,0.08)', color: isTC ? '#8a8a9c' : entity.color, cursor: 'pointer', zIndex: Math.round(s.top) + ((isGDoor || isTDoor || entity.id === 'rena') ? 500 : 0), boxShadow: isTC ? (isNear ? '0 0 28px rgba(120,120,140,0.35)' : '0 0 10px rgba(120,120,140,0.15)') : isPtr ? (isNear ? '0 0 26px rgba(255,196,132,0.65)' : 'none') : isAoi ? 'none' : isRena ? 'none' : (isNear ? `0 0 36px ${entity.color}` : `0 0 18px ${entity.color}55`), fontWeight: 'bold', userSelect: 'none', transition: 'box-shadow 0.18s, transform 0.18s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} title={entity.label}>
               {isPtr ? <img src={save.npcs['bridge_artist']?.ending === 'success' ? painterUnlockedImage : save.npcs['bridge_artist']?.ending === 'failed' ? painterGoneImage : painterImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: isNear ? 'drop-shadow(0 0 20px rgba(255,196,132,0.45))' : 'none' }} />
               : isAoi ? <img src={save.npcs['aoi']?.ending === 'failed' ? aoiGoneImage : aoiImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: save.npcs['aoi']?.ending === 'success' ? (isNear ? 'drop-shadow(0 0 20px rgba(255,170,51,0.45))' : 'none') : save.npcs['aoi']?.ending === 'failed' ? 'none' : 'grayscale(1)' }} />
+              : isRena ? <img src={save.npcs['rena']?.ending === 'failed' ? renaGoneImage : save.npcs['rena']?.ending === 'success' ? renaSuccessImage : renaImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: save.npcs['rena']?.ending === 'success' ? (isNear ? 'drop-shadow(0 0 20px rgba(255,170,51,0.45))' : 'none') : save.npcs['rena']?.ending === 'failed' ? 'none' : 'grayscale(1)' }} />
               : isImg && cImg ? <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', width: '100%', height: '100%' }}><img src={cImg} alt={entity.label} style={{ width: '100%', height: 72, objectFit: 'cover', borderRadius: 9, border: '1px solid rgba(255,255,255,0.18)', boxShadow: '0 3px 10px rgba(0,0,0,0.35)' }} /><span style={{ fontSize: 11, lineHeight: 1.2, letterSpacing: 0.2, color: '#f7f0dc', textShadow: '0 0 6px rgba(0,0,0,0.45)' }}>{entity.label}</span></div>
               : isPill ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', height: '100%', whiteSpace: 'nowrap' }}><span style={{ fontSize: 13, fontWeight: 'bold', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', width: 22, height: 22, minWidth: 22, minHeight: 22, flexShrink: 0, flexGrow: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{entity.icon}</span><span style={{ fontSize: 11, letterSpacing: 0.5, fontWeight: 'bold' }}>{entity.label}</span></div>
               : isTC ? <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: '100%', height: '100%' }}><div style={{ fontSize: 22, opacity: 0.55, filter: 'grayscale(1)', lineHeight: 1 }}>🧩</div><span style={{ fontSize: 9, letterSpacing: 0.3, color: '#7a7a8c', textAlign: 'center', lineHeight: 1.3, maxWidth: 70 }}>{entity.label}</span></div>
