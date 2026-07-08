@@ -226,19 +226,13 @@ export function getEntities(ctx: {
   const { npcEnding } = ctx;
 
   if (ctx.locationId === 'skybridge') {
-    if (npcEnding === 'failed') {
-      list.push({
-        id: 'torn_canvas', label: '被撕碎的空白畫布', type: 'clue',
-        pos: { x: 13, y: 9 }, color: '#7a7a8a', icon: '碎',
-      });
-    } else {
-      list.push({
-        id: 'painter', label: '天橋畫家', type: 'npc',
-        pos: { x: 13, y: 9 },
-        color: npcEnding === 'success' ? '#7acc7a' : '#ffaa33',
-        icon: npcEnding === 'success' ? '光' : '畫',
-      });
-    }
+    list.push({
+      id: 'painter', label: '天橋畫家', type: 'npc',
+      pos: { x: 13, y: 9 },
+      color: npcEnding === 'success' ? '#7acc7a' : '#ffaa33',
+      icon: npcEnding === 'success' ? '光' : '畫',
+    });
+
     list.push({
       id: 'aoi', label: '小葵', type: 'npc',
       pos: { x: 25, y: 24.5 },
@@ -247,6 +241,7 @@ export function getEntities(ctx: {
 
     const renaState = (ctx as any).save?.npcs?.rena;
     const renaEnding = renaState?.ending ?? 'none';
+    
     list.push({
       id: 'rena', label: '蕾娜', type: 'npc',
       pos: { x: 14, y: 24 },
