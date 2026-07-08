@@ -362,7 +362,7 @@ export default function OuterWorldConversation({
 
   return (
     <GuiFrame tone="inner">
-      <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'grid', gridTemplateColumns: 'minmax(420px, 760px) 260px', justifyContent: 'center', gap: 16, padding: 24 }}>
+      <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'grid', gridTemplateColumns: 'minmax(480px, 920px) 260px', justifyContent: 'center', gap: 16, padding: 24 }}>
         <GlassPanel title={npcCard.displayName} variant="dark" style={{ alignSelf: 'center', maxHeight: '88vh', minHeight: 560, display: 'flex', flexDirection: 'column' }} contentStyle={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
           <div style={{ padding: '6px 20px 14px', color: '#9ba2ad', fontSize: 13, lineHeight: 1.6, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             {npcCard.coreEmotion}
@@ -375,19 +375,19 @@ export default function OuterWorldConversation({
             </div>
           )}
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: 20, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '100% 42px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: 24, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '100% 42px' }}>
             {isInitializing ? (
               <div style={{ color: '#888', fontSize: 13, textAlign: 'center', marginTop: 20 }}>正在同步記憶...</div>
             ) : (
               <>
                 {isEnded && (
-                  <div style={{ marginBottom: 16, padding: 12, borderRadius: 10, color: npcState.ending === 'success' ? '#b8ffd6' : '#ffd0d0', border: `1px solid ${npcState.ending === 'success' ? 'rgba(120,255,180,0.28)' : 'rgba(255,120,120,0.28)'}`, background: npcState.ending === 'success' ? 'rgba(80,180,120,0.08)' : 'rgba(180,60,60,0.1)', fontSize: 13 }}>
+                  <div style={{ marginBottom: 16, padding: 18, borderRadius: 10, color: npcState.ending === 'success' ? '#b8ffd6' : '#ffd0d0', border: `1px solid ${npcState.ending === 'success' ? 'rgba(120,255,180,0.28)' : 'rgba(255,120,120,0.28)'}`, background: npcState.ending === 'success' ? 'rgba(80,180,120,0.08)' : 'rgba(180,60,60,0.1)', fontSize: 14, lineHeight: 1.85, width: '100%' }}>
                     {npcState.ending === 'success' ? npcDef.ending.success : npcDef.ending.failed}
                   </div>
                 )}
                 {messages.map((message, index) => (
                   <div key={`${message.role}-${index}`} style={{ marginBottom: 14, display: 'flex', justifyContent: message.role === 'player' ? 'flex-end' : 'flex-start' }}>
-                    <div style={{ maxWidth: message.role === 'system' ? '100%' : '78%', padding: message.role === 'system' ? '8px 12px' : '12px 14px', borderRadius: message.role === 'player' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: message.role === 'player' ? 'rgba(86, 116, 148, 0.42)' : message.role === 'system' ? 'rgba(245, 193, 108, 0.08)' : 'rgba(255,255,255,0.07)', border: message.role === 'system' ? '1px solid rgba(245,193,108,0.16)' : '1px solid rgba(255,255,255,0.08)', color: message.role === 'system' ? '#d7b77a' : '#eee', lineHeight: 1.75, whiteSpace: 'pre-line', fontSize: message.role === 'system' ? 13 : 15 }}>
+                    <div style={{ maxWidth: message.role === 'system' ? '100%' : '78%', padding: message.role === 'system' ? '12px 16px' : '12px 14px', borderRadius: message.role === 'player' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: message.role === 'player' ? 'rgba(86, 116, 148, 0.42)' : message.role === 'system' ? 'rgba(245, 193, 108, 0.08)' : 'rgba(255,255,255,0.07)', border: message.role === 'system' ? '1px solid rgba(245,193,108,0.16)' : '1px solid rgba(255,255,255,0.08)', color: message.role === 'system' ? '#d7b77a' : '#eee', lineHeight: 1.85, whiteSpace: 'pre-line', fontSize: message.role === 'system' ? 14 : 15 }}>
                       {message.content}
                     </div>
                   </div>
