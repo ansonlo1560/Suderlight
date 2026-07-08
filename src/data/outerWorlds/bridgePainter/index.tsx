@@ -69,7 +69,7 @@ export const buildings: Building[] = [
   {
     id: 'gallery',
     name: '失色畫廊',
-    pos: { x: 14.5, y: 2 },
+    pos: { x: 25.5, y: 5.5 },
     size: { x: 4, y: 3 },
     tall: 260,
     baseColor: '#ec407a',
@@ -189,7 +189,7 @@ export const roadDefs = (locationId: string): RoadDef => {
     [{ x: 4, y: 10 }, { x: 6, y: 10 }, { x: 6, y: 16 }, { x: 4, y: 16 }],
     [{ x: 4, y: 16 }, { x: 28, y: 16 }, { x: 28, y: 19 }, { x: 4, y: 19 }],
     // [4] 劇院右側垂直路：從地面道路通向劇院大門
-    [{ x: 13, y: 19 }, { x: 17, y: 19 }, { x: 17, y: 30 }, { x: 13, y: 30 }],
+    [{ x: 12.5, y: 5 }, { x: 17, y: 5 }, { x: 17, y: 30 }, { x: 13, y: 30 }],
     // [5] 劇院→公園橫向路
     // [{ x: 11.5, y: 23.5 }, { x: 17, y: 23.5 }, { x: 17, y: 26 }, { x: 11.5, y: 26 }],
   ];
@@ -206,7 +206,7 @@ export const collisionZones: Record<string, CollisionZone> = {
       { minX: 4.5, maxX: 28.0, minY: 16.5, maxY: 19.0 },
       { minX: 17.0, maxX: 28.0, minY: 19.0, maxY: 28.0 },
       // 劇院右側垂直路
-      { minX: 13.5, maxX: 17.0, minY: 19.0, maxY: 50.0 },
+      { minX: 13.5, maxX: 17.0, minY: 5.0, maxY: 30.0 },
       // 劇院→公園橫向路
       // { minX: 11.5, maxX: 17.0, minY: 23.5, maxY: 26.0 },
     ],
@@ -252,7 +252,7 @@ export function getEntities(ctx: {
     list.push({
       id: 'gallery_door', label: '畫廊大門', type: 'clue',
 
-      pos: { x: 18.0, y: 7.0 }, color: '#ec407a', icon: '門',
+      pos: { x: 27.25, y: 8.5 }, color: '#ec407a', icon: '門',
     });
     list.push({
       id: 'theater_door', label: '劇院大門', type: 'clue',
