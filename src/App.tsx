@@ -78,10 +78,6 @@ export default function App() {
   const chapterSelectorOpen = useDevtoolsStore((s) => s.chapterSelectorOpen);
 
   const openScreenWithReturn = (nextScreen: Screen) => {
-    if (nextScreen === 'aftermath') {
-      const ending = currentNpc.ending;
-      if (ending === 'none') return;
-    }
     setReturnScreen(screen);
     setScreen(nextScreen);
   };
