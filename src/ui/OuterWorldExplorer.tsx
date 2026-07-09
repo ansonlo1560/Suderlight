@@ -747,12 +747,12 @@ export default function OuterWorldExplorer({
 
       {modal && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }} onClick={() => setModal(null)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540, width: '100%' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 1000, width: '100%' }}>
             <GlassPanel title={modal.title} variant="dark" contentStyle={{ color: '#ccc', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
             {modal.content}
             {modal.discoveryContent && <div style={{ marginTop: 14, color: '#d0c8ba', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-line' }}>{modal.discoveryContent}</div>}
             {(modal.discoveryTitle || modal.discoveryDesc) && <div style={{ marginTop: 10, padding: '14px 16px', borderRadius: 8, background: 'rgba(214,163,94,0.1)', border: '1px solid rgba(214,163,94,0.15)', color: '#d0a050' }}>{modal.discoveryTitle && <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>獲得新理解：{modal.discoveryTitle}</div>}{modal.discoveryDesc && <div>{modal.discoveryDesc}</div>}</div>}
-            {modal.actions && modal.actions.length > 0 && <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>{modal.actions.map((a, i) => <GlimmerButton key={i} tone={a.tone as any} onClick={a.onClick}>{a.label}</GlimmerButton>)}</div>}
+            {modal.actions && modal.actions.length > 0 && <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>{modal.actions.map((a, i) => <GlimmerButton key={i} tone={a.tone as any} onClick={a.onClick}>{a.label}</GlimmerButton>)}<GlimmerButton tone="ghost" onClick={() => setModal(null)}>回到城市繼續探索</GlimmerButton></div>}
             {(!modal.actions || modal.actions.length === 0) && <div style={{ marginTop: 14, textAlign: 'center' }}><GlimmerButton tone="quiet" onClick={() => setModal(null)} fullWidth>關閉</GlimmerButton></div>}
             </GlassPanel>
           </div>
