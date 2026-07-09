@@ -427,6 +427,23 @@ export function getInteraction(
         actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: ctx.onOpenReport }],
       };
     }
+    if (ctx.npcEnding === 'failed') {
+      return {
+        title: '',
+        content: [
+          '碎布還在原地。雨水繼續浸透它們。',
+          '你注意到最大那塊碎片上的鉛筆線——',
+          '它是一筆從畫框中央向外拖出去的長線，',
+          '在撕裂處戛然而止。',
+          '像一段話，說到一半就斷了。',
+          '',
+          '「連這最後的......空白......你都不肯......留給我嗎？」',
+          '',
+          '你感覺天橋的風變冷了一些。',
+        ].join('\n'),
+        actions: [{ label: '查看餘波匯報', tone: 'primary', onClick: ctx.onOpenReport }],
+      };
+    }
     return null; // 信號：應該開對話頁
   }
 
