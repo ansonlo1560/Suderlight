@@ -167,6 +167,7 @@ export default function App() {
       return (
         <AftermathReport
           save={save}
+          npcId={currentNpcId}
           onBack={() => setScreen('city')}
           onOpenReconciliation={() => setScreen('reconciliation')}
         />
