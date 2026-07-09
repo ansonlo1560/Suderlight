@@ -230,26 +230,25 @@ function IsometricRoads({ world, locationId, isRepaired }: { world: OuterWorldMo
       { deck: toElevatedScreen({ x: 11.5, y: 10 }), base: isoToScreen({ x: 11.5, y: 10 }) },
       { deck: toElevatedScreen({ x: 15.5, y: 10 }), base: isoToScreen({ x: 15.5, y: 10 }) },
       { deck: toElevatedScreen({ x: 18.5, y: 10 }), base: isoToScreen({ x: 18.5, y: 10 }) },
-      { deck: toElevatedScreen({ x: 17.0, y: 6.0 }), base: isoToScreen({ x: 17.0, y: 6.0 }) },
-      { deck: toElevatedScreen({ x: 19.0, y: 6.0 }), base: isoToScreen({ x: 19.0, y: 6.0 }) },
+      // 新樓梯橋墩（x:19→27, y:9 中線）
+      { deck: toElevatedScreen({ x: 20.0, y: 9 }), base: isoToScreen({ x: 20.0, y: 9 }) },
+      { deck: toElevatedScreen({ x: 22.0, y: 9 }), base: isoToScreen({ x: 22.0, y: 9 }) },
+      { deck: toElevatedScreen({ x: 24.0, y: 9 }), base: isoToScreen({ x: 24.0, y: 9 }) },
+      { deck: toElevatedScreen({ x: 26.0, y: 9 }), base: isoToScreen({ x: 26.0, y: 9 }) },
     ];
     const railings: Array<Array<{ p1: { left: number; top: number }; p2: { left: number; top: number } }>> = [];
     const rA: typeof railings[0] = [];
     for (let x = 6.0; x <= 19.01; x += 0.8) { const p = toElevatedScreen({ x, y: 10 }); rA.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
     railings.push(rA);
     const rB: typeof railings[0] = [];
-    for (let x = 4.0; x <= 16.61; x += 0.8) { const p = toElevatedScreen({ x, y: 8 }); rB.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
-    const pLast = toElevatedScreen({ x: 17.0, y: 8.0 }); rB.push({ p1: pLast, p2: { left: pLast.left, top: pLast.top - BRIDGE_RAIL_HEIGHT } });
+    for (let x = 4.0; x <= 19.21; x += 0.8) { const p = toElevatedScreen({ x, y: 8 }); rB.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
+    const pLast = toElevatedScreen({ x: 17.0, y: 8.0 }); rB.push({ p1: pLast, p2: { left: pLast.left, top: pLast.top - BRIDGE_RAIL_HEIGHT } }); 
     railings.push(rB);
-    const rC: typeof railings[0] = [];
-    for (let y = 4.0; y <= 8.0; y += 0.8) { const p = toElevatedScreen({ x: 17, y }); rC.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
-    railings.push(rC);
-    const rD: typeof railings[0] = [];
-    for (let y = 4.0; y <= 9.61; y += 0.8) { const p = toElevatedScreen({ x: 19, y }); rD.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
-    const pLast2 = toElevatedScreen({ x: 19, y: 10.0 }); rD.push({ p1: pLast2, p2: { left: pLast2.left, top: pLast2.top - BRIDGE_RAIL_HEIGHT } });
-    railings.push(rD);
     const rL: typeof railings[0] = []; for (let y = 10.0; y <= 16.01; y += 0.8) { const p = toElevatedScreen({ x: 4, y }); rL.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); } railings.push(rL);
     const rR: typeof railings[0] = []; for (let y = 10.0; y <= 16.01; y += 0.8) { const p = toElevatedScreen({ x: 6, y }); rR.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); } railings.push(rR);
+    // 新樓梯欄杆（北側 y=8, 南側 y=10）
+    const rGS1: typeof railings[0] = []; for (let x = 19.0; x <= 26.01; x += 0.8) { const p = toElevatedScreen({ x, y: 8 }); rGS1.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); } railings.push(rGS1);
+    const rGS2: typeof railings[0] = []; for (let x = 19.0; x <= 26.01; x += 0.8) { const p = toElevatedScreen({ x, y: 10 }); rGS2.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); } railings.push(rGS2);
     return { piers, railings };
   }, [locationId, toElevatedScreen]);
 
@@ -261,15 +260,27 @@ function IsometricRoads({ world, locationId, isRepaired }: { world: OuterWorldMo
           return (<g key={i}><rect x={pier.deck.left - 3} y={pier.deck.top} width={6} height={sh} rx={2} fill={isRepaired ? 'rgba(116,143,171,0.22)' : 'rgba(120,128,140,0.12)'} stroke={isRepaired ? 'rgba(255,224,130,0.10)' : 'rgba(255,255,255,0.05)'} strokeWidth="1" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} /><rect x={pier.base.left - 6} y={pier.base.top + 20} width={12} height={4} rx={1} fill={isRepaired ? 'rgba(72,96,124,0.18)' : 'rgba(90,96,110,0.10)'} style={{ transition: 'fill 1.5s ease' }} /></g>);
         })}</g>
       )}
-      {rDefs.map((pts, idx) => {
+      {/* 渲染順序：地面路 → 樓梯 → 天橋（天橋在上層，應後繪以遮擋地面路） */}
+      {locationId === 'skybridge' ? [3, 4, 5, 2, 0, 1].map(idx => {
+        const pts = rDefs[idx];
+        if (!pts) return null;
         const sp = pts.map(pt => toElevatedScreen(pt));
         const ptsStr = sp.map(p => `${p.left},${p.top}`).join(' ');
-        const isStairs = locationId === 'skybridge' && idx === 2;
+        const isOldStairs = idx === 2;
+        const isNewStairs = idx === 1;
         return (<g key={idx}>
           {isRepaired && <polygon points={ptsStr} fill="none" stroke="rgba(255,224,130,0.12)" strokeWidth="12" style={{ filter: 'blur(4px)', transition: 'stroke 1.5s ease' }} />}
           <polygon points={ptsStr} fill={roadFill} stroke={roadStroke} strokeWidth="2.5" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} />
-          {locationId === 'skybridge' && idx <= 1 && <polygon points={`${sp[2].left},${sp[2].top} ${sp[3].left},${sp[3].top} ${isoToScreen(pts[3]).left},${isoToScreen(pts[3]).top} ${isoToScreen(pts[2]).left},${isoToScreen(pts[2]).top}`} fill="rgba(22,30,40,0.24)" stroke="rgba(255,255,255,0.035)" strokeWidth="1" />}
-          {isStairs && <g>{Array.from({ length: 18 }).map((_, si) => { const t = si / 17; const sy = lerp(10.08, 15.92, t); const p1 = toElevatedScreen({ x: 4, y: sy }); const p2 = toElevatedScreen({ x: 6, y: sy }); return (<g key={si}><line x1={p1.left} y1={p1.top} x2={p2.left} y2={p2.top} stroke={isRepaired ? 'rgba(255,224,130,0.52)' : 'rgba(255,255,255,0.22)'} strokeWidth="1.6" /><line x1={p1.left} y1={p1.top + 3} x2={p2.left} y2={p2.top + 3} stroke="rgba(0,0,0,0.28)" strokeWidth="1" /></g>); })}</g>}
+          {idx <= 1 && <polygon points={`${sp[2].left},${sp[2].top} ${sp[3].left},${sp[3].top} ${isoToScreen(pts[3]).left},${isoToScreen(pts[3]).top} ${isoToScreen(pts[2]).left},${isoToScreen(pts[2]).top}`} fill="rgba(22,30,40,0.08)" stroke="rgba(255,255,255,0.025)" strokeWidth="1" />}
+          {isOldStairs && <g>{Array.from({ length: 18 }).map((_, si) => { const t = si / 17; const sy = lerp(10.08, 15.92, t); const p1 = toElevatedScreen({ x: 4, y: sy }); const p2 = toElevatedScreen({ x: 6, y: sy }); return (<g key={si}><line x1={p1.left} y1={p1.top} x2={p2.left} y2={p2.top} stroke={isRepaired ? 'rgba(255,224,130,0.52)' : 'rgba(255,255,255,0.22)'} strokeWidth="1.6" /><line x1={p1.left} y1={p1.top + 3} x2={p2.left} y2={p2.top + 3} stroke="rgba(0,0,0,0.28)" strokeWidth="1" /></g>); })}</g>}
+          {isNewStairs && <g>{Array.from({ length: 18 }).map((_, si) => { const t = si / 17; const sx = lerp(19.08, 26.92, t); const p1 = toElevatedScreen({ x: sx, y: 8 }); const p2 = toElevatedScreen({ x: sx, y: 10 }); return (<g key={si}><line x1={p1.left} y1={p1.top} x2={p2.left} y2={p2.top} stroke={isRepaired ? 'rgba(255,224,130,0.52)' : 'rgba(255,255,255,0.22)'} strokeWidth="1.6" /><line x1={p1.left} y1={p1.top + 3} x2={p2.left} y2={p2.top + 3} stroke="rgba(0,0,0,0.28)" strokeWidth="1" /></g>); })}</g>}
+        </g>);
+      }) : rDefs.map((pts, idx) => {
+        const sp = pts.map(pt => toElevatedScreen(pt));
+        const ptsStr = sp.map(p => `${p.left},${p.top}`).join(' ');
+        return (<g key={idx}>
+          {isRepaired && <polygon points={ptsStr} fill="none" stroke="rgba(255,224,130,0.12)" strokeWidth="12" style={{ filter: 'blur(4px)', transition: 'stroke 1.5s ease' }} />}
+          <polygon points={ptsStr} fill={roadFill} stroke={roadStroke} strokeWidth="2.5" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} />
         </g>);
       })}
       {locationId === 'skybridge' && bridgeDetails && (

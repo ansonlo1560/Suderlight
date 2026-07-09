@@ -36,14 +36,21 @@ export function isoToScreen(pos: Point) {
 
 export function getSkybridgeElevation(pos: Point): number {
   const inUpperBridge = pos.x >= 4 && pos.x <= 19 && pos.y >= 8 && pos.y <= 10;
-  const inGalleryPassage = pos.x >= 17 && pos.x <= 19 && pos.y >= 4 && pos.y <= 8;
-  if (inUpperBridge || inGalleryPassage) return BRIDGE_DECK_ELEVATION;
+  if (inUpperBridge) return BRIDGE_DECK_ELEVATION;
 
   const inStairs = pos.x >= 4 && pos.x <= 6 && pos.y >= 10 && pos.y <= 16;
   if (inStairs) {
     const t = clamp((pos.y - 10) / 6, 0, 1);
     return lerp(BRIDGE_DECK_ELEVATION, 0, t);
   }
+
+  // 新樓梯：天橋東端（近涼亭 x:22,y:13）→ 畫廊前道路
+  const inGalleryStairs = pos.x >= 19 && pos.x <= 26 && pos.y >= 8 && pos.y <= 10;
+  if (inGalleryStairs) {
+    const t = clamp((pos.x - 19) / 8, 0, 1);
+    return lerp(BRIDGE_DECK_ELEVATION, 0, t);
+  }
+
   return 0;
 }
 
@@ -69,7 +76,7 @@ export const buildings: Building[] = [
   {
     id: 'gallery',
     name: '失色畫廊',
-    pos: { x: 25.5, y: 5.5 },
+    pos: { x: 26, y: 5 },
     size: { x: 4, y: 3 },
     tall: 260,
     baseColor: '#ec407a',
@@ -139,7 +146,7 @@ export const buildings: Building[] = [
   {
     id: 'theater',
     name: '微光劇院',
-    pos: { x: 5.5, y: 22 },
+    pos: { x: 5.45, y: 22 },
     size: { x: 7.5, y: 8 },
     tall: 150,
     baseColor: '#6a1b9a',
@@ -185,11 +192,13 @@ export const roadDefs = (locationId: string): RoadDef => {
   if (locationId !== 'skybridge') return [];
   return [
     [{ x: 4, y: 8 }, { x: 19, y: 8 }, { x: 19, y: 10 }, { x: 4, y: 10 }],
-    [{ x: 17, y: 4 }, { x: 19, y: 4 }, { x: 19, y: 8 }, { x: 17, y: 8 }],
+    // [1] 新樓梯：天橋東端（近涼亭）→ 畫廊前道路
+    [{ x: 19, y: 8 }, { x: 26, y: 8 }, { x: 26, y: 10 }, { x: 19, y: 10 }],
     [{ x: 4, y: 10 }, { x: 6, y: 10 }, { x: 6, y: 16 }, { x: 4, y: 16 }],
-    [{ x: 4, y: 16 }, { x: 28, y: 16 }, { x: 28, y: 19 }, { x: 4, y: 19 }],
+    [{ x: 4, y: 16 }, { x: 30, y: 16 }, { x: 30, y: 19 }, { x: 4, y: 19 }],
+    [{ x: 26, y: 8 }, { x: 30, y: 8 }, { x: 30, y: 19 }, { x: 26, y: 19 }], 
     // [4] 劇院右側垂直路：從地面道路通向劇院大門
-    [{ x: 12.5, y: 5 }, { x: 17, y: 5 }, { x: 17, y: 30 }, { x: 13, y: 30 }],
+    [{ x: 12.5, y: 11 }, { x: 16.25, y: 11 }, { x: 17, y: 30 }, { x: 13, y: 30 }],
     // [5] 劇院→公園橫向路
     // [{ x: 11.5, y: 23.5 }, { x: 17, y: 23.5 }, { x: 17, y: 26 }, { x: 11.5, y: 26 }],
   ];
@@ -201,17 +210,20 @@ export const collisionZones: Record<string, CollisionZone> = {
     id: 'skybridge',
     walkableRegions: [
       { minX: 4.5, maxX: 19.0, minY: 8.5, maxY: 10.0 },
-      { minX: 17.5, maxX: 19.0, minY: 7.0, maxY: 8.5 },
+      // 新樓梯：天橋東端（近涼亭）→ 畫廊前道路
+      { minX: 19.0, maxX: 27.0, minY: 8.5, maxY: 10.0 },
       { minX: 4.5, maxX: 6.0, minY: 10.0, maxY: 17.0 },
       { minX: 4.5, maxX: 28.0, minY: 16.5, maxY: 19.0 },
       { minX: 17.0, maxX: 28.0, minY: 19.0, maxY: 28.0 },
-      // 劇院右側垂直路
-      { minX: 13.5, maxX: 17.0, minY: 5.0, maxY: 30.0 },
+      { minX: 27.0, maxX: 30.5, minY: 8.0, maxY: 19.0 },
+      // 劇院右側垂直路（不穿過天橋區 y:8~10.5，從地面道路或天橋另行繞行）
+      { minX: 13.5, maxX: 16.5, minY: 12.0, maxY: 16.5 },
+      { minX: 13.5, maxX: 30.5, minY: 16.5, maxY: 30.0 },
       // 劇院→公園橫向路
       // { minX: 11.5, maxX: 17.0, minY: 23.5, maxY: 26.0 },
     ],
-    maxX: 28,
-    maxY: 28,
+    maxX: 35,
+    maxY: 30,
   },
 };
 
@@ -228,7 +240,7 @@ export function getEntities(ctx: {
   if (ctx.locationId === 'skybridge') {
     list.push({
       id: 'painter', label: '天橋畫家', type: 'npc',
-      pos: { x: 13, y: 9 },
+      pos: { x: 12, y: 9 },
       color: npcEnding === 'success' ? '#7acc7a' : '#ffaa33',
       icon: npcEnding === 'success' ? '光' : '畫',
     });
@@ -273,13 +285,13 @@ export const parkScenery: SceneryItem[] = [
   // { id: 'tree_w4', type: 'tree', pos: { x: 17, y: 25 }, size: 1.2 },
   // { id: 'tree_w5', type: 'tree', pos: { x: 17, y: 26.5 }, size: 1.3 },
   // 東邊 x=28
-  { id: 'tree_e1', type: 'tree', pos: { x: 28, y: 21 }, size: 1.2 },
-  { id: 'tree_e2', type: 'tree', pos: { x: 28, y: 22.5 }, size: 1.1 },
-  { id: 'tree_e3', type: 'tree', pos: { x: 28, y: 23.5 }, size: 1.2 },
-  { id: 'tree_e4', type: 'tree', pos: { x: 28, y: 25 }, size: 1.2 },
-  { id: 'tree_e5', type: 'tree', pos: { x: 28, y: 26.5 }, size: 1.1 },
-  { id: 'tree_e6', type: 'tree', pos: { x: 28, y: 28 }, size: 1.1 },
-  { id: 'tree_e7', type: 'tree', pos: { x: 28, y: 29.5 }, size: 1.1 },
+  { id: 'tree_e1', type: 'tree', pos: { x: 30, y: 21 }, size: 1.2 },
+  { id: 'tree_e2', type: 'tree', pos: { x: 30, y: 22.5 }, size: 1.1 },
+  { id: 'tree_e3', type: 'tree', pos: { x: 30, y: 23.5 }, size: 1.2 },
+  { id: 'tree_e4', type: 'tree', pos: { x: 30, y: 25 }, size: 1.2 },
+  { id: 'tree_e5', type: 'tree', pos: { x: 30, y: 26.5 }, size: 1.1 },
+  { id: 'tree_e6', type: 'tree', pos: { x: 30, y: 28 }, size: 1.1 },
+  { id: 'tree_e7', type: 'tree', pos: { x: 30, y: 29.5 }, size: 1.1 },
   // 北邊 y=19 緊鄰道路，移除樹木避免遮蔽道路
   // 南邊 y=28
   { id: 'tree_s1', type: 'tree', pos: { x: 18, y: 30 }, size: 1.1 },
@@ -289,6 +301,7 @@ export const parkScenery: SceneryItem[] = [
   { id: 'tree_s5', type: 'tree', pos: { x: 24, y: 30 }, size: 1.1 },
   { id: 'tree_s6', type: 'tree', pos: { x: 25.5, y: 30 }, size: 1.2 },
   { id: 'tree_s7', type: 'tree', pos: { x: 27, y: 30 }, size: 1.1 },
+  { id: 'tree_s8', type: 'tree', pos: { x: 28.75, y: 30 }, size: 1.1 },
   // 內部小樹
   { id: 'tree_i1', type: 'tree', pos: { x: 20, y: 21.5 }, size: 1.1 },
   { id: 'tree_i2', type: 'tree', pos: { x: 22.5, y: 22.5 }, size: 1.2 },
@@ -347,6 +360,14 @@ export const parkScenery: SceneryItem[] = [
   { id: 'grass_47', type: 'grass', pos: { x: 24, y: 28.5 }, size: 1.2 },
   { id: 'grass_48', type: 'grass', pos: { x: 25.5, y: 28.5 }, size: 1.1 },
   { id: 'grass_49', type: 'grass', pos: { x: 27, y: 28.5 }, size: 1.2 },
+  { id: 'grass_50', type: 'grass', pos: { x: 28.5, y: 28.5 }, size: 1.2 },
+  { id: 'grass_51', type: 'grass', pos: { x: 28.5, y: 27 }, size: 1.2 },
+  { id: 'grass_52', type: 'grass', pos: { x: 28.5, y: 25.5 }, size: 1.2 },
+  { id: 'grass_53', type: 'grass', pos: { x: 28.5, y: 24 }, size: 1.2 },
+  { id: 'grass_54', type: 'grass', pos: { x: 28.5, y: 22.5 }, size: 1.2 },
+  { id: 'grass_55', type: 'grass', pos: { x: 28.5, y: 21 }, size: 1.2 },
+  { id: 'grass_56', type: 'grass', pos: { x: 28.5, y: 20}, size: 1.2 },
+
 ];
 
 // ---- 海拔函數 ----
@@ -698,7 +719,7 @@ export const bridgePainterOuterWorld = {
   },
   scenery: parkScenery,
   getElevation: getSkybridgeElevation,
-  getMaxX: (_lid: string) => 28,
-  getMaxY: (_lid: string) => 28,
+  getMaxX: (lid: string) => collisionZones[lid]?.maxX || 28,
+  getMaxY: (lid: string) => collisionZones[lid]?.maxY || 28,
   getInteraction,
 };

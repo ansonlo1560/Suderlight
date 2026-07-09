@@ -28,14 +28,14 @@ export const bridgeArtistClues: Record<BridgeArtistClueId, ClueDefinition> = {
   sketchbook: {
     id: 'sketchbook', label: '素描本', shortLabel: '素描本', knowledge: 15,
     worldId: 'bridge_artist', locationId: 'skybridge',
-    pos: { x: 5.2, y: 12 }, color: '#fff6d8', icon: '本',
+    pos: { x: 29, y: 12 }, color: '#fff6d8', icon: '本',
     content: '素描本前半本全是鮮活的花與街燈，後半本只剩反覆描過的灰階輪廓。最後一頁寫著：「如果春天只剩形狀，我還算畫家嗎？」',
     dictionaryHint: '自我價值崩塌時，人常把「做不到」誤認成「我不存在」。',
   },
   accident_report: {
     id: 'accident_report', label: '車禍報導', shortLabel: '車禍報導', knowledge: 15,
     worldId: 'bridge_artist', locationId: 'skybridge',
-    pos: { x: 20, y: 22 }, color: '#fff6d8', icon: '紙',
+    pos: { x: 15, y: 12 }, color: '#fff6d8', icon: '紙',
     content: '這不是普通新聞，而是一份被折起來的完整報導。事故後的採訪標題寫著：「大家都在等他復出。」紙邊被指甲掐出深深痕跡。',
     dictionaryHint: '有些期待看似溫柔，實際上會把人再次釘回創傷現場。',
   },

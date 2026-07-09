@@ -95,7 +95,7 @@ export const aoiClues: Record<AoiClueId, ClueDefinition> = {
     knowledge: 12,
     worldId: 'aoi',
     locationId: 'skybridge',
-    pos: { x: 23, y: 20 },
+    pos: { x: 22, y: 17.5 },
     color: '#ce93d8',
     icon: '本',
     content: '你在公園長椅邊撿到一本日記本。中間好幾頁被撕掉了，殘留的字跡斷斷續續：「今天……我沒有說……」',
