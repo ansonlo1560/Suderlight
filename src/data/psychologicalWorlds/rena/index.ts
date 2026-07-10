@@ -17,7 +17,7 @@ const layer1: PsychLayerData = {
   layerId: 'applause_stage',
   layerNumber: 1,
   layerName: '歡笑劇場',
-  symbol: '舞台上的笑容',
+  symbol: '聚光燈下的完美演出',
   atmosphere: '座無虛席、掌聲如雷，但聚光燈亮得讓人看不清任何觀眾的臉',
   sceneDescription:
     '蕾娜站在聚光燈下。觀眾席傳來陣陣笑聲，每一聲都精準地落在她設計好的笑點上。\n' +
@@ -110,14 +110,14 @@ const layer2: PsychLayerData = {
   layerId: 'backstage_phone',
   layerNumber: 2,
   layerName: '休息室的電話',
-  symbol: '靜止的電話',
-  atmosphere: '昏暗的後台休息室，只有牆上的時鐘在倒數，電話線像蛇一樣纏繞在地板上',
+  symbol: '懸在半空的聽筒',
+  atmosphere: '昏暗的後台休息室，牆上的時鐘在倒數，電話線扭曲地纏在地板上，像一條還沒說完的句子',
   sceneDescription:
     '那是她首場演出前一小時。休息室的電話響了，帶來了父親去世的消息。\n' +
     '經紀人推開門，跟她說：「你必須演完，這是為了觀眾，也是為了你爸爸。」\n' +
     '她在那一刻學會了如何把靈魂鎖進箱子裡。',
   emotionalForeword: '有些電話一旦接起，世界就再也不會恢復原狀。',
-  playerUnderstanding: '她不是不想哭，而是被禁止哭。那通電話奪走了她身為人的自然情感，將她變成了機器。',
+  playerUnderstanding: '她不是不想哭，而是被禁止哭。那通電話奪走了她哀傷的權利——她把靈魂鎖進了箱子，再也找不到鑰匙。',
   interactables: [
     {
       id: 'hospital_phone',
