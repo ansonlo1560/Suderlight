@@ -35,6 +35,7 @@ import accidentMemoryVideo from '../video/grok-video-5614ed35-6339-496a-bc6b-027
 import aoiLayer1Bg from '../../images/aoi/psyWorld-L1-bg.png';
 import aoiLayer2Bg from '../../images/aoi/psyWorld-L2-bg.png';
 import aoiLayer3Bg from '../../images/aoi/psyWorld-L3-bg.png';
+import aoiLayer4Bg from '../../images/aoi/psyWorld-L4-bg.png';
 import aoiBearImage from '../../images/aoi/psyWorld-L1-bear.png';
 import renaLayer1Bg from '../../images/rena/psyWorld-L1-bg.png';
 import renaLayer2Bg from '../../images/rena/psyWorld-L2-bg.png';
@@ -834,7 +835,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
             ) : npcId === 'aoi' ? (() => {
               const bear = layer.interactables.find(o => o.id === 'broken_bear_doll');
               const recorder = layer.interactables.find(o => o.id === 'voice_recorder');
-              const layerBgMap: Record<number, string> = { 1: aoiLayer1Bg, 2: aoiLayer2Bg, 3: aoiLayer3Bg };
+              const layerBgMap: Record<number, string> = { 1: aoiLayer1Bg, 2: aoiLayer2Bg, 3: aoiLayer3Bg, 4: aoiLayer4Bg };
               const bgImage = layerBgMap[layerNum];
               if (layerNum === 1) {
                 return (

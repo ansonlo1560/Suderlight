@@ -430,6 +430,11 @@ const visualRegistry = {
     school_bag: { top: '22%', left: '24%' },
     muddy_shoes: { top: '22%', left: '76%' },
     recording_pen_scene: { top: '68%', left: '78%' },
+    // Layer 4 (Washed Red Shoes)
+    washed_red_shoes: { top: '78%', left: '15%' },
+    little_bell: { top: '62.5%', left: '23%' },
+    silent_recorder: { top: '80%', left: '74%' },
+    moving_swing: { top: '26%', left: '80%' },
   },
 };
 
