@@ -532,11 +532,11 @@ const visualRegistry = {
       '哈哈哈哈哈……',
     ],
     4: [
-      '如果不笑的話，我還剩下什麼？',
-      '有些頁面，本來就該是空的。',
-      '人不笑也沒關係。',
-      '謝謝你沒有急著修好我。',
-      '我可以在這裡垮掉嗎？',
+      '我哭了，我笑了',
+      '這張臉……終於是我的了',
+      '不再需要畫笑臉了',
+      '眼淚，也是一種表情',
+      '我可以……不用演了',
     ],
   },
   pinCoordinates: {
@@ -554,11 +554,9 @@ const visualRegistry = {
     // Layer 3 (休息室的鏡子前)
     lipstick_mirror: { top: '36%', left: '50%' },
     tearful_reflection: { top: '54%', left: '22%' },
-    flying_masks: { top: '18%', left: '68%' },
-    broken_shards: { top: '78%', left: '50%' },
-    tissue_box_corner: { top: '82%', left: '80%' },
-    // Layer 4 (無鏡的房間)
-    empty_frame: { top: '40%', left: '50%' },
+
+    // Layer 4 (鏡面前的她)
+    wiped_mirror: { top: '40%', left: '50%' },
     sofa_chair: { top: '68%', left: '28%' },
     faded_poster: { top: '24%', left: '76%' },
     clean_lip_balm: { top: '62%', left: '76%' },

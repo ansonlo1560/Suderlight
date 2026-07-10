@@ -1,6 +1,6 @@
 // ============================================================
 // 蕾娜 (Rena) 心理世界 — 四層情感弧線
-// 歡笑劇場 → 休息室的電話 → 鏡面迷宮 → 無鏡的房間
+// 歡笑劇場 → 休息室的電話 → 鏡面，和鏡面前的她 → 鏡面前的她
 // ============================================================
 
 import type { PsychLayerData } from '../bridgePainter/index';
@@ -212,141 +212,98 @@ const layer2: PsychLayerData = {
   maxUnderstanding: 42,
 };
 
-// ---- 第三層：鏡面迷宮 (Mirror Maze) ----
+// ---- 第三層：鏡面，和鏡面前的她 (Mirror, and Her at the Mirror) ----
 
 const layer3: PsychLayerData = {
   layerId: 'mirror_maze',
   layerNumber: 3,
-  layerName: '鏡面迷宮',
-  symbol: '飛舞的面具',
-  atmosphere: '無數面鏡子折射著同一個笑容，卻在鏡子的深處藏著不同的哭聲',
+  layerName: '鏡面，和鏡面前的她',
+  symbol: '畫著笑臉的鏡子',
+  atmosphere: '休息室的化妝鏡，鏡上用亮紅色口紅畫著一張誇張的笑臉，遮住了底下流淚的倒影',
   sceneDescription:
-    '這是一個由無數面鏡子組成的迷宮。每一面鏡子都映出蕾娜完美的笑臉。\n' +
-    '但在迷宮的中心，有一張面具正在與皮膚融合。蕾娜已經分不清哪一張臉才是真正的自己。\n' +
-    '這裡飛舞著她這些年來戴過的每一張笑臉。',
-  emotionalForeword: '如果你分不清真假，那是因為你已經把謊言當成了唯一的真實。',
-  playerUnderstanding: '她不是在「演」笑，而是已經「忘記」了如何不笑。這種身分崩解讓她極度空虛。',
+    '脫口秀後，她回到休息室，卻發現自己已經不能笑出來了。\n' +
+    '她只記得要笑，於是她在鏡子前練習微笑，卻在鏡子中流淚。\n' +
+    '於是，她拿著口紅，在鏡子前，畫了一個大大的，誇張的笑臉。\n' +
+    '在此之後，她只懂笑，卻沒有了其他的表情。',
+  emotionalForeword: '她拿起口紅的那一刻，不是為了化妝——是為了把哭的那張臉，永遠蓋住。',
+  playerUnderstanding: '那晚她拿著父親送的亮紅色口紅，在鏡子上畫出誇張的笑臉來遮住流淚的自己。從此口紅再也沒擰回去——她把自己鎖在了那個畫出來的微笑裡。',
   interactables: [
     {
       id: 'lipstick_mirror',
       name: '口紅畫的鏡子',
       category: 'self',
-      surfaceInfo: '一面大鏡子上，有人用亮紅色的口紅畫了一個巨大的、誇張的笑臉。',
-      deepMessage: '那晚表演後，她用這支口紅遮住了鏡中哭泣的自己。從此口紅再也沒擰回去。',
-      insight: '畫出來的笑臉，成了她對世界最後的防線。',
+      surfaceInfo: '休息室的化妝鏡上，有人用亮紅色的口紅畫了一個巨大的、誇張的笑臉，線條幾乎穿透整面玻璃。',
+      deepMessage: '那晚表演後她再也笑不出來，卻在鏡中看見一張流淚的臉。於是她擰開口紅，把哭的那張臉徹底遮住。口紅後來再也沒擰回去過，就那樣乾涸在「笑」的形狀裡。',
+      insight: '畫出來的笑臉，成了她對世界最後的防線——也是她囚禁自己的牢籠。',
       reflectionChoices: [
         { text: '顏色', insight: false },
         { text: '防線', insight: true },
         { text: '塗鴉', insight: false },
         { text: '形狀', insight: false },
       ],
-      understandingReward: 10,
+      understandingReward: 12,
     },
     {
       id: 'tearful_reflection',
       name: '流淚的倒影',
       category: 'trauma',
-      surfaceInfo: '在一面不起眼的碎裂鏡子裡，蕾娜的倒影正在無聲地流淚。',
-      deepMessage: '這個倒影沒有在表演。它被困在時間的縫隙裡，那是她唯一被允許悲傷的時刻。',
-      insight: '只有在破碎的自我中，她才能短暫地面對真實的哀慟。',
+      surfaceInfo: '在口紅畫出的笑臉底下，隱約能看見鏡中蕾娜的倒影正在無聲地流淚。',
+      deepMessage: '她在鏡子前練習微笑，卻在鏡子中看見自己流淚。這個倒影沒有在表演——那是最後一個真實的蕾娜，被困在口紅笑臉的後面。',
+      insight: '笑臉背後的眼淚，是她最後被允許流露的真實情感。從那以後，她只懂笑，卻忘了怎麼哭。',
       reflectionChoices: [
         { text: '倒影', insight: false },
-        { text: '碎片', insight: true },
+        { text: '真實', insight: true },
         { text: '液體', insight: false },
         { text: '反射', insight: false },
       ],
-      understandingReward: 9,
-    },
-    {
-      id: 'flying_masks',
-      name: '飛舞的面具',
-      category: 'identity',
-      surfaceInfo: '迷宮中飛舞著無數陶瓷面具，每一個都在發出哈哈大笑的聲音。',
-      deepMessage: '這些不是怪物，是她這些年來在不同場合戴過的「職業微笑」。',
-      insight: '這些面具已經有了自己的生命，反過來控制了她的本體。',
-      reflectionChoices: [
-        { text: '生命', insight: true },
-        { text: '笑聲', insight: false },
-        { text: '陶瓷', insight: false },
-        { text: '重量', insight: false },
-      ],
-      understandingReward: 8,
-    },
-    {
-      id: 'broken_shards',
-      name: '破碎的玻璃',
-      category: 'loss',
-      surfaceInfo: '地面上鋪滿了鏡子的碎片。每踩上去一步，都會映出一個不同的表情。',
-      deepMessage: '這些碎片是她試圖打破面具時留下的痕跡。每一次嘗試，都讓她受傷得更深。',
-      insight: '打破偽裝的過程是極其痛苦的，但這是找回真我的唯一途徑。',
-      reflectionChoices: [
-        { text: '疼痛', insight: false },
-        { text: '痕跡', insight: false },
-        { text: '途徑', insight: true },
-        { text: '碎片', insight: false },
-      ],
-      understandingReward: 9,
-    },
-    {
-      id: 'tissue_box_corner',
-      name: '乾涸的面紙盒',
-      category: 'comfort',
-      surfaceInfo: '迷宮角落放著一個空的面紙盒。裡面什麼都沒有，盒子已經泛黃。',
-      deepMessage: '這本應是擦拭淚水的地方。但因為她不再被允許哭泣，所以面紙也顯得不再必要。',
-      insight: '空的面紙盒象徵著她對自我情感排泄能力的徹底喪失。',
-      reflectionChoices: [
-        { text: '遺忘', insight: true },
-        { text: '空盒', insight: false },
-        { text: '紙張', insight: false },
-        { text: '形狀', insight: false },
-      ],
-      understandingReward: 8,
+      understandingReward: 10,
     },
   ],
   nextLayerThreshold: 40,
   colorScheme: {
-    bg: '#2b2b2b',
-    text: '#dcdde1',
+    bg: '#2b2020',
+    text: '#e8d5d5',
     accent: '#eb4d4b',
     dim: 'rgba(235, 77, 75, 0.15)',
-    sub: '#7f8c8d',
-    cellEmpty: 'rgba(127, 140, 141, 0.12)',
-    cellNorm: 'rgba(127, 140, 141, 0.08)',
-    cellDisc: 'rgba(127, 140, 141, 0.10)',
+    sub: '#b8a0a0',
+    cellEmpty: 'rgba(184, 160, 160, 0.12)',
+    cellNorm: 'rgba(184, 160, 160, 0.08)',
+    cellDisc: 'rgba(184, 160, 160, 0.10)',
     cellInsight: 'linear-gradient(135deg, rgba(235,77,75,0.16), rgba(150,50,50,0.1))',
     border: 'rgba(235,77,75,0.12)',
-    gridBg: 'radial-gradient(ellipse at center, rgba(43,43,43,0.5), rgba(20,20,20,0.85))',
+    gridBg: 'radial-gradient(ellipse at center, rgba(43,32,32,0.5), rgba(20,12,12,0.85))',
   },
-  maxUnderstanding: 44,
+  maxUnderstanding: 22,
 };
 
-// ---- 第四層：無鏡的房間 (Mirrorless Room) ----
+// ---- 第四層：鏡面前的她 (Her at the Mirror) ----
 
 const layer4: PsychLayerData = {
   layerId: 'mirrorless_room',
   layerNumber: 4,
-  layerName: '無鏡的房間',
-  symbol: '空白的畫框',
-  atmosphere: '柔和、安靜，沒有任何鏡子。空氣中瀰漫著淡淡的薰衣草香',
+  layerName: '鏡面前的她',
+  symbol: '被擦去的笑臉',
+  atmosphere: '鏡子上的口紅笑臉被抹去了大半，底下露出那張不再表演的臉。眼淚和笑容第一次同時存在。',
   sceneDescription:
-    '這是一個普通的房間。這裡沒有舞台，沒有聚光燈，更沒有鏡子。\n' +
-    '蕾娜坐在沙發上，手中拿著一支無色的護唇膏。她不再需要用亮紅色遮掩什麼。\n' +
-    '這裡允許空白，允許不笑，允許只是活著。',
+    '她伸出手，擦掉了之前在鏡子上用口紅畫的那張笑臉。\n' +
+    '這一次，她不再刻意地笑，而是露出了自己真實的、平常應該有的表情。\n' +
+    '然後——她哭了。她也笑了。\n' +
+    '她終於能像平常人一樣，擁有感受和控制自己的表情與情緒的能力了。',
   emotionalForeword: '當你不再需要證明什麼的時候，你才真正擁有了自己。',
   playerUnderstanding: '真正的修復不是幫她找回笑容，而是讓她在不笑的時候，依然覺得自己值得被看見。',
   interactables: [
     {
-      id: 'empty_frame',
-      name: '空白畫框',
+      id: 'wiped_mirror',
+      name: '被擦去的笑臉',
       category: 'acceptance',
-      surfaceInfo: '牆上掛著一個木製的畫框，裡面是一片空白。這不是缺少，而是完整。',
-      deepMessage: '蕾娜看著這個框。她發現，不需要填充任何內容，這個存在本身就是美麗的。',
-      insight: '空白不是缺陷，而是無限的可能。',
+      surfaceInfo: '鏡子上那張用口紅畫的笑臉被抹去了大半。底下隱約看見一張不再表演的臉——有淚痕，也有淡淡的微笑。',
+      deepMessage: '她用指尖沿著口紅笑臉的邊緣劃了一圈，然後——鼓起勇氣，把它擦掉了。底下露出的不是另一個完美的表情，而是一個正在流淚、也正在微笑的人。兩張臉同時存在，像她花了半輩子才敢承認的事實。',
+      insight: '擦掉笑臉的那一刻，她終於看見了自己真正的表情——不需要完美，也不需要觀眾。',
       reflectionChoices: [
-        { text: '空白', insight: false },
-        { text: '完整', insight: true },
-        { text: '虛無', insight: false },
-        { text: '形狀', insight: false },
+        { text: '痕跡', insight: false },
+        { text: '解放', insight: true },
+        { text: '抹去', insight: false },
+        { text: '殘留', insight: false },
       ],
       understandingReward: 12,
     },
@@ -354,8 +311,8 @@ const layer4: PsychLayerData = {
       id: 'sofa_chair',
       name: '柔軟的沙發',
       category: 'comfort',
-      surfaceInfo: '一張米白色的單人沙發。看起來被坐過很久，凹陷處非常溫暖。',
-      deepMessage: '這是她第一次允許自己「塌陷」的地方。不用挺直腰桿，不用保持優雅。',
+      surfaceInfo: '鏡子旁擺著一張米白色的單人沙發。看起來被坐過很久，凹陷處非常溫暖。',
+      deepMessage: '這是她擦掉笑臉後第一次把自己摔進去的地方。不用挺直腰桿，不用保持優雅——只是讓自己塌陷在柔軟裡。',
       insight: '允許自己疲倦，是通往療癒的第一步。',
       reflectionChoices: [
         { text: '休息', insight: false },
@@ -369,9 +326,9 @@ const layer4: PsychLayerData = {
       id: 'faded_poster',
       name: '褪色的海報',
       category: 'echo',
-      surfaceInfo: '牆角貼著一張舊海報，字跡已經模糊。那是她多年前的夢想。',
-      deepMessage: '海報上的笑容依舊燦爛。但現在她看著它，就像看著一個很久不見的老朋友，不再是枷鎖。',
-      insight: '接納過去的自己，包括那些曾經傷害過自己的夢想。',
+      surfaceInfo: '牆角貼著一張舊海報，字跡已經模糊。那是她多年前的夢想——現在看來像一個很久不見的老朋友。',
+      deepMessage: '海報上的笑容依舊燦爛，但邊角已經泛黃捲曲。她看著它，不再感到窒息——只是一種平靜，像翻閱一本很久以前的相簿。那些努力、那些假裝、那些不讓自己垮掉的日日夜夜，都是她走過的路。',
+      insight: '接納過去的自己，不是忘記傷痛，而是承認那些痕跡都是自己的一部分。',
       reflectionChoices: [
         { text: '過去', insight: false },
         { text: '接納', insight: true },
@@ -384,8 +341,8 @@ const layer4: PsychLayerData = {
       id: 'clean_lip_balm',
       name: '無色護唇膏',
       category: 'acceptance',
-      surfaceInfo: '桌上放著一支透明的護唇膏。它靜靜地躺在那裡。',
-      deepMessage: '她不再需要用亮紅色來定義自己的嘴唇。透明的，才是她此刻最想要的顏色。',
+      surfaceInfo: '化妝檯上放著一支透明的護唇膏。旁邊是那支乾涸的亮紅色口紅——終於被擱在一旁了。',
+      deepMessage: '她不再需要用亮紅色來定義自己的嘴唇。透明的，才是她此刻最想要的顏色。不需要向任何人證明什麼，不需要上揚的弧度——只是好好照顧自己。',
       insight: '透明代表著坦誠，不再需要用外界的標籤來覆蓋自我的本質。',
       reflectionChoices: [
         { text: '透明', insight: true },
@@ -398,17 +355,17 @@ const layer4: PsychLayerData = {
   ],
   nextLayerThreshold: 0,
   colorScheme: {
-    bg: '#f7f1e3',
-    text: '#576574',
-    accent: '#706fd3',
-    dim: 'rgba(162, 155, 254, 0.15)',
-    sub: '#8395a7', // 原為 #474787，調淺為淺灰藍
-    cellEmpty: 'rgba(71, 71, 135, 0.12)',
-    cellNorm: 'rgba(71, 71, 135, 0.08)',
-    cellDisc: 'rgba(71, 71, 135, 0.10)',
-    cellInsight: 'linear-gradient(135deg, rgba(112,111,211,0.16), rgba(80,80,180,0.1))',
-    border: 'rgba(112,111,211,0.12)',
-    gridBg: 'radial-gradient(ellipse at center, rgba(247,241,227,0.5), rgba(200,190,170,0.85))',
+    bg: '#2a2520',
+    text: '#e8dcc8',
+    accent: '#d4a574',
+    dim: 'rgba(212, 165, 116, 0.15)',
+    sub: '#b8a898',
+    cellEmpty: 'rgba(212, 165, 116, 0.12)',
+    cellNorm: 'rgba(212, 165, 116, 0.08)',
+    cellDisc: 'rgba(212, 165, 116, 0.10)',
+    cellInsight: 'linear-gradient(135deg, rgba(212,165,116,0.16), rgba(140,100,60,0.1))',
+    border: 'rgba(212,165,116,0.12)',
+    gridBg: 'radial-gradient(ellipse at center, rgba(42,37,32,0.5), rgba(20,16,12,0.85))',
   },
   maxUnderstanding: 37,
 };

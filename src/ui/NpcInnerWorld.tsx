@@ -408,8 +408,8 @@ function getIcon(id: string): string {
     spotlight_stage:'🔦',
     applause_banner:'🚩',joke_scripts_desk:'📓',
     hospital_phone:'☎️',backstage_mirror:'🪞',frozen_clock:'⏰',dressing_room_door:'🚪',contract_papers:'📜',
-    lipstick_mirror:'💄',tearful_reflection:'😢',flying_masks:'🎭',broken_shards:'💎',tissue_box_corner:'📦',
-    empty_frame:'🖼️',sofa_chair:'🛋️',faded_poster:'📜',clean_lip_balm:'💄',
+    lipstick_mirror:'💄',tearful_reflection:'😢',
+    wiped_mirror:'🪞',sofa_chair:'🛋️',faded_poster:'📜',clean_lip_balm:'💄',
   };
 
   return m[id]??'📦';
@@ -752,7 +752,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
         bottom: '連接已建立。',
       },
       rena: {
-        mid: '從聚光燈下的表演，到接到電話後的麻木，\n從鏡面迷宮的掙扎，到無鏡房間的真實。',
+        mid: '從聚光燈下的表演，到接到電話後的麻木，\n從鏡面迷宮的掙扎，到鏡前擦掉笑臉的釋然。',
         bottom: '她依然站在舞台上，但這一次，她是為了自己而說出那個不好笑的故事。',
       },
     };
