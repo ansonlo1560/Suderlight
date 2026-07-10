@@ -6,7 +6,7 @@
 // ---- 類型定義 ----
 
 /** 心理世界層級標識 */
-export type PsychLayerId = "glory_gallery" | "accident_site" | "fading_maze" | "blank_frame_chamber" | "broken_home" | "dance_recital_disaster" | "silent_swing" | "applause_stage" | "backstage_phone" | "mirror_maze" | "mirrorless_room";
+export type PsychLayerId = "glory_gallery" | "accident_site" | "fading_maze" | "blank_frame_chamber" | "broken_home" | "dance_recital_disaster" | "silent_swing" | "washed_red_shoes" | "applause_stage" | "backstage_phone" | "mirror_maze" | "mirrorless_room";
 
 
 /** 心理世界層級編號 */
