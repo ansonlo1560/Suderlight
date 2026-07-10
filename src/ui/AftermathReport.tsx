@@ -26,20 +26,24 @@ const NPC_ENTRIES: { npcId: NpcId; label: string }[] = [
   { npcId: 'rena', label: '喜劇演員蕾娜' },
 ];
 
-/** 根據 save 選擇預設活躍 tab：優先選剛完成的，否則第一個 */
+/** 根據 save 選擇預設活躍 tab：成功 > 失敗 > 第一個 */
 function getDefaultTab(save: GameSave): NpcId {
   for (const e of NPC_ENTRIES) {
     if (save.npcs[e.npcId]?.ending === 'success') return e.npcId;
+  }
+  for (const e of NPC_ENTRIES) {
+    if (save.npcs[e.npcId]?.ending === 'failed') return e.npcId;
   }
   return NPC_ENTRIES[0].npcId;
 }
 
 export default function AftermathReport({ save, onBack, onOpenReconciliation }: AftermathReportProps) {
   const [activeNpcId, setActiveNpcId] = useState<NpcId>(() => getDefaultTab(save));
-  const hasAnyCompleted = NPC_ENTRIES.some(e => save.npcs[e.npcId]?.ending === 'success');
+  const allCompleted = NPC_ENTRIES.every(e => save.npcs[e.npcId]?.ending !== 'none');
   const activeNpc = save.npcs[activeNpcId];
   const aftermath = getAftermathContent(activeNpcId);
-  const isUnlocked = activeNpc?.ending === 'success';
+  const isUnlocked = activeNpc?.ending !== 'none';
+  const isSuccess = activeNpc?.ending === 'success';
   const lt = (aftermath.labels as any).labelTexts;
 
   return (
@@ -52,7 +56,8 @@ export default function AftermathReport({ save, onBack, onOpenReconciliation }: 
             {NPC_ENTRIES.map((entry) => {
               const isActive = entry.npcId === activeNpcId;
               const npc = save.npcs[entry.npcId];
-              const done = npc?.ending === 'success';
+              const done = npc?.ending !== 'none';
+              const dotColor = npc?.ending === 'success' ? '#6aaf6a' : npc?.ending === 'failed' ? '#d97a5a' : '#c0b090';
               return (
                 <button
                   key={entry.npcId}
@@ -76,7 +81,7 @@ export default function AftermathReport({ save, onBack, onOpenReconciliation }: 
                 >
                   <span style={{
                     width: 8, height: 8, borderRadius: '50%',
-                    background: done ? '#6aaf6a' : '#c0b090',
+                    background: dotColor,
                     display: 'inline-block',
                   }} />
                   {entry.label}
@@ -88,23 +93,41 @@ export default function AftermathReport({ save, onBack, onOpenReconciliation }: 
           {/* 選中 NPC 的彙報內容 */}
           {isUnlocked ? (
             <>
-              <h3 style={{ margin: '0 0 14px', color: '#3a2c20' }}>{aftermath.title}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <h3 style={{ margin: 0, color: '#3a2c20' }}>{aftermath.title}</h3>
+                <span style={{
+                  padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                  background: isSuccess ? 'rgba(80,180,120,0.16)' : 'rgba(200,100,80,0.14)',
+                  color: isSuccess ? '#3a7a4a' : '#9a4a3a',
+                  border: `1px solid ${isSuccess ? 'rgba(80,180,120,0.3)' : 'rgba(200,100,80,0.25)'}`,
+                }}>
+                  {isSuccess ? '✦ 成功' : '✧ 失敗'}
+                </span>
+              </div>
 
               <section>
-                <p style={{ lineHeight: 1.85, color: '#463525', margin: 0 }}>
-                  {activeNpc.innerWorldDepth >= 3
-                    ? aftermath.paragraphs.successDepth3
-                    : activeNpc.innerWorldDepth >= 2
-                      ? aftermath.paragraphs.successDepth2
-                      : aftermath.paragraphs.successDepth1}
-                </p>
-                {activeNpc.innerWorldDepth > 0 && (
-                  <p style={{ lineHeight: 1.85, color: '#463525', marginTop: 14 }}>
-                    {activeNpc.innerWorldDepth >= 3
-                      ? aftermath.paragraphs.innerDepth3
-                      : activeNpc.innerWorldDepth >= 2
-                        ? aftermath.paragraphs.innerDepth2
-                        : aftermath.paragraphs.innerDepth1}
+                {isSuccess ? (
+                  <>
+                    <p style={{ lineHeight: 1.85, color: '#463525', margin: 0 }}>
+                      {activeNpc.innerWorldDepth >= 3
+                        ? aftermath.paragraphs.successDepth3
+                        : activeNpc.innerWorldDepth >= 2
+                          ? aftermath.paragraphs.successDepth2
+                          : aftermath.paragraphs.successDepth1}
+                    </p>
+                    {activeNpc.innerWorldDepth > 0 && (
+                      <p style={{ lineHeight: 1.85, color: '#463525', marginTop: 14 }}>
+                        {activeNpc.innerWorldDepth >= 3
+                          ? aftermath.paragraphs.innerDepth3
+                          : activeNpc.innerWorldDepth >= 2
+                            ? aftermath.paragraphs.innerDepth2
+                            : aftermath.paragraphs.innerDepth1}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p style={{ lineHeight: 1.85, color: '#463525', margin: 0 }}>
+                    {aftermath.paragraphs.failed}
                   </p>
                 )}
               </section>
@@ -158,12 +181,12 @@ export default function AftermathReport({ save, onBack, onOpenReconciliation }: 
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 22 }}>
             <GlimmerButton tone="primary" onClick={onBack}>回到城市</GlimmerButton>
-            {hasAnyCompleted && (
+            {allCompleted && (
               <GlimmerButton onClick={onOpenReconciliation}>進入自我和解</GlimmerButton>
             )}
-            {!hasAnyCompleted && (
+            {!allCompleted && (
               <div style={{ color: '#5a4a2a', fontSize: 12, fontStyle: 'italic', alignSelf: 'center' }}>
-                尚無完成的靈魂軌跡。完成至少一位 NPC 的修復後可進入自我和解。
+                三位 NPC 的旅程全部結束後，即可進入自我和解（已完成 {NPC_ENTRIES.filter(e => save.npcs[e.npcId]?.ending !== 'none').length}/3）。
               </div>
             )}
           </div>
