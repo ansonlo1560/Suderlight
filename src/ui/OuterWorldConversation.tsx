@@ -84,9 +84,16 @@ function flagName(flag: string): string {
     painter_reacted_to_brush: '🖌 畫筆反應',
     painter_acknowledged_accident: '📰 真相接近',
     painter_sketchbook_understood: '📓 素描理解',
+    player_consumed_professional_identity: '❌ 專業消費',
+    rena_father_topic_acknowledged: '🕯 提及家人',
+    rena_mask_tools_noticed: '💄 察覺偽裝',
     inner_world_unlocked: '🔓 內心解鎖',
     bridge_artist_failed: '💀 失敗',
     bridge_artist_repaired: '✨ 修復',
+    rena_failed: '💀 失敗',
+    rena_repaired: '✨ 修復',
+    aoi_failed: '💀 失敗',
+    aoi_repaired: '✨ 修復',
   };
   return map[flag] ?? flag;
 }
@@ -264,6 +271,11 @@ export default function OuterWorldConversation({
       if (localFailed) {
         const failedMessage = npcId === 'aoi'
           ? '小葵最後看了你一眼。\n她從鞦韆上站起來，頭也不回地走進夜色。\n\n這裡曾經有一個小女孩，靜靜坐在鞦韆上。\n風輕輕推著她的影子，彷彿時間也不忍打擾。\n可如今，她的身影已不在，空蕩的座位孤獨地搖晃著，像是在呼喚，卻永遠等不到回應。\n夜色吞沒了她的背影，只留下公園裡一片寂靜，提醒著人們——她曾經來過，卻再也不會回來。\n\n（小葵已離開，請點擊「離開對話」回到公園）'
+          : npcId === 'rena'
+          ? ['對話結束時，蕾娜對你露出了一個完美的笑容——那笑容精準、明亮、無懈可擊，', 
+             '但你看到她的眼神深處，最後一絲光熄滅了。', 
+             ' ', 
+             '（蕾娜已離開，請點擊「離開對話」回到天橋）'].join('\n')
           : '畫家最後看了你一眼。\n他收起畫布，在雨夜中離開天橋。\n\n畫家徹底放棄與現實的連結，\n將名字留在被水沖淡的報紙裡。\n城市的一部分繼續黯淡無光。\n\n（畫家已離開，請點擊「離開對話」回到天橋）';
         systemMessages.push({
           role: 'system',
@@ -350,7 +362,7 @@ export default function OuterWorldConversation({
 
   return (
     <GuiFrame tone="inner">
-      <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'grid', gridTemplateColumns: 'minmax(420px, 760px) 260px', justifyContent: 'center', gap: 16, padding: 24 }}>
+      <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'grid', gridTemplateColumns: 'minmax(480px, 920px) 260px', justifyContent: 'center', gap: 16, padding: 24 }}>
         <GlassPanel title={npcCard.displayName} variant="dark" style={{ alignSelf: 'center', maxHeight: '88vh', minHeight: 560, display: 'flex', flexDirection: 'column' }} contentStyle={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
           <div style={{ padding: '6px 20px 14px', color: '#9ba2ad', fontSize: 13, lineHeight: 1.6, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             {npcCard.coreEmotion}
@@ -363,19 +375,19 @@ export default function OuterWorldConversation({
             </div>
           )}
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: 20, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '100% 42px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: 24, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '100% 42px' }}>
             {isInitializing ? (
               <div style={{ color: '#888', fontSize: 13, textAlign: 'center', marginTop: 20 }}>正在同步記憶...</div>
             ) : (
               <>
                 {isEnded && (
-                  <div style={{ marginBottom: 16, padding: 12, borderRadius: 10, color: npcState.ending === 'success' ? '#b8ffd6' : '#ffd0d0', border: `1px solid ${npcState.ending === 'success' ? 'rgba(120,255,180,0.28)' : 'rgba(255,120,120,0.28)'}`, background: npcState.ending === 'success' ? 'rgba(80,180,120,0.08)' : 'rgba(180,60,60,0.1)', fontSize: 13 }}>
+                  <div style={{ marginBottom: 16, padding: 18, borderRadius: 10, color: npcState.ending === 'success' ? '#b8ffd6' : '#ffd0d0', border: `1px solid ${npcState.ending === 'success' ? 'rgba(120,255,180,0.28)' : 'rgba(255,120,120,0.28)'}`, background: npcState.ending === 'success' ? 'rgba(80,180,120,0.08)' : 'rgba(180,60,60,0.1)', fontSize: 14, lineHeight: 1.85, width: '100%' }}>
                     {npcState.ending === 'success' ? npcDef.ending.success : npcDef.ending.failed}
                   </div>
                 )}
                 {messages.map((message, index) => (
                   <div key={`${message.role}-${index}`} style={{ marginBottom: 14, display: 'flex', justifyContent: message.role === 'player' ? 'flex-end' : 'flex-start' }}>
-                    <div style={{ maxWidth: message.role === 'system' ? '100%' : '78%', padding: message.role === 'system' ? '8px 12px' : '12px 14px', borderRadius: message.role === 'player' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: message.role === 'player' ? 'rgba(86, 116, 148, 0.42)' : message.role === 'system' ? 'rgba(245, 193, 108, 0.08)' : 'rgba(255,255,255,0.07)', border: message.role === 'system' ? '1px solid rgba(245,193,108,0.16)' : '1px solid rgba(255,255,255,0.08)', color: message.role === 'system' ? '#d7b77a' : '#eee', lineHeight: 1.75, whiteSpace: 'pre-line', fontSize: message.role === 'system' ? 13 : 15 }}>
+                    <div style={{ maxWidth: message.role === 'system' ? '100%' : '78%', padding: message.role === 'system' ? '12px 16px' : '12px 14px', borderRadius: message.role === 'player' ? '14px 14px 4px 14px' : '14px 14px 14px 4px', background: message.role === 'player' ? 'rgba(86, 116, 148, 0.42)' : message.role === 'system' ? 'rgba(245, 193, 108, 0.08)' : 'rgba(255,255,255,0.07)', border: message.role === 'system' ? '1px solid rgba(245,193,108,0.16)' : '1px solid rgba(255,255,255,0.08)', color: message.role === 'system' ? '#d7b77a' : '#eee', lineHeight: 1.85, whiteSpace: 'pre-line', fontSize: message.role === 'system' ? 14 : 15 }}>
                       {message.content}
                     </div>
                   </div>

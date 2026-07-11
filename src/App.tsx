@@ -21,7 +21,9 @@ import {
 
 type Screen = 'title' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
 
-function getNpcIdForLocation(_locationId: LocationId): NpcId {
+function getNpcIdForLocation(locationId: LocationId): NpcId {
+  if (locationId === 'skybridge') return 'bridge_artist';
+  if (locationId === 'comedy_club_entrance' || locationId === 'comedy_club_backstage' || locationId === 'hospital_ward') return 'rena';
   return 'bridge_artist';
 }
 
@@ -76,10 +78,6 @@ export default function App() {
   const chapterSelectorOpen = useDevtoolsStore((s) => s.chapterSelectorOpen);
 
   const openScreenWithReturn = (nextScreen: Screen) => {
-    if (nextScreen === 'aftermath') {
-      const ending = currentNpc.ending;
-      if (ending === 'none') return;
-    }
     setReturnScreen(screen);
     setScreen(nextScreen);
   };
@@ -165,6 +163,7 @@ export default function App() {
       return (
         <AftermathReport
           save={save}
+          npcId={currentNpcId}
           onBack={() => setScreen('city')}
           onOpenReconciliation={() => setScreen('reconciliation')}
         />

@@ -55,6 +55,34 @@
       "description": "這是她不斷解決父母吵架的問題、維持父母關係才漸漸喜歡的玩具，但是從沒成功過。她轉動魔方的每一面，就像她試圖轉動家裡的氣氛——但方塊永遠對不齊，家裡的爭吵聲也從未真正停止。",
       "relatedClues": ["rubiks_cube"],
       "unlockCondition": "rubiks_cube"
+    },
+    {
+      "id": "smiling_depression",
+      "name": "微笑抑鬱症",
+      "description": "一種在社交場合強撐開朗、用笑容掩蓋真實情緒的心理狀態。蕾娜將「逗笑他人」等同於「自己有價值」，從而失去了表達悲傷、疲倦等自然情緒的能力。",
+      "relatedClues": ["joke_book", "show_poster"],
+      "unlockCondition": "joke_book"
+    },
+    {
+      "id": "masked_grief",
+      "name": "被壓抑的哀傷",
+      "description": "蕾娜從未真正為父親的離世哀悼。經紀人的那句「你必須完成脫口秀」等同於一道禁令：不准悲傷。從此她的表情只剩大笑，像一個壞掉的開關。",
+      "relatedClues": ["obituary_clip"],
+      "unlockCondition": "obituary_clip"
+    },
+    {
+      "id": "performing_self",
+      "name": "表演型自我",
+      "description": "她用那支父親送的亮紅色口紅，在鏡子上畫出誇張的笑臉來遮住流淚的倒影。久而久之，她已經分不清哪張臉才是真正的自己——是鏡中的哭臉，還是口紅畫出來的笑臉。",
+      "relatedClues": ["dried_lipstick"],
+      "unlockCondition": "dried_lipstick"
+    },
+    {
+      "id": "identity_bound_to_others",
+      "name": "依附於他人的自我價值",
+      "description": "蕾娜將「讓別人快樂」當作唯一的存在理由。如果她不笑了，她不知道自己還剩什麼。真正的修復不是幫她找回笑容，而是讓她知道：不笑的時候，她也值得被看見。",
+      "relatedClues": ["show_poster", "joke_book"],
+      "unlockCondition": "show_poster"
     }
   ]
 }

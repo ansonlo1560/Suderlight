@@ -261,13 +261,13 @@ export const useGameStore = create<GameStore>((set) => ({
     // 同时清除本地对话纪录（所有 NPC）
     if (playerId) {
       clearDialogueHistory('bridge_artist', playerId);
-      clearDialogueHistory('victor', playerId);
+      clearDialogueHistory('rena', playerId);
       clearDialogueHistory('aoi', playerId);
     }
     // 清除内心世界首次访问纪录
     try {
       window.localStorage.removeItem('sud_bridge_artist_inner_visited');
-      window.localStorage.removeItem('sud_victor_inner_visited');
+      window.localStorage.removeItem('sud_rena_inner_visited');
       window.localStorage.removeItem('sud_aoi_inner_visited');
     } catch { /* ignore */ }
     const fresh = createInitialSave();

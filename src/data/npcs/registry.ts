@@ -7,6 +7,7 @@ import type { NpcId } from '../verticalSlice';
 import type { NpcDefinition } from './types';
 import { bridgePainterDefinition } from './bridgePainter';
 import { victorDefinition } from './victor/index';
+import { renaDefinition } from './rena/index';
 
 import { aoiDefinition } from './aoi';
 
@@ -15,6 +16,7 @@ import { aoiDefinition } from './aoi';
 const npcRegistry: Record<NpcId, NpcDefinition> = {
   bridge_artist: bridgePainterDefinition,
   victor: victorDefinition,
+  rena: renaDefinition,
   aoi: aoiDefinition,
 };
 

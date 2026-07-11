@@ -14,10 +14,18 @@ import muddyRedDanceShoesImage from '../../images/aoi/map-danceShoe.png';
 import demeritNoticeImage from '../../images/aoi/map-demeritNotice.png';
 import tornDiaryImage from '../../images/aoi/map-brokenDairy.png';
 import rubiksCubeImage from '../../images/aoi/map-cube.png';
+import jokeBookImage from '../../images/rena/map-jokeBook.png';
+import driedLipstickImage from '../../images/rena/map-driedLipstick.png';
+import showPosterImage from '../../images/rena/map-poster.png';
+import obituaryClipImage from '../../images/rena/map-ticket.png';
 import aoiImage from '../../images/aoi/Aoi.png';
 import aoiGoneImage from '../../images/aoi/AoiGone.png';
 import painterImage from '../../images/character/IMG_3556.png';
 import painterUnlockedImage from '../../images/character/IMG_3562.png';
+import painterGoneImage from '../../images/painter/painterGone.png';
+import renaImage from '../../images/rena/Rena.png';
+import renaSuccessImage from '../../images/rena/renaSuccess.png';
+import renaGoneImage from '../../images/rena/renaGone.png';
 
 import type { SceneryItem } from '../data/outerWorlds/types';
 
@@ -63,6 +71,10 @@ const CLUE_IMAGE_MAP: Partial<Record<ClueId, string>> = {
   demerit_notice: demeritNoticeImage,
   torn_diary: tornDiaryImage,
   rubiks_cube: rubiksCubeImage,
+  joke_book: jokeBookImage,
+  dried_lipstick: driedLipstickImage,
+  show_poster: showPosterImage,
+  obituary_clip: obituaryClipImage,
 };
 
 function clueName(clueId: ClueId) {
@@ -80,11 +92,15 @@ function adjustColorBrightness(hex: string, percent: number) {
 }
 
 // ---- 位置 → NPC 對應表（未來可移至註冊中心） ----
-function getNpcIdForLocation(_locationId: LocationId): NpcId {
+function getNpcIdForLocation(locationId: LocationId): NpcId {
+  if (locationId === 'skybridge') return 'bridge_artist';
+  if (locationId === 'comedy_club_entrance' || locationId === 'comedy_club_backstage' || locationId === 'hospital_ward') return 'rena';
   return 'bridge_artist';
 }
 
-function getNpcStateForLocation(locationId: LocationId, save: GameSave) {
+function getNpcStateForLocation(locationId: LocationId, save: GameSave, entityId?: string) {
+  if (entityId === 'rena') return save.npcs['rena'];
+  if (entityId === 'aoi') return save.npcs['aoi'];
   const npcId = getNpcIdForLocation(locationId);
   return save.npcs[npcId];
 }
@@ -153,6 +169,13 @@ function IsometricBuilding({ building, isRepaired, mapWidth, mapHeight }: { buil
   const gFPts = gFrame ? getWindowPoints(gFrame, s1, s2, s3, t1, t2, t3) : null;
   const knob = gWin ? getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.78, gWin.y + gWin.h * 0.58, s1, s2, s3, t1, t2, t3) : null;
 
+  const tWin: WindowDef | null = building.id === 'theater' ? { side: 'right', x: 0.35, y: 0.08, w: 0.30, h: 0.62 } : null;
+  const tFrame: WindowDef | null = tWin ? { side: tWin.side, x: tWin.x - 0.03, y: tWin.y - 0.05, w: tWin.w + 0.06, h: tWin.h + 0.08 } : null;
+  const tPts = tWin ? getWindowPoints(tWin, s1, s2, s3, t1, t2, t3) : null;
+  const tFPts = tFrame ? getWindowPoints(tFrame, s1, s2, s3, t1, t2, t3) : null;
+  const tKnob = tWin ? getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.2, tWin.y + tWin.h * 0.5, s1, s2, s3, t1, t2, t3) : null;
+  const tKnob2 = tWin ? getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.8, tWin.y + tWin.h * 0.5, s1, s2, s3, t1, t2, t3) : null;
+
   return (
     <div style={{ position: 'absolute', left: 0, top: 0, width: mapWidth, height: mapHeight, pointerEvents: 'none', zIndex: Math.round(s2.top) }}>
       <svg width={mapWidth} height={mapHeight} style={{ position: 'absolute', left: 0, top: 0, overflow: 'visible' }}>
@@ -168,6 +191,11 @@ function IsometricBuilding({ building, isRepaired, mapWidth, mapHeight }: { buil
         {gPts && <polygon points={gPts} fill={isRepaired ? 'rgba(62,22,48,0.96)' : 'rgba(16,16,18,0.96)'} stroke={isRepaired ? 'rgba(255,196,132,0.28)' : 'rgba(255,255,255,0.08)'} strokeWidth="1" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} />}
         {gWin && <line x1={getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.52, gWin.y, s1, s2, s3, t1, t2, t3).left} y1={getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.52, gWin.y, s1, s2, s3, t1, t2, t3).top} x2={getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.52, gWin.y + gWin.h, s1, s2, s3, t1, t2, t3).left} y2={getSurfacePoint(gWin.side, gWin.x + gWin.w * 0.52, gWin.y + gWin.h, s1, s2, s3, t1, t2, t3).top} stroke={isRepaired ? 'rgba(255,230,180,0.32)' : 'rgba(255,255,255,0.08)'} strokeWidth="0.9" style={{ transition: 'stroke 1.5s ease' }} />}
         {knob && <circle cx={knob.left} cy={knob.top} r={2.3} fill={isRepaired ? '#ffdca8' : '#8a8a92'} stroke={isRepaired ? 'rgba(120,74,22,0.7)' : 'rgba(25,25,28,0.9)'} strokeWidth="0.8" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 5px rgba(255,212,140,0.45))' : 'none' }} />}
+        {tFPts && <polygon points={tFPts} fill={isRepaired ? 'rgba(40,18,62,0.94)' : 'rgba(24,22,28,0.95)'} stroke={isRepaired ? 'rgba(255,214,150,0.45)' : 'rgba(255,255,255,0.12)'} strokeWidth="1.2" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 6px rgba(255,180,120,0.18))' : 'none' }} />}
+        {tPts && <polygon points={tPts} fill={isRepaired ? 'rgba(26,10,42,0.96)' : 'rgba(14,12,16,0.96)'} stroke={isRepaired ? 'rgba(255,196,132,0.28)' : 'rgba(255,255,255,0.08)'} strokeWidth="1" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} />}
+        {tWin && <line x1={getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.5, tWin.y, s1, s2, s3, t1, t2, t3).left} y1={getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.5, tWin.y, s1, s2, s3, t1, t2, t3).top} x2={getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.5, tWin.y + tWin.h, s1, s2, s3, t1, t2, t3).left} y2={getSurfacePoint(tWin.side, tWin.x + tWin.w * 0.5, tWin.y + tWin.h, s1, s2, s3, t1, t2, t3).top} stroke={isRepaired ? 'rgba(255,230,180,0.32)' : 'rgba(255,255,255,0.08)'} strokeWidth="0.9" style={{ transition: 'stroke 1.5s ease' }} />}
+        {tKnob && <circle cx={tKnob.left} cy={tKnob.top} r={2.3} fill={isRepaired ? '#ffdca8' : '#8a8a92'} stroke={isRepaired ? 'rgba(120,74,22,0.7)' : 'rgba(25,25,28,0.9)'} strokeWidth="0.8" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 5px rgba(255,212,140,0.45))' : 'none' }} />}
+        {tKnob2 && <circle cx={tKnob2.left} cy={tKnob2.top} r={2.3} fill={isRepaired ? '#ffdca8' : '#8a8a92'} stroke={isRepaired ? 'rgba(120,74,22,0.7)' : 'rgba(25,25,28,0.9)'} strokeWidth="0.8" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease', filter: isRepaired ? 'drop-shadow(0 0 5px rgba(255,212,140,0.45))' : 'none' }} />}
       </svg>
       <div style={{ position: 'absolute', left: s2.left, top: s0.top - building.tall - 20, transform: 'translateX(-50%)', color: isRepaired ? '#fff' : '#888', fontSize: 11, padding: '2px 6px', background: isRepaired ? 'rgba(30,40,50,0.85)' : 'rgba(0,0,0,0.65)', border: `1px solid ${isRepaired ? '#ffe082' : '#444'}`, borderRadius: 4, boxShadow: isRepaired ? '0 0 10px rgba(255,224,130,0.3)' : 'none', pointerEvents: 'auto', userSelect: 'none' }}>{building.name}</div>
       {building.decorations?.({
@@ -202,26 +230,25 @@ function IsometricRoads({ world, locationId, isRepaired }: { world: OuterWorldMo
       { deck: toElevatedScreen({ x: 11.5, y: 10 }), base: isoToScreen({ x: 11.5, y: 10 }) },
       { deck: toElevatedScreen({ x: 15.5, y: 10 }), base: isoToScreen({ x: 15.5, y: 10 }) },
       { deck: toElevatedScreen({ x: 18.5, y: 10 }), base: isoToScreen({ x: 18.5, y: 10 }) },
-      { deck: toElevatedScreen({ x: 17.0, y: 6.0 }), base: isoToScreen({ x: 17.0, y: 6.0 }) },
-      { deck: toElevatedScreen({ x: 19.0, y: 6.0 }), base: isoToScreen({ x: 19.0, y: 6.0 }) },
+      // 新樓梯橋墩（x:19→27, y:9 中線）
+      { deck: toElevatedScreen({ x: 20.0, y: 9 }), base: isoToScreen({ x: 20.0, y: 9 }) },
+      { deck: toElevatedScreen({ x: 22.0, y: 9 }), base: isoToScreen({ x: 22.0, y: 9 }) },
+      { deck: toElevatedScreen({ x: 24.0, y: 9 }), base: isoToScreen({ x: 24.0, y: 9 }) },
+      { deck: toElevatedScreen({ x: 26.0, y: 9 }), base: isoToScreen({ x: 26.0, y: 9 }) },
     ];
     const railings: Array<Array<{ p1: { left: number; top: number }; p2: { left: number; top: number } }>> = [];
     const rA: typeof railings[0] = [];
     for (let x = 6.0; x <= 19.01; x += 0.8) { const p = toElevatedScreen({ x, y: 10 }); rA.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
     railings.push(rA);
     const rB: typeof railings[0] = [];
-    for (let x = 4.0; x <= 16.61; x += 0.8) { const p = toElevatedScreen({ x, y: 8 }); rB.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
-    const pLast = toElevatedScreen({ x: 17.0, y: 8.0 }); rB.push({ p1: pLast, p2: { left: pLast.left, top: pLast.top - BRIDGE_RAIL_HEIGHT } });
+    for (let x = 4.0; x <= 19.21; x += 0.8) { const p = toElevatedScreen({ x, y: 8 }); rB.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
+    const pLast = toElevatedScreen({ x: 17.0, y: 8.0 }); rB.push({ p1: pLast, p2: { left: pLast.left, top: pLast.top - BRIDGE_RAIL_HEIGHT } }); 
     railings.push(rB);
-    const rC: typeof railings[0] = [];
-    for (let y = 4.0; y <= 8.0; y += 0.8) { const p = toElevatedScreen({ x: 17, y }); rC.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
-    railings.push(rC);
-    const rD: typeof railings[0] = [];
-    for (let y = 4.0; y <= 9.61; y += 0.8) { const p = toElevatedScreen({ x: 19, y }); rD.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); }
-    const pLast2 = toElevatedScreen({ x: 19, y: 10.0 }); rD.push({ p1: pLast2, p2: { left: pLast2.left, top: pLast2.top - BRIDGE_RAIL_HEIGHT } });
-    railings.push(rD);
     const rL: typeof railings[0] = []; for (let y = 10.0; y <= 16.01; y += 0.8) { const p = toElevatedScreen({ x: 4, y }); rL.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); } railings.push(rL);
     const rR: typeof railings[0] = []; for (let y = 10.0; y <= 16.01; y += 0.8) { const p = toElevatedScreen({ x: 6, y }); rR.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); } railings.push(rR);
+    // 新樓梯欄杆（北側 y=8, 南側 y=10）
+    const rGS1: typeof railings[0] = []; for (let x = 19.0; x <= 26.01; x += 0.8) { const p = toElevatedScreen({ x, y: 8 }); rGS1.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); } railings.push(rGS1);
+    const rGS2: typeof railings[0] = []; for (let x = 19.0; x <= 26.01; x += 0.8) { const p = toElevatedScreen({ x, y: 10 }); rGS2.push({ p1: p, p2: { left: p.left, top: p.top - BRIDGE_RAIL_HEIGHT } }); } railings.push(rGS2);
     return { piers, railings };
   }, [locationId, toElevatedScreen]);
 
@@ -233,15 +260,27 @@ function IsometricRoads({ world, locationId, isRepaired }: { world: OuterWorldMo
           return (<g key={i}><rect x={pier.deck.left - 3} y={pier.deck.top} width={6} height={sh} rx={2} fill={isRepaired ? 'rgba(116,143,171,0.22)' : 'rgba(120,128,140,0.12)'} stroke={isRepaired ? 'rgba(255,224,130,0.10)' : 'rgba(255,255,255,0.05)'} strokeWidth="1" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} /><rect x={pier.base.left - 6} y={pier.base.top + 20} width={12} height={4} rx={1} fill={isRepaired ? 'rgba(72,96,124,0.18)' : 'rgba(90,96,110,0.10)'} style={{ transition: 'fill 1.5s ease' }} /></g>);
         })}</g>
       )}
-      {rDefs.map((pts, idx) => {
+      {/* 渲染順序：地面路 → 樓梯 → 天橋（天橋在上層，應後繪以遮擋地面路） */}
+      {locationId === 'skybridge' ? [3, 4, 5, 2, 0, 1].map(idx => {
+        const pts = rDefs[idx];
+        if (!pts) return null;
         const sp = pts.map(pt => toElevatedScreen(pt));
         const ptsStr = sp.map(p => `${p.left},${p.top}`).join(' ');
-        const isStairs = locationId === 'skybridge' && idx === 2;
+        const isOldStairs = idx === 2;
+        const isNewStairs = idx === 1;
         return (<g key={idx}>
           {isRepaired && <polygon points={ptsStr} fill="none" stroke="rgba(255,224,130,0.12)" strokeWidth="12" style={{ filter: 'blur(4px)', transition: 'stroke 1.5s ease' }} />}
           <polygon points={ptsStr} fill={roadFill} stroke={roadStroke} strokeWidth="2.5" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} />
-          {locationId === 'skybridge' && idx <= 1 && <polygon points={`${sp[2].left},${sp[2].top} ${sp[3].left},${sp[3].top} ${isoToScreen(pts[3]).left},${isoToScreen(pts[3]).top} ${isoToScreen(pts[2]).left},${isoToScreen(pts[2]).top}`} fill="rgba(22,30,40,0.24)" stroke="rgba(255,255,255,0.035)" strokeWidth="1" />}
-          {isStairs && <g>{Array.from({ length: 18 }).map((_, si) => { const t = si / 17; const sy = lerp(10.08, 15.92, t); const p1 = toElevatedScreen({ x: 4, y: sy }); const p2 = toElevatedScreen({ x: 6, y: sy }); return (<g key={si}><line x1={p1.left} y1={p1.top} x2={p2.left} y2={p2.top} stroke={isRepaired ? 'rgba(255,224,130,0.52)' : 'rgba(255,255,255,0.22)'} strokeWidth="1.6" /><line x1={p1.left} y1={p1.top + 3} x2={p2.left} y2={p2.top + 3} stroke="rgba(0,0,0,0.28)" strokeWidth="1" /></g>); })}</g>}
+          {idx <= 1 && <polygon points={`${sp[2].left},${sp[2].top} ${sp[3].left},${sp[3].top} ${isoToScreen(pts[3]).left},${isoToScreen(pts[3]).top} ${isoToScreen(pts[2]).left},${isoToScreen(pts[2]).top}`} fill="rgba(22,30,40,0.08)" stroke="rgba(255,255,255,0.025)" strokeWidth="1" />}
+          {isOldStairs && <g>{Array.from({ length: 18 }).map((_, si) => { const t = si / 17; const sy = lerp(10.08, 15.92, t); const p1 = toElevatedScreen({ x: 4, y: sy }); const p2 = toElevatedScreen({ x: 6, y: sy }); return (<g key={si}><line x1={p1.left} y1={p1.top} x2={p2.left} y2={p2.top} stroke={isRepaired ? 'rgba(255,224,130,0.52)' : 'rgba(255,255,255,0.22)'} strokeWidth="1.6" /><line x1={p1.left} y1={p1.top + 3} x2={p2.left} y2={p2.top + 3} stroke="rgba(0,0,0,0.28)" strokeWidth="1" /></g>); })}</g>}
+          {isNewStairs && <g>{Array.from({ length: 18 }).map((_, si) => { const t = si / 17; const sx = lerp(19.08, 26.92, t); const p1 = toElevatedScreen({ x: sx, y: 8 }); const p2 = toElevatedScreen({ x: sx, y: 10 }); return (<g key={si}><line x1={p1.left} y1={p1.top} x2={p2.left} y2={p2.top} stroke={isRepaired ? 'rgba(255,224,130,0.52)' : 'rgba(255,255,255,0.22)'} strokeWidth="1.6" /><line x1={p1.left} y1={p1.top + 3} x2={p2.left} y2={p2.top + 3} stroke="rgba(0,0,0,0.28)" strokeWidth="1" /></g>); })}</g>}
+        </g>);
+      }) : rDefs.map((pts, idx) => {
+        const sp = pts.map(pt => toElevatedScreen(pt));
+        const ptsStr = sp.map(p => `${p.left},${p.top}`).join(' ');
+        return (<g key={idx}>
+          {isRepaired && <polygon points={ptsStr} fill="none" stroke="rgba(255,224,130,0.12)" strokeWidth="12" style={{ filter: 'blur(4px)', transition: 'stroke 1.5s ease' }} />}
+          <polygon points={ptsStr} fill={roadFill} stroke={roadStroke} strokeWidth="2.5" style={{ transition: 'fill 1.5s ease, stroke 1.5s ease' }} />
         </g>);
       })}
       {locationId === 'skybridge' && bridgeDetails && (
@@ -365,9 +404,11 @@ export default function OuterWorldExplorer({
   // ---- 動態取得當前世界模組 ----
   const world = useMemo<OuterWorldModule>(() => getWorldForLocation(save.currentLocation), [save.currentLocation]);
   const bounds = useMemo(() => getBoundsForLocation(save.currentLocation), [save.currentLocation]);
-  const npcState = useMemo(() => getNpcStateForLocation(save.currentLocation, save), [save.currentLocation, save]);
-  const npcId = useMemo(() => getNpcIdForLocation(save.currentLocation), [save.currentLocation]);
-  const isRepaired = npcState?.ending === 'success';
+  
+  // 1. 取得場景主導的 NPC 狀態（用於場景渲染）
+  const primaryNpcId = useMemo(() => getNpcIdForLocation(save.currentLocation), [save.currentLocation]);
+  const primaryNpcState = useMemo(() => save.npcs[primaryNpcId], [save, primaryNpcId]);
+  const isRepaired = primaryNpcState?.ending === 'success';
 
   const displayLoc = useMemo(() => {
     return { ...world.locationDisplay, id: save.currentLocation as LocationId, spawn: locations[save.currentLocation].spawn };
@@ -378,11 +419,13 @@ export default function OuterWorldExplorer({
 
     // 由世界模組提供實體
     const worldEntities = world.getEntities({
-      npcEnding: npcState?.ending ?? 'none',
-      npcInnerWorldUnlocked: npcState?.innerWorldUnlocked ?? false,
+      npcEnding: primaryNpcState?.ending ?? 'none',
+      npcInnerWorldUnlocked: primaryNpcState?.innerWorldUnlocked ?? false,
       collectedClues: save.collectedClues,
       locationId: save.currentLocation,
-    });
+      save, // 傳入完整的 save 供 map 模組獲取其他 NPC 狀態
+    } as any);
+
     list.push(...worldEntities.map(e => ({ ...e, type: e.type as 'npc' | 'clue' | 'portal' })));
 
     // 線索實體
@@ -396,9 +439,14 @@ export default function OuterWorldExplorer({
     });
 
     return list;
-  }, [world, npcState, save.collectedClues, save.currentLocation]);
+  }, [world, primaryNpcState, save.collectedClues, save.currentLocation]);
 
   const nearbyEntity = entities.find(e => distance(e.pos, playerPos) <= 1.35);
+
+  // 2. 計算當前活躍的 NPC 狀態（用於 HUD 顯示）
+  const activeNpcState = useMemo(() => getNpcStateForLocation(save.currentLocation, save, nearbyEntity?.id), [save.currentLocation, save, nearbyEntity?.id]);
+
+
 
   const focusCameraOnPlayer = (pos: Point) => {
     const base = isoToScreen(pos);
@@ -438,8 +486,9 @@ export default function OuterWorldExplorer({
     }
 
     // 委派給世界模組的互動邏輯
-    const targetNpcState = entity?.id === 'aoi' ? save.npcs['aoi'] : npcState;
+    const targetNpcState = getNpcStateForLocation(save.currentLocation, save, entity?.id);
     const interaction = world.getInteraction?.(targetId, {
+
       npcEnding: targetNpcState?.ending ?? 'none',
       npcInnerWorldUnlocked: targetNpcState?.innerWorldUnlocked ?? false,
       npcFlags: targetNpcState?.flags ?? [],
@@ -475,6 +524,8 @@ export default function OuterWorldExplorer({
     if (entity?.type === 'npc') {
       if (entity.id === 'aoi') {
         onSwitchNpc?.('aoi');
+      } else if (entity.id === 'rena') {
+        onSwitchNpc?.('rena');
       } else {
         onSwitchNpc?.('bridge_artist');
       }
@@ -605,18 +656,22 @@ export default function OuterWorldExplorer({
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', cursor: isDragging ? 'grabbing' : 'grab', background: '#080a0d', filter: traumaFilter }} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
       <GlassPanel title="提燈筆記" variant="dark" style={{ position: 'absolute', top: 20, left: 20, zIndex: 100, width: 270 }} contentStyle={{ display: 'grid', gap: 12, padding: 16 }}>
         <div style={{ fontSize: 13, lineHeight: 1.7, color: '#bbb' }}>
-          {npcState?.innerWorldUnlocked
+          {activeNpcState?.innerWorldUnlocked
             ? '天橋盡頭出現了微弱的門縫光。'
             : '雨聲仍很密，故事還沒有拼合。'}
           <br />
-          {npcState?.ending === 'success' && (
+          {activeNpcState?.ending === 'success' && (
             <span style={{ color: '#b8ffd6' }}>
               畫家終於聽見了雨聲。
             </span>
           )}
-          {(npcState?.ending === 'failed' || save.npcs['aoi']?.ending === 'failed') && (
+          {(activeNpcState?.ending === 'failed' || save.npcs['aoi']?.ending === 'failed' || save.npcs['rena']?.ending === 'failed') && (
             <span style={{ color: '#ffd0d0' }}>
-              {save.npcs['aoi']?.ending === 'failed' ? '公園的鞦韆上，只剩風還在輕輕推著空盪的座位。' : '天橋上只剩下一張被撕碎的空白畫布。'}
+              {save.npcs['aoi']?.ending === 'failed'
+                ? '公園的鞦韆上，只剩風還在輕輕推著空盪的座位。'
+                : save.npcs['rena']?.ending === 'failed'
+                ? '後台的鏡子上，只剩一張口紅畫的笑臉正在慢慢斑駁。'
+                : '天橋上只剩下一張被撕碎的空白畫布。'}
             </span>
           )}
         </div>
@@ -654,24 +709,27 @@ export default function OuterWorldExplorer({
           <div style={{ color: 'rgba(255,255,255,0.28)', fontSize: 13, lineHeight: 1.7, marginTop: 10 }}>{displayLoc.description}</div>
         </div>
         {visibleBuildings.map(b => (
-          <IsometricBuilding key={b.id} building={b} isRepaired={b.id === 'pavilion' ? save.npcs['aoi']?.ending === 'success' : isRepaired} mapWidth={world.mapWidth} mapHeight={world.mapHeight} />
+          <IsometricBuilding key={b.id} building={b} isRepaired={b.id === 'pavilion' ? save.npcs['aoi']?.ending === 'success' : b.id === 'theater' ? save.npcs['rena']?.ending === 'success' : isRepaired} mapWidth={world.mapWidth} mapHeight={world.mapHeight} />
         ))}
         {entities.map(entity => {
           const es = isoToScreen(entity.pos); const s = { left: es.left, top: es.top - world.getElevation(entity.pos) };
           const isNear = nearbyEntity?.id === entity.id;
           const isGDoor = entity.id === 'gallery_door';
+          const isTDoor = entity.id === 'theater_door';
           const cImg = entity.type === 'clue' ? CLUE_IMAGE_MAP[entity.id as ClueId] : undefined;
           const isImg = entity.type === 'clue' && Boolean(cImg);
           const isPtr = entity.id === 'painter';
           const isAoi = entity.id === 'aoi';
+          const isRena = entity.id === 'rena';
           const isTC = entity.id === 'torn_canvas';
-          const isPill = !isImg && !isPtr && !isAoi && !isTC && (isGDoor || entity.type === 'clue');
-          const bw = isTC ? 82 : (isImg ? 88 : (isPill ? 94 : (isAoi ? 100 : (entity.type === 'npc' ? 64 : 48))));
-          const bh = isTC ? 82 : (isImg ? 112 : (isPill ? 36 : (isAoi ? 140 : (entity.type === 'npc' ? 84 : 48))));
+          const isPill = !isImg && !isPtr && !isAoi && !isRena && !isTC && (isGDoor || entity.type === 'clue');
+          const bw = isTC ? 82 : (isImg ? 88 : (isPill ? 94 : (isAoi ? 100 : (isRena ? 72 : (entity.type === 'npc' ? 64 : 48)))));
+          const bh = isTC ? 82 : (isImg ? 112 : (isPill ? 36 : (isAoi ? 140 : (isRena ? 100 : (entity.type === 'npc' ? 84 : 48)))));
           return (
-            <button key={entity.id} onClick={e => handleEntityClick(e, entity)} style={{ position: 'absolute', left: s.left, top: s.top, transform: 'translate(-50%, -100%)', width: bw, height: bh, border: isTC ? '2px dashed #5a5a6e' : ((isPtr || isAoi) ? 'none' : `2px solid ${entity.color}`), borderRadius: (isPtr || isAoi) ? '0' : isTC ? '8px 14px 10px 4px' : isImg ? '14px' : isPill ? '999px' : entity.type === 'npc' ? '36px 36px 18px 18px' : '50%', padding: (isPtr || isAoi) ? '0' : isTC ? '4px' : isImg ? '4px' : isPill ? '0 8px' : '0', background: isTC ? 'rgba(20,22,30,0.94)' : (isPtr || isAoi) ? 'transparent' : isImg ? 'rgba(14,18,25,0.92)' : entity.type === 'npc' ? 'rgba(255,170,51,0.12)' : 'rgba(255,255,255,0.08)', color: isTC ? '#8a8a9c' : entity.color, cursor: 'pointer', zIndex: Math.round(s.top) + (isGDoor ? 500 : 0), boxShadow: isTC ? (isNear ? '0 0 28px rgba(120,120,140,0.35)' : '0 0 10px rgba(120,120,140,0.15)') : isPtr ? (isNear ? '0 0 26px rgba(255,196,132,0.65)' : 'none') : isAoi ? 'none' : (isNear ? `0 0 36px ${entity.color}` : `0 0 18px ${entity.color}55`), fontWeight: 'bold', userSelect: 'none', transition: 'box-shadow 0.18s, transform 0.18s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} title={entity.label}>
-              {isPtr ? <img src={npcState?.ending === 'success' ? painterUnlockedImage : painterImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: isNear ? 'drop-shadow(0 0 20px rgba(255,196,132,0.45))' : 'none' }} />
+            <button key={entity.id} onClick={e => handleEntityClick(e, entity)} style={{ position: 'absolute', left: s.left, top: s.top, transform: 'translate(-50%, -100%)', width: bw, height: bh, border: isTC ? '2px dashed #5a5a6e' : ((isPtr || isAoi || isRena) ? 'none' : `2px solid ${entity.color}`), borderRadius: (isPtr || isAoi || isRena) ? '0' : isTC ? '8px 14px 10px 4px' : isImg ? '14px' : isPill ? '999px' : entity.type === 'npc' ? '36px 36px 18px 18px' : '50%', padding: (isPtr || isAoi || isRena) ? '0' : isTC ? '4px' : isImg ? '4px' : isPill ? '0 8px' : '0', background: isTC ? 'rgba(20,22,30,0.94)' : (isPtr || isAoi || isRena) ? 'transparent' : isImg ? 'rgba(14,18,25,0.92)' : entity.type === 'npc' ? 'rgba(255,170,51,0.12)' : 'rgba(255,255,255,0.08)', color: isTC ? '#8a8a9c' : entity.color, cursor: 'pointer', zIndex: Math.round(s.top) + ((isGDoor || isTDoor || entity.id === 'rena') ? 500 : 0), boxShadow: isTC ? (isNear ? '0 0 28px rgba(120,120,140,0.35)' : '0 0 10px rgba(120,120,140,0.15)') : isPtr ? (isNear ? '0 0 26px rgba(255,196,132,0.65)' : 'none') : isAoi ? 'none' : isRena ? 'none' : (isNear ? `0 0 36px ${entity.color}` : `0 0 18px ${entity.color}55`), fontWeight: 'bold', userSelect: 'none', transition: 'box-shadow 0.18s, transform 0.18s', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} title={entity.label}>
+              {isPtr ? <img src={save.npcs['bridge_artist']?.ending === 'success' ? painterUnlockedImage : save.npcs['bridge_artist']?.ending === 'failed' ? painterGoneImage : painterImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: isNear ? 'drop-shadow(0 0 20px rgba(255,196,132,0.45))' : 'none' }} />
               : isAoi ? <img src={save.npcs['aoi']?.ending === 'failed' ? aoiGoneImage : aoiImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: save.npcs['aoi']?.ending === 'success' ? (isNear ? 'drop-shadow(0 0 20px rgba(255,170,51,0.45))' : 'none') : save.npcs['aoi']?.ending === 'failed' ? 'none' : 'grayscale(1)' }} />
+              : isRena ? <img src={save.npcs['rena']?.ending === 'failed' ? renaGoneImage : save.npcs['rena']?.ending === 'success' ? renaSuccessImage : renaImage} alt={entity.label} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center bottom', border: 'none', borderRadius: 0, filter: save.npcs['rena']?.ending === 'success' ? (isNear ? 'drop-shadow(0 0 20px rgba(255,170,51,0.45))' : 'none') : save.npcs['rena']?.ending === 'failed' ? 'none' : 'grayscale(1)' }} />
               : isImg && cImg ? <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', width: '100%', height: '100%' }}><img src={cImg} alt={entity.label} style={{ width: '100%', height: 72, objectFit: 'cover', borderRadius: 9, border: '1px solid rgba(255,255,255,0.18)', boxShadow: '0 3px 10px rgba(0,0,0,0.35)' }} /><span style={{ fontSize: 11, lineHeight: 1.2, letterSpacing: 0.2, color: '#f7f0dc', textShadow: '0 0 6px rgba(0,0,0,0.45)' }}>{entity.label}</span></div>
               : isPill ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', height: '100%', whiteSpace: 'nowrap' }}><span style={{ fontSize: 13, fontWeight: 'bold', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', width: 22, height: 22, minWidth: 22, minHeight: 22, flexShrink: 0, flexGrow: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{entity.icon}</span><span style={{ fontSize: 11, letterSpacing: 0.5, fontWeight: 'bold' }}>{entity.label}</span></div>
               : isTC ? <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, width: '100%', height: '100%' }}><div style={{ fontSize: 22, opacity: 0.55, filter: 'grayscale(1)', lineHeight: 1 }}>🧩</div><span style={{ fontSize: 9, letterSpacing: 0.3, color: '#7a7a8c', textAlign: 'center', lineHeight: 1.3, maxWidth: 70 }}>{entity.label}</span></div>
@@ -689,12 +747,12 @@ export default function OuterWorldExplorer({
 
       {modal && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }} onClick={() => setModal(null)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 540, width: '100%' }}>
-            <GlassPanel title={modal.title} variant="dark" contentStyle={{ color: '#ccc', lineHeight: 1.8, whiteSpace: 'pre-line' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 1000, width: '100%' }}>
+            <GlassPanel title={modal.title} variant="dark" contentStyle={{ color: '#ccc', lineHeight: 1.8, whiteSpace: 'pre-line', maxHeight: '75vh', overflowY: 'auto' }}>
             {modal.content}
             {modal.discoveryContent && <div style={{ marginTop: 14, color: '#d0c8ba', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-line' }}>{modal.discoveryContent}</div>}
             {(modal.discoveryTitle || modal.discoveryDesc) && <div style={{ marginTop: 10, padding: '14px 16px', borderRadius: 8, background: 'rgba(214,163,94,0.1)', border: '1px solid rgba(214,163,94,0.15)', color: '#d0a050' }}>{modal.discoveryTitle && <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>獲得新理解：{modal.discoveryTitle}</div>}{modal.discoveryDesc && <div>{modal.discoveryDesc}</div>}</div>}
-            {modal.actions && modal.actions.length > 0 && <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>{modal.actions.map((a, i) => <GlimmerButton key={i} tone={a.tone as any} onClick={a.onClick}>{a.label}</GlimmerButton>)}</div>}
+            {modal.actions && modal.actions.length > 0 && <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>{modal.actions.map((a, i) => <GlimmerButton key={i} tone={a.tone as any} onClick={a.onClick}>{a.label}</GlimmerButton>)}<GlimmerButton tone="ghost" onClick={() => setModal(null)}>回到城市繼續探索</GlimmerButton></div>}
             {(!modal.actions || modal.actions.length === 0) && <div style={{ marginTop: 14, textAlign: 'center' }}><GlimmerButton tone="quiet" onClick={() => setModal(null)} fullWidth>關閉</GlimmerButton></div>}
             </GlassPanel>
           </div>

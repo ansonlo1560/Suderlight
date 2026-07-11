@@ -20,7 +20,7 @@ const SAVE_KEY = 'glimmer_city_vertical_slice_save_v1';
 const NPC_TABS: { id: NpcId; name: string }[] = [
   { id: 'bridge_artist', name: '天橋畫家' },
   { id: 'aoi', name: '小葵' },
-  { id: 'victor', name: '維克多' },
+  { id: 'rena', name: '蕾娜' },
 ];
 
 

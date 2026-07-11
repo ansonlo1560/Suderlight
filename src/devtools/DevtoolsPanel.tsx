@@ -449,8 +449,9 @@ type Props = {
 
 const NPC_NAMES: Record<NpcId, string> = {
   bridge_artist: '天橋畫家',
-  victor: '維克多',
+  rena: '蕾娜',
   aoi: '小葵',
+  victor: '維克多',
 };
 
 export default function DevtoolsPanel({ currentScreen, selectedNpcId, onSelectNpcId }: Props) {
@@ -501,9 +502,10 @@ export default function DevtoolsPanel({ currentScreen, selectedNpcId, onSelectNp
 
       {/* NPC Chips Row */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-        {(['bridge_artist', 'aoi', 'victor'] as NpcId[]).map(id => {
+        {(['bridge_artist', 'aoi', 'rena'] as NpcId[]).map(id => {
           const isActive = selectedNpcId === id;
           const targetNpc = save.npcs[id];
+          if (!targetNpc) return null;
           return (
             <button
               key={id}

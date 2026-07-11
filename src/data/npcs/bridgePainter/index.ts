@@ -14,28 +14,28 @@ export const bridgeArtistClues: Record<BridgeArtistClueId, ClueDefinition> = {
   brush: {
     id: 'brush', label: '乾涸的畫筆', shortLabel: '畫筆', knowledge: 10,
     worldId: 'bridge_artist', locationId: 'skybridge',
-    pos: { x: 18, y: 9.5 }, color: '#fff6d8', icon: '筆',
+    pos: { x: 15, y: 9.2 }, color: '#fff6d8', icon: '筆',
     content: '你在潮濕的天橋角落找到一支畫筆。筆尖已經乾硬，上面殘留洗不掉的灰色顏料，像一段被迫停下來的句子。',
     dictionaryHint: '創傷後的創作，不一定是回到原本的樣子，也可能只是重新允許手停在紙上。',
   },
   newspaper: {
     id: 'newspaper', label: '報紙剪報', shortLabel: '報紙', knowledge: 10,
     worldId: 'bridge_artist', locationId: 'skybridge',
-    pos: { x: 10, y: 18 }, color: '#fff6d8', icon: '紙',
+    pos: { x: 8, y: 17.5 }, color: '#fff6d8', icon: '紙',
     content: '報紙被雨泡皺，只剩一角還能辨認：「天才青年畫家車禍後失去辨色能力……」旁邊的版面被人用力撕掉。',
     dictionaryHint: '失色不是黑暗，而是世界仍在發光，只是所有光都繞過了你。',
   },
   sketchbook: {
     id: 'sketchbook', label: '素描本', shortLabel: '素描本', knowledge: 15,
     worldId: 'bridge_artist', locationId: 'skybridge',
-    pos: { x: 8, y: 9 }, color: '#fff6d8', icon: '本',
+    pos: { x: 29, y: 12 }, color: '#fff6d8', icon: '本',
     content: '素描本前半本全是鮮活的花與街燈，後半本只剩反覆描過的灰階輪廓。最後一頁寫著：「如果春天只剩形狀，我還算畫家嗎？」',
     dictionaryHint: '自我價值崩塌時，人常把「做不到」誤認成「我不存在」。',
   },
   accident_report: {
     id: 'accident_report', label: '車禍報導', shortLabel: '車禍報導', knowledge: 15,
     worldId: 'bridge_artist', locationId: 'skybridge',
-    pos: { x: 23, y: 19 }, color: '#fff6d8', icon: '紙',
+    pos: { x: 15, y: 12 }, color: '#fff6d8', icon: '紙',
     content: '這不是普通新聞，而是一份被折起來的完整報導。事故後的採訪標題寫著：「大家都在等他復出。」紙邊被指甲掐出深深痕跡。',
     dictionaryHint: '有些期待看似溫柔，實際上會把人再次釘回創傷現場。',
   },
@@ -484,12 +484,15 @@ const visualRegistry = {
       '空白至少不會出錯。',
     ],
     4: [
-      '我一直在等顏色回來。',
-      '可是我沒有等自己回來。',
-      '我不是這樣的。',
-      '如果我變了，我還值得被記住嗎？',
-      '我能不能不是以前那個我，也繼續畫下去？',
+      '空白不是缺陷，是另一種完整。',
+      '我不再需要用名字證明自己存在。',
+      '裂痕不是傷口，是這隻手經歷過的一切。',
+      '畫不畫，和我值不值得，是兩件事。',
+      '不是所有的空白都需要被填滿。',
+      '筆還是斷的——但它在發光。',
+      '我曾害怕空白，現在我只是坐在它面前。',
     ],
+
   },
   pinCoordinates: {
     // Layer 1 (Glory Museum)
