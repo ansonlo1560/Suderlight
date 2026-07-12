@@ -9,6 +9,7 @@ export { default as OuterWorldConversation } from './OuterWorldConversation';
 export { default as OuterWorldExplorer } from './OuterWorldExplorer';
 export { default as SelfReconciliationPortal } from './SelfReconciliationPortal';
 export { default as SubconsciousTavern } from './SubconsciousTavern';
+export { default as TavernIntro } from './TavernIntro';
 export { default as TitlePortal } from './TitlePortal';
 
 // Devtools 已整合到 devtools/DevtoolsPanel，以下保留向後相容

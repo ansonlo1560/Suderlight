@@ -16,10 +16,11 @@ import {
   OuterWorldExplorer,
   SelfReconciliationPortal,
   SubconsciousTavern,
+  TavernIntro,
   TitlePortal,
 } from './ui';
 
-type Screen = 'title' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
+type Screen = 'title' | 'tavernIntro' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
 
 function getNpcIdForLocation(locationId: LocationId): NpcId {
   if (locationId === 'skybridge') return 'bridge_artist';
@@ -92,10 +93,19 @@ export default function App() {
     if (screen === 'title') {
       return (
         <TitlePortal
-          onStart={() => setScreen('city')}
+          onStart={() => setScreen('tavernIntro')}
           onOpenTavern={() => openScreenWithReturn('tavern')}
           onOpenDictionary={() => openScreenWithReturn('dictionary')}
           onOpenReport={() => openScreenWithReturn('aftermath')}
+        />
+      );
+    }
+
+    if (screen === 'tavernIntro') {
+      return (
+        <TavernIntro
+          onEnterCity={() => setScreen('city')}
+          onOpenDictionary={() => openScreenWithReturn('dictionary')}
         />
       );
     }
