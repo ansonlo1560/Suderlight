@@ -232,6 +232,48 @@ export default function TavernIntro({ onEnterCity, onOpenDictionary }: TavernInt
       {/* 全屏图片 */}
       <FullscreenImage slot={currentSlot} />
 
+      {/* 跳过按钮 */}
+      {!showDict && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 28,
+            zIndex: 50,
+          }}
+        >
+          <button
+            onClick={() => {
+              setIdx(BEATS.length - 1);
+              setShowDict(true);
+            }}
+            style={{
+              background: 'rgba(0,0,0,0.35)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 6,
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: 13,
+              padding: '6px 16px',
+              cursor: 'pointer',
+              letterSpacing: 1,
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(0,0,0,0.55)';
+              e.currentTarget.style.color = 'rgba(255,255,255,0.8)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(0,0,0,0.35)';
+              e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+            }}
+          >
+            跳過 ▸
+          </button>
+        </div>
+      )}
+
       {/* 对话覆盖层 */}
       <DialogueOverlay beat={current} onNext={handleNext} />
 

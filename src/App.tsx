@@ -84,7 +84,20 @@ export default function App() {
   };
 
   const resetAndReturnTitle = async () => {
+    // 在清档前检查：三个 NPC 是否全部达成 success 结局
+    const { bridge_artist, aoi, rena } = save.npcs;
+    const allNpcsCompleted =
+      bridge_artist?.ending === 'success' &&
+      aoi?.ending === 'success' &&
+      rena?.ending === 'success';
+
     await resetSave();
+
+    // 全部完成 → 重置开场标记，下次进标题会再播放
+    if (allNpcsCompleted) {
+      window.localStorage.setItem('glimmer_city_has_seen_tavern_intro', 'false');
+    }
+
     setReturnScreen('city');
     setScreen('title');
   };
@@ -93,7 +106,14 @@ export default function App() {
     if (screen === 'title') {
       return (
         <TitlePortal
-          onStart={() => setScreen('tavernIntro')}
+          onStart={() => {
+            const hasSeen = window.localStorage.getItem('glimmer_city_has_seen_tavern_intro') === 'true';
+            if (hasSeen) {
+              setScreen('city');
+            } else {
+              setScreen('tavernIntro');
+            }
+          }}
           onOpenTavern={() => openScreenWithReturn('tavern')}
           onOpenDictionary={() => openScreenWithReturn('dictionary')}
           onOpenReport={() => openScreenWithReturn('aftermath')}
@@ -104,7 +124,10 @@ export default function App() {
     if (screen === 'tavernIntro') {
       return (
         <TavernIntro
-          onEnterCity={() => setScreen('city')}
+          onEnterCity={() => {
+            window.localStorage.setItem('glimmer_city_has_seen_tavern_intro', 'true');
+            setScreen('city');
+          }}
           onOpenDictionary={() => { setReturnScreen('city'); setScreen('dictionary'); }}
         />
       );
