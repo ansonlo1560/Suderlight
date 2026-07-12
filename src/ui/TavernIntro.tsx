@@ -1,6 +1,13 @@
 import { useState, useCallback, useMemo } from 'react';
 import { GlimmerButton, GlassPanel } from '../components';
 
+// ── 全屏图片 imports ──
+import wipingGlassImg from '../../images/gameOpenDislogue/wipingGlass.png';
+import serveDrinkImg from '../../images/gameOpenDislogue/serveDrink.png';
+import lookUpImg from '../../images/gameOpenDislogue/lookUp.png';
+import giveDictionaryImg from '../../images/gameOpenDislogue/giveDictionary.png';
+import lookSeriousImg from '../../images/gameOpenDislogue/lookSerious.png';
+
 type TavernIntroProps = {
   onEnterCity: () => void;
   onOpenDictionary: () => void;
@@ -11,7 +18,7 @@ type ImageSlot =
   | 'wiping_glass'    // 1. 老板擦杯子
   | 'serve_drink'     // 2. 老板递饮品
   | 'look_up'         // 3. 老板抬头看玩家
-  | 'wipe_again'      // 4. 老板继续擦杯子（段2 & 段4复用）
+  | 'wipe_again'      // 4. 老板继续擦杯子（段2 & 段4复用 → wipingGlass）
   | 'give_dictionary' // 5. 老板给情绪词典
   | 'look_serious';   // 6. 老板抬头认真看玩家
 
@@ -21,13 +28,14 @@ type Beat = {
   image?: { slot: ImageSlot; hint: string };
 };
 
-const IMAGE_META: Record<ImageSlot, { icon: string; hint: string }> = {
-  wiping_glass:    { icon: '🍺', hint: '老板擦杯子' },
-  serve_drink:     { icon: '☕', hint: '老板递饮品' },
-  look_up:         { icon: '👀', hint: '老板抬头看玩家' },
-  wipe_again:      { icon: '🍺', hint: '老板继续擦杯子' },
-  give_dictionary: { icon: '📖', hint: '老板给情绪词典' },
-  look_serious:    { icon: '💭', hint: '老板抬头认真看玩家' },
+/** slot → 实际图片 URL */
+const IMAGE_SRC: Record<ImageSlot, string> = {
+  wiping_glass:    wipingGlassImg,
+  serve_drink:     serveDrinkImg,
+  look_up:         lookUpImg,
+  wipe_again:      wipingGlassImg,   // 复用擦杯子图
+  give_dictionary: giveDictionaryImg,
+  look_serious:    lookSeriousImg,
 };
 
 /** 全部对白 — 打平为单条 beat 序列，图片只在 action 句出现时切换 */
@@ -68,9 +76,8 @@ const BEATS: Beat[] = [
   { text: '「能找到那個報攤也算你有本事。沒被雨泡爛之前，那裡賣過地圖。現在嘛……地圖沒用了，路得你自己在雨裡摸。」' },
 ];
 
-/* ─────── 全屏图片占位 ─────── */
+/* ─────── 全屏图片 ─────── */
 function FullscreenImage({ slot }: { slot: ImageSlot }) {
-  const meta = IMAGE_META[slot];
   return (
     <div
       data-image-slot={slot}
@@ -78,60 +85,19 @@ function FullscreenImage({ slot }: { slot: ImageSlot }) {
         position: 'absolute',
         inset: 0,
         zIndex: 0,
-        background: 'radial-gradient(circle at 42% 24%, rgba(95,58,32,0.55), rgba(18,11,9,0.92) 64%, #060506 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        background: '#080504',
       }}
     >
-      <div
+      <img
+        src={IMAGE_SRC[slot]}
+        alt=""
         style={{
-          position: 'absolute',
-          top: 20,
-          right: 28,
-          color: 'rgba(214,163,94,0.7)',
-          fontSize: 11,
-          letterSpacing: 2,
-          background: 'rgba(0,0,0,0.45)',
-          padding: '4px 12px',
-          borderRadius: 999,
-          border: '1px dashed rgba(214,163,94,0.3)',
-          zIndex: 10,
-          pointerEvents: 'none',
-          userSelect: 'none',
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
         }}
-      >
-        slot=&quot;{slot}&quot; · {meta.hint}
-      </div>
-
-      <div
-        style={{
-          fontSize: 120,
-          opacity: 0.12,
-          filter: 'grayscale(0.6)',
-          userSelect: 'none',
-          pointerEvents: 'none',
-        }}
-      >
-        {meta.icon}
-      </div>
-
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '28%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          color: 'rgba(214,163,94,0.3)',
-          fontSize: 14,
-          letterSpacing: 3,
-          textAlign: 'center',
-          pointerEvents: 'none',
-          userSelect: 'none',
-        }}
-      >
-        [ 全屏圖片：{meta.hint} ]
-      </div>
+      />
     </div>
   );
 }
