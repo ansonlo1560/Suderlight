@@ -1,347 +1,303 @@
-import { useState, useCallback } from 'react';
-import { GlimmerButton, GlassPanel, GuiFrame } from '../components';
+import { useState, useCallback, useMemo } from 'react';
+import { GlimmerButton, GlassPanel } from '../components';
 
 type TavernIntroProps = {
   onEnterCity: () => void;
   onOpenDictionary: () => void;
 };
 
-/** 酒馆老板开场对话，以四个图片占位为节奏点 */
-const DIALOGUE_SEGMENTS = [
-  {
-    imageSlot: 'wiping_glass' as const,
-    imageHint: '老板擦杯子',
-    speaker: '',
-    lines: [
-      '（老闆頭也不抬，繼續擦著杯子，聲音不輕不重）',
-      '',
-      '「外面還在下吧？坐。這城市哪都濕漉漉的，就這裡還能把衣服晾乾。」',
-      '',
-      '（他推過來一杯溫熱的飲品，不是酒，是某種草藥茶）',
-      '',
-      '「第一次來微光城市的人，總是先聞到鐵鏽味。習慣了就好。或者說，習慣不了也沒關係。」',
-    ],
-  },
-  {
-    imageSlot: 'look_up' as const,
-    imageHint: '老板抬头看玩家',
-    speaker: '',
-    lines: [
-      '（他終於抬頭看你一眼，眼袋很深，但目光意外地柔和）',
-      '',
-      '「你這雙眼睛我看過。不是來躲雨的，是來聽別人下雨的。」',
-      '',
-      '「你是修復師對吧？能聽見雨聲裡那些……不太對勁的東西。」',
-      '',
-      '（他低頭繼續擦杯子）',
-      '',
-      '「這城裡有很多人，心裡在下一場停不下來的雨。你能幫他們。或者至少……陪他們淋一會兒。」',
-    ],
-  },
-  {
-    imageSlot: 'give_dictionary' as const,
-    imageHint: '老板给情绪词典',
-    speaker: '',
-    lines: [
-      '（他指向窗外模糊的街燈）',
-      '',
-      '「街上那些發光的小東西，不是垃圾。是他們丟掉的自己。碰一下，你就能聽懂一點他們的雨聲。」',
-      '',
-      '（他從吧檯下面摸出一本舊書，封面被磨得發白，推到你面前）',
-      '',
-      '「給你。現在裡面什麼都沒有。別急著寫，它自己會知道什麼時候該寫什麼。我也沒搞懂原理，反正……你先帶著。」',
-      '',
-      '（他輕輕敲了敲吧檯上那本舊書）',
-      '',
-      '「這本詞典，本來空白的。你每聽懂一個人，它就會多寫一行。不是我給你寫，是它自己。」',
-      '',
-      '「有些人會讓你進去——不是進他家門，是進他心裡。裡面不一定好看，但你是修復師，你應該知道。」',
-      '',
-      '（停頓。雨聲很大。）',
-      '',
-      '「哦對了。如果弄砸了，那個人的影子會留在雨裡。不是鬼，更像是……你心裡的回音。別怕，每一個修復師都得學會跟這種回音相處。」',
-    ],
-  },
-  {
-    imageSlot: 'look_serious' as const,
-    imageHint: '老板抬头认真看玩家',
-    speaker: '',
-    lines: [
-      '（他放下杯子，第一次認真地看你）',
-      '',
-      '「你記住一件事。你不是來讓別人不痛的。痛是那些人在這個世界裡最後一件屬於自己的東西。你是來讓他們知道——」',
-      '',
-      '（他的聲音變得更輕）',
-      '',
-      '「——痛著也沒關係。」',
-      '',
-      '（然後他又開始擦杯子了，好像剛才什麼都沒說）',
-      '',
-      '「能找到那個報攤也算你有本事。沒被雨泡爛之前，那裡賣過地圖。現在嘛……地圖沒用了，路得你自己在雨裡摸。」',
-    ],
-  },
+/* ─────── 七张全屏图片 slot ─────── */
+type ImageSlot =
+  | 'wiping_glass'    // 1. 老板擦杯子
+  | 'serve_drink'     // 2. 老板递饮品
+  | 'look_up'         // 3. 老板抬头看玩家
+  | 'wipe_again'      // 4. 老板继续擦杯子（段2 & 段4复用）
+  | 'give_dictionary' // 5. 老板给情绪词典
+  | 'look_serious';   // 6. 老板抬头认真看玩家
+
+/* ─────── 每句对白可携带一张背景图，不携带则沿用上一张 ─────── */
+type Beat = {
+  text: string;
+  image?: { slot: ImageSlot; hint: string };
+};
+
+const IMAGE_META: Record<ImageSlot, { icon: string; hint: string }> = {
+  wiping_glass:    { icon: '🍺', hint: '老板擦杯子' },
+  serve_drink:     { icon: '☕', hint: '老板递饮品' },
+  look_up:         { icon: '👀', hint: '老板抬头看玩家' },
+  wipe_again:      { icon: '🍺', hint: '老板继续擦杯子' },
+  give_dictionary: { icon: '📖', hint: '老板给情绪词典' },
+  look_serious:    { icon: '💭', hint: '老板抬头认真看玩家' },
+};
+
+/** 全部对白 — 打平为单条 beat 序列，图片只在 action 句出现时切换 */
+const BEATS: Beat[] = [
+  // ═══ 段1：擦杯子 ═══
+  { text: '老闆頭也不抬，繼續擦著杯子，聲音不輕不重。', image: { slot: 'wiping_glass', hint: '老板擦杯子' } },
+  { text: '「外面還在下吧？坐。這城市哪都濕漉漉的，就這裡還能把衣服晾乾。」' },
+  // ★ 新增图片
+  { text: '他推過來一杯溫熱的飲品，不是酒，是某種草藥茶。', image: { slot: 'serve_drink', hint: '老板递饮品' } },
+  { text: '「第一次來微光城市的人，總是先聞到鐵鏽味。習慣了就好。或者說，習慣不了也沒關係。」' },
+
+  // ═══ 段2：抬头看 ═══
+  { text: '他終於抬頭看你一眼，眼袋很深，但目光意外地柔和。', image: { slot: 'look_up', hint: '老板抬头看玩家' } },
+  { text: '「你這雙眼睛我看過。不是來躲雨的，是來聽別人下雨的。」' },
+  { text: '「你是修復師對吧？能聽見雨聲裡那些……不太對勁的東西。」' },
+  // ★ 新增图片
+  { text: '他低頭繼續擦杯子。', image: { slot: 'wipe_again', hint: '老板继续擦杯子' } },
+  { text: '「這城裡有很多人，心裡在下一場停不下來的雨。你能幫他們。或者至少……陪他們淋一會兒。」' },
+
+  // ═══ 段3：给词典 ═══
+  { text: '他指向窗外模糊的街燈。', image: { slot: 'give_dictionary', hint: '老板给情绪词典' } },
+  { text: '「街上那些發光的小東西，不是垃圾。是他們丟掉的自己。碰一下，你就能聽懂一點他們的雨聲。」' },
+  { text: '他從吧檯下面摸出一本舊書，封面被磨得發白，推到你面前。' },
+  { text: '「給你。現在裡面什麼都沒有。別急著寫，它自己會知道什麼時候該寫什麼。我也沒搞懂原理，反正……你先帶著。」' },
+  { text: '他輕輕敲了敲吧檯上那本舊書。' },
+  { text: '「這本詞典，本來空白的。你每聽懂一個人，它就會多寫一行。不是我給你寫，是它自己。」' },
+  { text: '「有些人會讓你進去——不是進他家門，是進他心裡。裡面不一定好看，但你是修復師，你應該知道。」' },
+  { text: '停頓。雨聲很大。' },
+  { text: '「哦對了。如果弄砸了，那個人的影子會留在雨裡。不是鬼，更像是……你心裡的回音。別怕，每一個修復師都得學會跟這種回音相處。」' },
+
+  // ═══ 段4：认真看 ═══
+  { text: '他放下杯子，第一次認真地看你。', image: { slot: 'look_serious', hint: '老板抬头认真看玩家' } },
+  { text: '「你記住一件事。你不是來讓別人不痛的。痛是那些人在這個世界裡最後一件屬於自己的東西。你是來讓他們知道——」' },
+  { text: '他的聲音變得更輕。' },
+  { text: '「——痛著也沒關係。」' },
+  // ★ 新增图片
+  { text: '然後他又開始擦杯子了，好像剛才什麼都沒說。', image: { slot: 'wipe_again', hint: '老板继续擦杯子' } },
+  { text: '「能找到那個報攤也算你有本事。沒被雨泡爛之前，那裡賣過地圖。現在嘛……地圖沒用了，路得你自己在雨裡摸。」' },
 ];
 
-type ImageSlot = 'wiping_glass' | 'look_up' | 'give_dictionary' | 'look_serious';
-
-/** 单个图片占位组件 */
-function ImagePlaceholder({ slot, hint }: { slot: ImageSlot; hint: string }) {
+/* ─────── 全屏图片占位 ─────── */
+function FullscreenImage({ slot }: { slot: ImageSlot }) {
+  const meta = IMAGE_META[slot];
   return (
     <div
       data-image-slot={slot}
       style={{
-        width: '100%',
-        maxWidth: 480,
-        minHeight: 200,
-        margin: '16px auto',
-        borderRadius: 14,
-        border: '2px dashed rgba(214,163,94,0.35)',
-        background: 'rgba(214,163,94,0.06)',
+        position: 'absolute',
+        inset: 0,
+        zIndex: 0,
+        background: 'radial-gradient(circle at 42% 24%, rgba(95,58,32,0.55), rgba(18,11,9,0.92) 64%, #060506 100%)',
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '40px 20px',
-        position: 'relative',
       }}
     >
-      {/* 图片标签 */}
-      <div style={{
-        position: 'absolute',
-        top: 10,
-        left: 14,
-        color: '#d6a35e',
-        fontSize: 11,
-        letterSpacing: 1,
-        background: 'rgba(0,0,0,0.5)',
-        padding: '2px 8px',
-        borderRadius: 4,
-      }}>
-        📷 {hint}
+      <div
+        style={{
+          position: 'absolute',
+          top: 20,
+          right: 28,
+          color: 'rgba(214,163,94,0.7)',
+          fontSize: 11,
+          letterSpacing: 2,
+          background: 'rgba(0,0,0,0.45)',
+          padding: '4px 12px',
+          borderRadius: 999,
+          border: '1px dashed rgba(214,163,94,0.3)',
+          zIndex: 10,
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+      >
+        slot=&quot;{slot}&quot; · {meta.hint}
       </div>
 
-      {/* 占位图标 */}
-      <div style={{
-        fontSize: 48,
-        opacity: 0.35,
-        marginBottom: 10,
-        filter: 'grayscale(0.5)',
-      }}>
-        {slot === 'wiping_glass' ? '🍺' : slot === 'look_up' ? '👀' : slot === 'give_dictionary' ? '📖' : '💭'}
+      <div
+        style={{
+          fontSize: 120,
+          opacity: 0.12,
+          filter: 'grayscale(0.6)',
+          userSelect: 'none',
+          pointerEvents: 'none',
+        }}
+      >
+        {meta.icon}
       </div>
 
-      <div style={{
-        color: 'rgba(214,163,94,0.55)',
-        fontSize: 13,
-        letterSpacing: 1,
-        textAlign: 'center',
-        lineHeight: 1.6,
-      }}>
-        [ 此處插入圖片：{hint} ]
-      </div>
-
-      <div style={{
-        color: 'rgba(255,255,255,0.2)',
-        fontSize: 10,
-        marginTop: 8,
-        fontFamily: 'monospace',
-      }}>
-        slot=&quot;{slot}&quot;
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '28%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          color: 'rgba(214,163,94,0.3)',
+          fontSize: 14,
+          letterSpacing: 3,
+          textAlign: 'center',
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+      >
+        [ 全屏圖片：{meta.hint} ]
       </div>
     </div>
   );
 }
 
-export default function TavernIntro({ onEnterCity, onOpenDictionary }: TavernIntroProps) {
-  const [currentSegment, setCurrentSegment] = useState(0);
-  const [showDictionaryModal, setShowDictionaryModal] = useState(false);
-  const isLastSegment = currentSegment >= DIALOGUE_SEGMENTS.length;
-
-  const handleContinue = useCallback(() => {
-    if (currentSegment < DIALOGUE_SEGMENTS.length) {
-      setCurrentSegment(prev => prev + 1);
-    }
-    // 所有段落展示完毕后的下一次点击 → 显示词典解锁弹窗
-    if (currentSegment >= DIALOGUE_SEGMENTS.length) {
-      setShowDictionaryModal(true);
-    }
-  }, [currentSegment]);
-
-  const handleEnterCity = useCallback(() => {
-    onEnterCity();
-  }, [onEnterCity]);
-
-  const visibleSegments = DIALOGUE_SEGMENTS.slice(0, currentSegment);
+/* ─────── 对话覆盖层（占画面下 ~1/3） ─────── */
+function DialogueOverlay({ beat, onNext }: { beat: Beat; onNext: () => void }) {
+  const isBossLine = beat.text.startsWith('「') && beat.text.endsWith('」');
+  const isAction = !isBossLine;
 
   return (
-    <GuiFrame tone="tavern">
-      {/* 背景雨丝效果 */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-        {Array.from({ length: 22 }).map((_, i) => (
-          <div
-            key={i}
+    <div
+      onClick={onNext}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 20,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+        cursor: 'pointer',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 28%, transparent 55%)',
+      }}
+    >
+      <div
+        style={{
+          padding: '6vh 8vw 8vh',
+          animation: 'tavern-fade-in 0.45s ease-out',
+          maxWidth: 860,
+          margin: '0 auto',
+          width: '100%',
+        }}
+      >
+        <div
+          style={{
+            color: isAction ? '#a09078' : '#e8d5b8',
+            fontSize: isAction ? 15 : 20,
+            fontStyle: isAction ? 'italic' : 'normal',
+            lineHeight: 1.75,
+            letterSpacing: isBossLine ? 0.5 : 0,
+            textShadow: '0 2px 12px rgba(0,0,0,0.7)',
+          }}
+        >
+          {beat.text}
+        </div>
+
+        <div
+          style={{
+            marginTop: 28,
+            color: 'rgba(255,255,255,0.3)',
+            fontSize: 12,
+            letterSpacing: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span
             style={{
-              position: 'absolute',
-              left: `${(i * 41 + 7) % 100}%`,
-              top: `${-30 - (i * 17) % 60}px`,
-              width: 1,
-              height: 80 + (i * 11) % 70,
-              background: 'linear-gradient(180deg, transparent, rgba(180,200,220,0.2), transparent)',
-              animation: `tavern-rain ${1.2 + (i % 3) * 0.4}s linear ${(i * 0.3) % 2}s infinite`,
+              display: 'inline-block',
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: 'rgba(214,163,94,0.5)',
+              animation: 'tavern-blink 1.4s ease-in-out infinite',
             }}
           />
-        ))}
+          點擊繼續
+        </div>
       </div>
+    </div>
+  );
+}
 
+/* ══════════════════════════════════════════ */
+
+export default function TavernIntro({ onEnterCity, onOpenDictionary }: TavernIntroProps) {
+  const [idx, setIdx] = useState(0);
+  const [showDict, setShowDict] = useState(false);
+
+  // 当前有效图片 slot：向前扫描最近的 beat 里带 image 的
+  const currentSlot = useMemo<ImageSlot>(() => {
+    for (let i = idx; i >= 0; i--) {
+      if (BEATS[i].image) return BEATS[i].image!.slot;
+    }
+    return 'wiping_glass'; // fallback
+  }, [idx]);
+
+  const current = BEATS[idx];
+
+  const handleNext = useCallback(() => {
+    if (idx < BEATS.length - 1) {
+      setIdx(prev => prev + 1);
+    } else {
+      setShowDict(true);
+    }
+  }, [idx]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if ([' ', 'Enter', 'ArrowRight', 'ArrowDown'].includes(e.key)) {
+        e.preventDefault();
+        if (!showDict) handleNext();
+      }
+    },
+    [handleNext, showDict],
+  );
+
+  return (
+    <div
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      style={{
+        position: 'relative',
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#080504',
+        outline: 'none',
+      }}
+    >
       <style>{`
-        @keyframes tavern-rain {
-          0% { transform: translateY(0); opacity: 0; }
-          10% { opacity: 0.6; }
-          90% { opacity: 0.2; }
-          100% { transform: translateY(100vh); opacity: 0; }
-        }
         @keyframes tavern-fade-in {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes tavern-glow-pulse {
-          0%, 100% { box-shadow: 0 0 30px rgba(214,163,94,0.12); }
-          50% { box-shadow: 0 0 50px rgba(214,163,94,0.22); }
+        @keyframes tavern-blink {
+          0%, 100% { opacity: 0.3; }
+          50%      { opacity: 1; }
         }
       `}</style>
 
-      {/* 主内容区 */}
-      <div style={{
-        position: 'relative',
-        zIndex: 2,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '4vh 6vw',
-        overflow: 'hidden',
-      }}>
-        {/* 顶部标题 */}
-        <div style={{
-          textAlign: 'center',
-          paddingBottom: 16,
-          borderBottom: '1px solid rgba(214,163,94,0.12)',
-          flexShrink: 0,
-        }}>
-          <div style={{ color: '#d6a35e', letterSpacing: 5, fontSize: 12, marginBottom: 6 }}>
-            潛意識酒館
-          </div>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, letterSpacing: 3 }}>
-            序章 · 雨還沒有停
-          </div>
-        </div>
+      {/* 全屏图片 */}
+      <FullscreenImage slot={currentSlot} />
 
-        {/* 对话滚动区域 */}
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '20px 0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}>
-          {visibleSegments.map((seg, idx) => (
-            <div
-              key={idx}
-              style={{
-                width: '100%',
-                maxWidth: 720,
-                animation: 'tavern-fade-in 0.7s ease-out both',
-                animationDelay: `${idx * 0.1}s`,
-              }}
-            >
-              {/* 图片占位 */}
-              <ImagePlaceholder slot={seg.imageSlot} hint={seg.imageHint} />
+      {/* 对话覆盖层 */}
+      <DialogueOverlay beat={current} onNext={handleNext} />
 
-              {/* 对话文字 */}
-              <GlassPanel
-                variant="warm"
-                contentStyle={{
-                  color: '#d9c4a6',
-                  lineHeight: 2.1,
-                  fontSize: 15,
-                  whiteSpace: 'pre-line',
-                  padding: '24px 28px',
-                  fontStyle: seg.lines.some(l => l.startsWith('（')) ? undefined : 'normal',
-                }}
-                style={{ marginTop: idx === 0 ? 0 : 0 }}
-              >
-                {seg.lines.map((line, li) => {
-                  const isAction = line.startsWith('（') && line.endsWith('）');
-                  const isBossLine = line.startsWith('「') && line.endsWith('」');
-                  return (
-                    <div
-                      key={li}
-                      style={{
-                        color: isAction ? '#a09078' : isBossLine ? '#e8d5b8' : '#c8b898',
-                        fontSize: isAction ? 13 : isBossLine ? 15 : 14,
-                        fontStyle: isAction ? 'italic' : 'normal',
-                        marginTop: line === '' ? 8 : 0,
-                        marginBottom: line === '' ? 4 : 0,
-                      }}
-                    >
-                      {line || '\u00A0'}
-                    </div>
-                  );
-                })}
-              </GlassPanel>
-            </div>
-          ))}
-
-          {/* 当前段落提示（如果还有未展示的内容） */}
-          {!isLastSegment && (
-            <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <GlimmerButton tone="primary" onClick={handleContinue}>
-                繼續聆聽
-              </GlimmerButton>
-              <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 12 }}>
-                老闆還想說點什麼……
-              </div>
-            </div>
-          )}
-
-          {/* 全部展示完毕，引导进入城市 */}
-          {isLastSegment && (
-            <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 4 }}>
-                老闆放下杯子，不再說話。酒館裡只剩下雨聲。
-              </div>
-              <GlimmerButton tone="primary" onClick={handleContinue}>
-                帶著提燈，進入城市
-              </GlimmerButton>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 情绪词典解锁提示弹窗 */}
-      {showDictionaryModal && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 100,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'rgba(0,0,0,0.7)',
-          backdropFilter: 'blur(4px)',
-        }}>
-          <div style={{
-            maxWidth: 560,
-            width: '100%',
-            animation: 'tavern-fade-in 0.6s ease-out',
-          }}>
+      {/* 情绪词典解锁弹窗 */}
+      {showDict && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 560,
+              width: '100%',
+              animation: 'tavern-fade-in 0.5s ease-out',
+              margin: '0 24px',
+            }}
+          >
             <GlassPanel
               title="情緒詞典 · 已解鎖"
               subtitle="Emotion Dictionary Unlocked"
               variant="warm"
               contentStyle={{
                 color: '#d9c4a6',
-                lineHeight: 1.9,
+                lineHeight: 1.85,
                 fontSize: 14,
                 padding: '24px 28px',
               }}
@@ -363,26 +319,30 @@ export default function TavernIntro({ onEnterCity, onOpenDictionary }: TavernInt
                 </ul>
               </div>
 
-              <div style={{
-                padding: '14px 16px',
-                borderRadius: 8,
-                background: 'rgba(214,163,94,0.1)',
-                border: '1px solid rgba(214,163,94,0.15)',
-                color: '#d0a050',
-                fontSize: 13,
-                marginBottom: 20,
-              }}>
+              <div
+                style={{
+                  padding: '14px 16px',
+                  borderRadius: 8,
+                  background: 'rgba(214,163,94,0.1)',
+                  border: '1px solid rgba(214,163,94,0.15)',
+                  color: '#d0a050',
+                  fontSize: 13,
+                  marginBottom: 20,
+                }}
+              >
                 <strong>提示：</strong>面對新 NPC 時翻閱詞典，可能獲得新的對話選項。每解鎖五個詞條，詞典會給予簡短評語。
               </div>
 
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <GlimmerButton tone="primary" onClick={handleEnterCity}>
+                <GlimmerButton tone="primary" onClick={onEnterCity}>
                   帶著提燈，進入城市
                 </GlimmerButton>
-                <GlimmerButton onClick={() => {
-                  setShowDictionaryModal(false);
-                  onOpenDictionary();
-                }}>
+                <GlimmerButton
+                  onClick={() => {
+                    setShowDict(false);
+                    onOpenDictionary();
+                  }}
+                >
                   翻開詞典看看
                 </GlimmerButton>
               </div>
@@ -390,8 +350,6 @@ export default function TavernIntro({ onEnterCity, onOpenDictionary }: TavernInt
           </div>
         </div>
       )}
-
-
-    </GuiFrame>
+    </div>
   );
 }
