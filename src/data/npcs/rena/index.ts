@@ -595,6 +595,7 @@ export const renaDictionary = [
     description: '一種在社交場合強撐開朗、用笑容掩蓋真實情緒的心理狀態。蕾娜將「逗笑他人」等同於「自己有價值」，從而失去了表達悲傷、疲倦等自然情緒的能力。',
     relatedClues: ['joke_book', 'show_poster'],
     unlockCondition: 'joke_book',
+    realitySupport: '微笑抑鬱症不是「不夠嚴重」的憂鬱，而是一種用表演掩蓋痛苦的生存策略。如果你習慣了在人前笑著說「我沒事」，請找到一個可以說「其實我不太好」的人或空間。抑鬱症是需要治療的疾病，不是性格缺陷，也不是因為你不夠努力快樂。尋求精神科醫師或心理師的協助，是對自己最勇敢的善待。',
   },
   {
     id: 'masked_grief',
@@ -602,6 +603,7 @@ export const renaDictionary = [
     description: '蕾娜從未真正為父親的離世哀悼。經紀人的那句「你必須完成脫口秀」等同於一道禁令：不准悲傷。從此她的表情只剩大笑，像一個壞掉的開關。',
     relatedClues: ['obituary_clip'],
     unlockCondition: 'obituary_clip',
+    realitySupport: '當環境要求你「堅強」、「繼續前進」，哀傷就被迫躲進暗處。但它不會消失，只會在多年後以其他形式浮現——疲憊、麻木、或無法解釋的悲傷。請允許自己為從未好好哀悼的失去而流淚，無論那發生在多久以前。哀傷輔導或支持團體可以陪伴你走完這段不被允許走完的路。',
   },
   {
     id: 'performing_self',
@@ -609,6 +611,7 @@ export const renaDictionary = [
     description: '她用那支父親送的亮紅色口紅，在鏡子上畫出誇張的笑臉來遮住流淚的倒影。久而久之，她已經分不清哪張臉才是真正的自己——是鏡中的哭臉，還是口紅畫出來的笑臉。',
     relatedClues: ['dried_lipstick'],
     unlockCondition: 'dried_lipstick',
+    realitySupport: '當你長期扮演某個角色來獲得愛與接納，你會開始分不清哪個才是真正的自己。這不是虛偽——這是為了生存學會的適應策略。修復的起點是：在一個絕對安全的空間裡（如諮詢關係中），試著不做任何表演，只是存在。慢慢你會發現，不表演的時候，你也值得被接納。',
   },
   {
     id: 'identity_bound_to_others',
@@ -616,6 +619,7 @@ export const renaDictionary = [
     description: '蕾娜將「讓別人快樂」當作唯一的存在理由。如果她不笑了，她不知道自己還剩什麼。真正的修復不是幫她找回笑容，而是讓她知道：不笑的時候，她也值得被看見。',
     relatedClues: ['show_poster', 'joke_book'],
     unlockCondition: 'show_poster',
+    realitySupport: '如果你的價值感完全來自「讓別人快樂」，那麼當別人不需要你的時候，你就會感覺自己不存在。修復不等於不再關心別人，而是學會：「我不需要成為別人的陽光才有資格存在。我也是一顆需要被照亮的星星。」人際關係治療或依附理論相關諮詢可以幫助你建立更健康的關係模式。',
   },
 ];
 

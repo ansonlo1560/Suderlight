@@ -63,6 +63,7 @@ router.get('/', (req, res, next) => {
       description: entry.description,
       relatedClues: entry.relatedClues || [],
       unlockCondition: entry.unlockCondition,
+      realitySupport: entry.realitySupport || '',
     }));
 
     res.json({ entries: result });

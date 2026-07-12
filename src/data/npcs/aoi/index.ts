@@ -494,20 +494,24 @@ export const aoiDictionary = [
     id: 'fear_of_happiness', name: '對快樂的恐懼',
     description: '小葵曾經在跳舞時感到自由，但父母的爭吵把這份快樂毀滅。此後她不敢再擁有快樂，彷彿快樂會引來懲罰。',
     relatedClues: ['muddy_red_dance_shoes'], unlockCondition: 'muddy_red_dance_shoes',
+    realitySupport: '如果你曾在快樂之後經歷創傷，大腦會把「快樂」和「危險」連結在一起。這不是你的錯，而是一種創傷後的自我保護。治療創傷的關鍵不是逼自己快樂，而是先建立安全感——讓身體和心靈知道：現在沒有人會在你笑的時候傷害你。創傷知情治療（如EMDR、體感療法）可能對你有幫助。',
   },
   {
     id: 'mislabeled_failure', name: '被誤貼的失敗標籤',
     description: '缺點通告讓她認定自己是「壞孩子」，但真正的問題是她被迫在家庭裡擔任情緒調解者，沒有餘力當學生。',
     relatedClues: ['demerit_notice'], unlockCondition: 'demerit_notice',
+    realitySupport: '當環境將系統性問題誤診為個人失敗，你會把不屬於你的責任都扛在身上。請看見那個被迫提早長大的孩子——她不是「壞」，她只是太累了。如果你在家庭中長期擔任情緒調解者，可以尋求家庭治療或個人諮詢，學習區分「誰的問題」和「誰的責任」。',
   },
   {
     id: 'suppressed_expression', name: '壓抑的自我表達',
     description: '日記本裡被撕掉的頁面，是她「想說卻不敢說」的證據。她害怕表達自己會引發更多衝突。',
     relatedClues: ['torn_diary'], unlockCondition: 'torn_diary',
+    realitySupport: '當表達自己會引來衝突或危險，沉默就成了最安全的選擇。但壓抑的感受並不會消失，它們會轉化為焦慮、身體症狀或突然的情緒崩潰。找一個安全的方式說出來——可以是寫日記、畫畫、運動、或跟一個不會打斷你的人聊聊。如果找不到這樣的人，心理諮詢師受過訓練就是為了成為那個安全的聆聽者。',
   },
   {
     id: 'maintaining_peace', name: '維持和平的魔方',
     description: '這是她不斷解決父母吵架的問題、維持父母關係才漸漸喜歡的玩具，但是從沒成功過。她轉動魔方的每一面，就像她試圖轉動家裡的氣氛——但方塊永遠對不齊，家裡的爭吵聲也從未真正停止。',
     relatedClues: ['rubiks_cube'], unlockCondition: 'rubiks_cube',
+    realitySupport: '在衝突環境中成長的孩子，常常以為只要自己夠努力就能讓一切變好。但家庭問題的根源不在孩子身上，修復也不該是孩子的責任。如果你發現自己至今仍在「轉動魔方」——努力讓身邊的人和平相處——請允許自己停下來。你可以關心，但不需要負責解決。家庭治療或支持團體可以幫助你放下這個不可能完成的任務。',
   },
 ];
