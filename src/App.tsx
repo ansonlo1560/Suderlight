@@ -105,7 +105,7 @@ export default function App() {
       return (
         <TavernIntro
           onEnterCity={() => setScreen('city')}
-          onOpenDictionary={() => openScreenWithReturn('dictionary')}
+          onOpenDictionary={() => { setReturnScreen('city'); setScreen('dictionary'); }}
         />
       );
     }
