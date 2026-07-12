@@ -1,4 +1,115 @@
 // Auto-generated from dictionary.json — single source of truth
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-export default require('./dictionary.json');
+export default {
+  "entries": [
+    {
+      "id": "loss_of_worth",
+      "name": "失去價值感",
+      "description": "他不再相信自己的創作有價值。失去辨色能力後，他把自己等同於「不能畫畫的人」，彷彿沒有色彩就沒有存在資格。",
+      "relatedClues": [
+        "brush"
+      ],
+      "unlockCondition": "brush"
+    },
+    {
+      "id": "avoidance",
+      "name": "逃避",
+      "description": "他選擇不去面對那場車禍後的改變。撕掉報紙、避開人群、不再走進畫室——好像只要不看，那些碎裂的顏色就不會找上他。",
+      "relatedClues": [
+        "newspaper"
+      ],
+      "unlockCondition": "newspaper"
+    },
+    {
+      "id": "unfinished_grief",
+      "name": "未完成哀傷",
+      "description": "他從未真正告別過去的自己。素描本裡的灰階輪廓不是練習，是一次又一次試圖回到「還能看見顏色」的那一天，卻始終走不出去。",
+      "relatedClues": [
+        "sketchbook"
+      ],
+      "unlockCondition": "sketchbook"
+    },
+    {
+      "id": "self_denial",
+      "name": "自我否定",
+      "description": "當所有人都期待他復出，他反而更加確信自己已經不配被期待。那些溫柔的關心，在他耳裡全是「你應該好起來」的責備。",
+      "relatedClues": [
+        "accident_report"
+      ],
+      "unlockCondition": "accident_report"
+    },
+    {
+      "id": "fear_of_happiness",
+      "name": "對快樂的恐懼",
+      "description": "小葵曾經在跳舞時感到自由，但父母的爭吵把這份快樂毀滅。此後她不敢再擁有快樂，彷彿快樂會引來懲罰。",
+      "relatedClues": [
+        "muddy_red_dance_shoes"
+      ],
+      "unlockCondition": "muddy_red_dance_shoes"
+    },
+    {
+      "id": "mislabeled_failure",
+      "name": "被誤貼的失敗標籤",
+      "description": "缺點通告讓她認定自己是「壞孩子」，但真正的問題是她被迫在家庭裡擔任情緒調解者，沒有餘力當學生。",
+      "relatedClues": [
+        "demerit_notice"
+      ],
+      "unlockCondition": "demerit_notice"
+    },
+    {
+      "id": "suppressed_expression",
+      "name": "壓抑的自我表達",
+      "description": "日記本裡被撕掉的頁面，是她「想說卻不敢說」的證據。她害怕表達自己會引發更多衝突。",
+      "relatedClues": [
+        "torn_diary"
+      ],
+      "unlockCondition": "torn_diary"
+    },
+    {
+      "id": "maintaining_peace",
+      "name": "維持和平的魔方",
+      "description": "這是她不斷解決父母吵架的問題、維持父母關係才漸漸喜歡的玩具，但是從沒成功過。她轉動魔方的每一面，就像她試圖轉動家裡的氣氛——但方塊永遠對不齊，家裡的爭吵聲也從未真正停止。",
+      "relatedClues": [
+        "rubiks_cube"
+      ],
+      "unlockCondition": "rubiks_cube"
+    },
+    {
+      "id": "smiling_depression",
+      "name": "微笑抑鬱症",
+      "description": "一種在社交場合強撐開朗、用笑容掩蓋真實情緒的心理狀態。蕾娜將「逗笑他人」等同於「自己有價值」，從而失去了表達悲傷、疲倦等自然情緒的能力。",
+      "relatedClues": [
+        "joke_book",
+        "show_poster"
+      ],
+      "unlockCondition": "joke_book"
+    },
+    {
+      "id": "masked_grief",
+      "name": "被壓抑的哀傷",
+      "description": "蕾娜從未真正為父親的離世哀悼。經紀人的那句「你必須完成脫口秀」等同於一道禁令：不准悲傷。從此她的表情只剩大笑，像一個壞掉的開關。",
+      "relatedClues": [
+        "obituary_clip"
+      ],
+      "unlockCondition": "obituary_clip"
+    },
+    {
+      "id": "performing_self",
+      "name": "表演型自我",
+      "description": "她用那支父親送的亮紅色口紅，在鏡子上畫出誇張的笑臉來遮住流淚的倒影。久而久之，她已經分不清哪張臉才是真正的自己——是鏡中的哭臉，還是口紅畫出來的笑臉。",
+      "relatedClues": [
+        "dried_lipstick"
+      ],
+      "unlockCondition": "dried_lipstick"
+    },
+    {
+      "id": "identity_bound_to_others",
+      "name": "依附於他人的自我價值",
+      "description": "蕾娜將「讓別人快樂」當作唯一的存在理由。如果她不笑了，她不知道自己還剩什麼。真正的修復不是幫她找回笑容，而是讓她知道：不笑的時候，她也值得被看見。",
+      "relatedClues": [
+        "show_poster",
+        "joke_book"
+      ],
+      "unlockCondition": "show_poster"
+    }
+  ]
+};
