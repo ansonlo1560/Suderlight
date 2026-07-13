@@ -80,25 +80,53 @@ export default function EmotionDictionaryPage({ onBack }: EmotionDictionaryPageP
   }, [entries, selectedNpcId]);
 
   const unlockedEntries = filteredEntries.filter(entry => entry.unlocked);
-  const selected = entries.find(entry => entry.id === selectedId) ?? (unlockedEntries.length > 0 ? unlockedEntries[0] : null);
+
+  // 自动选中第一个已解锁词条，确保 selectedId 与选中 NPC 的词条同步
+  useEffect(() => {
+    if (selectedId === null && unlockedEntries.length > 0) {
+      setSelectedId(unlockedEntries[0].id);
+    }
+  }, [selectedId, unlockedEntries]);
+
+  const selected = useMemo(() => {
+    return entries.find(entry => entry.id === selectedId) ?? (unlockedEntries.length > 0 ? unlockedEntries[0] : null);
+  }, [entries, selectedId, unlockedEntries]);
   const lockedCount = filteredEntries.length - unlockedEntries.length;
 
   return (
     <GuiFrame tone="paper">
       <style>{`
         .dictionary-scroll::-webkit-scrollbar {
-          width: 6px;
+          width: 8px;
+          background: rgba(244,239,231,0.08);
         }
         .dictionary-scroll::-webkit-scrollbar-track {
-          background: rgba(95,61,32,0.05);
-          border-radius: 3px;
+          background: rgba(244,239,231,0.2);
+          border-radius: 4px;
         }
         .dictionary-scroll::-webkit-scrollbar-thumb {
-          background: rgba(95,61,32,0.2);
-          border-radius: 3px;
+          background: rgba(244,239,231,0.75);
+          border-radius: 4px;
+          border: 1px solid rgba(244,239,231,0.3);
         }
         .dictionary-scroll::-webkit-scrollbar-thumb:hover {
-          background: rgba(95,61,32,0.3);
+          background: rgba(244,239,231,1);
+        }
+        .reality-scroll::-webkit-scrollbar {
+          width: 8px;
+          background: rgba(41,50,38,0.08);
+        }
+        .reality-scroll::-webkit-scrollbar-track {
+          background: rgba(41,50,38,0.2);
+          border-radius: 4px;
+        }
+        .reality-scroll::-webkit-scrollbar-thumb {
+          background: rgba(41,50,38,0.8);
+          border-radius: 4px;
+          border: 1px solid rgba(41,50,38,0.4);
+        }
+        .reality-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(41,50,38,1);
         }
       `}</style>
       <div style={{ position: 'relative', zIndex: 2, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
@@ -138,7 +166,7 @@ export default function EmotionDictionaryPage({ onBack }: EmotionDictionaryPageP
           <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24, flex: 1, minHeight: 0 }}>
             
             {/* Left column: entry list */}
-            <div className="dictionary-scroll" style={{ overflowY: 'auto', display: 'grid', gap: 10, paddingRight: 6, alignContent: 'start' }}>
+            <div className="dictionary-scroll" style={{ overflowY: 'auto', display: 'grid', gap: 10, paddingRight: 6, alignContent: 'start', scrollbarWidth: 'thin', scrollbarColor: 'rgba(95,61,32,0.4) rgba(95,61,32,0.08)' }}>
               {loading && <div style={{ color: '#6b5137', padding: 16 }}>載入中...</div>}
               {!loading && unlockedEntries.length === 0 && (
                 <div style={{ color: '#6b5137', padding: 16, fontSize: 14, fontStyle: 'italic', textAlign: 'center', opacity: 0.7 }}>
@@ -174,7 +202,7 @@ export default function EmotionDictionaryPage({ onBack }: EmotionDictionaryPageP
               <div style={{ borderRadius: 16, padding: 24, background: 'rgba(35,29,24,0.86)', color: '#f4efe7', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
                 <div style={{ color: '#d6a35e', letterSpacing: 3, fontSize: 12 }}>心理手記</div>
                 <h3 style={{ margin: '18px 0 10px' }}>{selected?.name ?? '未選擇詞條'}</h3>
-                <div className="dictionary-scroll" style={{ flex: 1, overflowY: 'auto', paddingRight: 8 }}>
+                <div className="dictionary-scroll" style={{ flex: 1, overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'thin', scrollbarColor: 'rgba(244,239,231,0.65) rgba(244,239,231,0.15)' }}>
                   <p style={{ color: '#d0c6ba', lineHeight: 1.9, whiteSpace: 'pre-line' }}>
                     {selected?.description ?? '詞條尚未被雨水顯影。請在城市中找到更多記憶錨點。'}
                   </p>
@@ -185,16 +213,20 @@ export default function EmotionDictionaryPage({ onBack }: EmotionDictionaryPageP
               <div style={{ borderRadius: 16, padding: 24, background: 'linear-gradient(180deg, rgba(255,246,216,0.92), rgba(221,237,213,0.9))', color: '#293226', border: '1px solid rgba(80,108,76,0.2)', display: 'flex', flexDirection: 'column', flex: '0 0 auto', maxHeight: '45%' }}>
                 <div style={{ color: '#678c5a', letterSpacing: 3, fontSize: 12 }}>現實支持提醒</div>
                 <h3 style={{ margin: '18px 0 10px' }}>現實支持提醒</h3>
-                <div className="dictionary-scroll" style={{ flex: 1, overflowY: 'auto', paddingRight: 8 }}>
-                  {selected?.realitySupport ? (
-                    <p style={{ lineHeight: 1.9, whiteSpace: 'pre-line' }}>
-                      {selected.realitySupport}
-                    </p>
-                  ) : (
-                    <p style={{ color: '#6b7b65', lineHeight: 1.9, fontStyle: 'italic' }}>
-                      選擇一個已解鎖的詞條以查看對應的現實支持提醒。
-                    </p>
-                  )}
+                <div className="reality-scroll" style={{ flex: 1, overflowY: 'auto', paddingRight: 8, scrollbarWidth: 'thin', scrollbarColor: 'rgba(41,50,38,0.7) rgba(41,50,38,0.15)' }}>
+                {selected?.realitySupport ? (
+                  <p style={{ lineHeight: 1.9, whiteSpace: 'pre-line' }}>
+                    {selected.realitySupport}
+                  </p>
+                ) : selected ? (
+                  <p style={{ color: '#6b7b65', lineHeight: 1.9, fontStyle: 'italic' }}>
+                    此詞條暫無現實支持提醒。
+                  </p>
+                ) : (
+                  <p style={{ color: '#6b7b65', lineHeight: 1.9, fontStyle: 'italic' }}>
+                    選擇一個已解鎖的詞條以查看對應的現實支持提醒。
+                  </p>
+                )}
                 </div>
               </div>
             </div>

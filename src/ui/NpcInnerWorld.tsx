@@ -611,6 +611,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     const nextUnlocked = [...new Set([...currentSave.unlockedLayers, layerNum])].sort();
     syncInnerWorldState({ ...currentSave, unlockedLayers: nextUnlocked }, npcId);
     setPhase({ type: 'exploring' });
+    setLayerLockMessage(null);
   }, [layerNum, completedLayers, onAdvanceLayer, markLayerVisited, buildInnerWorldSave, syncInnerWorldState, npcId]);
   const handleClickObject = useCallback((obj: PsychInteractable) => { setDiscoveredByLayer(prev => { const current = prev[layerNum] ?? []; if (current.includes(obj.id)) return prev; return { ...prev, [layerNum]: [...current, obj.id] }; }); setPhase({ type: 'observing', target: obj, showDeep: false }); }, [layerNum]);
   const handleLookCloser = useCallback(() => { if (phase.type === 'observing') setPhase({ type: 'observing', target: phase.target, showDeep: true }); }, [phase]);
@@ -629,6 +630,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     setCompletedLayers(prev => new Set([...prev, layerNum]));
     if (isLast) {
       setPhase({ type: 'arc_complete' });
+      setLayerLockMessage(null);
       return;
     }
     const nextL = layerNum + 1;
@@ -637,6 +639,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
       setLayerLockMessage(`第${CH[nextL-1]}層尚未解鎖：需要恐懼值≤ ${required}（當前 ${safeStress}）。`);
       return;
     }
+    setLayerLockMessage(null);
     setLayerNum(nextL);
     setPhase({ type: 'entering' });
   }, [layerNum, isLast, onAdvanceLayer, safeStress]);
@@ -711,6 +714,11 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
       <GuiFrame tone="inner">
         <div style={{ position:'relative',zIndex:2,height:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:48 }}>
           <GlassPanel title={`第${CH[layerNum-1]}層`} subtitle={layer.layerName} variant="warm" style={{ maxWidth:640,width:'100%',textAlign:'center' }}>
+            {layerNum > 1 && (
+              <div style={{ marginBottom:16,padding:'8px 14px',borderRadius:8,background:'rgba(106,180,120,0.12)',border:'1px solid rgba(106,180,120,0.25)',color:'#4a8a5a',fontSize:13,fontWeight:600 }}>
+                ✦ 第{CH[layerNum-1]}層已解鎖
+              </div>
+            )}
             <div style={{ color:colors.sub,fontSize:13,fontStyle:'italic',lineHeight:1.8,marginBottom:20,padding:'10px 16px',borderRadius:8,background:'rgba(0,0,0,0.25)' }}>{layer.emotionalForeword}</div>
             <div style={{ color:colors.text,fontSize:15,lineHeight:2.2,whiteSpace:'pre-line',marginBottom:28 }}>{layer.sceneDescription}</div>
             <GlimmerButton tone="primary" onClick={handleEnter}>進入{layer.layerName}</GlimmerButton>
