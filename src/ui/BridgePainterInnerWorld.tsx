@@ -22,7 +22,7 @@ import {
   type UnderstoodItem,
 } from '../systems/npcStateEngine';
 import { isPlaytestEnabled } from '../hooks/narrativePlaytest';
-import accidentMemoryVideo from '../video/grok-video-5614ed35-6339-496a-bc6b-027280fb9c19.mp4';
+import accidentMemoryVideo from '../video/psyWorld-L2-vid.mp4';
 
 // ============================================================
 // Props

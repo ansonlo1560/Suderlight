@@ -16,10 +16,11 @@ import {
   OuterWorldExplorer,
   SelfReconciliationPortal,
   SubconsciousTavern,
+  TavernIntro,
   TitlePortal,
 } from './ui';
 
-type Screen = 'title' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
+type Screen = 'title' | 'tavernIntro' | 'city' | 'tavern' | 'conversation' | 'innerWorld' | 'dictionary' | 'aftermath' | 'reconciliation';
 
 function getNpcIdForLocation(locationId: LocationId): NpcId {
   if (locationId === 'skybridge') return 'bridge_artist';
@@ -40,6 +41,7 @@ export default function App() {
   const forceUnlockInnerWorld = useGameStore(state => state.forceUnlockInnerWorld);
   const addFlagToNpc = useGameStore(state => state.addFlagToNpc);
   const setPlayerPos = useGameStore(state => state.setPlayerPos);
+  const markPlotViewed = useGameStore(state => state.markPlotViewed);
 
   const [screen, setScreen] = useState<Screen>('title');
   const [returnScreen, setReturnScreen] = useState<Screen>('city');
@@ -83,7 +85,16 @@ export default function App() {
   };
 
   const resetAndReturnTitle = async () => {
+    // 在清档前检查：三个 NPC 是否全部达成 success 结局
+    const { bridge_artist, aoi, rena } = save.npcs;
+    const allNpcsCompleted =
+      bridge_artist?.ending === 'success' &&
+      aoi?.ending === 'success' &&
+      rena?.ending === 'success';
+
     await resetSave();
+    // resetSave 已創建新存檔，hasViewPlot 自動為 false
+
     setReturnScreen('city');
     setScreen('title');
   };
@@ -92,10 +103,26 @@ export default function App() {
     if (screen === 'title') {
       return (
         <TitlePortal
-          onStart={() => setScreen('city')}
+          onStart={() => {
+            if (save.hasViewPlot) {
+              setScreen('city');
+            } else {
+              setScreen('tavernIntro');
+            }
+          }}
           onOpenTavern={() => openScreenWithReturn('tavern')}
           onOpenDictionary={() => openScreenWithReturn('dictionary')}
           onOpenReport={() => openScreenWithReturn('aftermath')}
+        />
+      );
+    }
+
+    if (screen === 'tavernIntro') {
+      return (
+        <TavernIntro
+          onEnterCity={() => setScreen('city')}
+          onOpenDictionary={() => { setReturnScreen('city'); setScreen('dictionary'); }}
+          onViewPlot={markPlotViewed}
         />
       );
     }

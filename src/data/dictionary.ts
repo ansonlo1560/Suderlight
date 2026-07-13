@@ -14,6 +14,7 @@ export type DictEntry = {
   description: string;
   relatedClues: string[];
   unlockCondition: string;
+  realitySupport?: string;
 };
 
 // 本地副本（建議從 /api/dictionary 動態載入為準）

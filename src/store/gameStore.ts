@@ -59,6 +59,8 @@ type GameStore = {
   forceUnlockInnerWorld: (npcId?: NpcId) => void;
   /** 保存玩家地圖座標（避免退出對話/心理世界後傳送回重生點） */
   setPlayerPos: (x: number, y: number) => void;
+  /** 標記酒館開場劇情已看過（同一周目內不再展示） */
+  markPlotViewed: () => void;
 };
 
 function cloneSave(save: GameSave): GameSave {
@@ -558,6 +560,15 @@ export const useGameStore = create<GameStore>((set) => ({
       const next = cloneSave(state.save);
       next.playerX = x;
       next.playerY = y;
+      return { save: persistAndReturn(next) };
+    });
+  },
+
+  /** 標記酒館開場劇情已看過（同一周目內不再展示） */
+  markPlotViewed: () => {
+    set(state => {
+      const next = cloneSave(state.save);
+      next.hasViewPlot = true;
       return { save: persistAndReturn(next) };
     });
   },

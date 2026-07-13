@@ -21,7 +21,7 @@ export const locations: Record<LocationId, LocationData> = {
     subtitle: '雨後的過街天橋',
     description: '鏽蝕欄杆掛滿被雨浸透的展覽海報，橋下車流聲像遙遠海浪。天橋畫家站在空白畫布前，像守著一塊沒有色彩的墓碑。',
     ambient: '鐵鏽、濕顏料、車流低鳴',
-    spawn: { x: 10, y: 9 },
+    spawn: { x: 20, y: 17.5 },
   },
   comedy_club_entrance: {
     id: 'comedy_club_entrance',

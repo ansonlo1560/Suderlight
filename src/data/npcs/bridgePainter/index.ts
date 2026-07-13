@@ -35,7 +35,7 @@ export const bridgeArtistClues: Record<BridgeArtistClueId, ClueDefinition> = {
   accident_report: {
     id: 'accident_report', label: '車禍報導', shortLabel: '車禍報導', knowledge: 15,
     worldId: 'bridge_artist', locationId: 'skybridge',
-    pos: { x: 15, y: 12 }, color: '#fff6d8', icon: '紙',
+    pos: { x: 14, y: 12 }, color: '#fff6d8', icon: '紙',
     content: '這不是普通新聞，而是一份被折起來的完整報導。事故後的採訪標題寫著：「大家都在等他復出。」紙邊被指甲掐出深深痕跡。',
     dictionaryHint: '有些期待看似溫柔，實際上會把人再次釘回創傷現場。',
   },
@@ -548,21 +548,25 @@ export const bridgeArtistDictionary = [
     id: 'loss_of_worth', name: '失去價值感',
     description: '他不再相信自己的創作有價值。失去辨色能力後，他把自己等同於「不能畫畫的人」，彷彿沒有色彩就沒有存在資格。',
     relatedClues: ['brush'], unlockCondition: 'brush',
+    realitySupport: '當你的自我價值綁定在單一身份或能力上時，失去它會讓你感覺不再完整。請記住：你的存在價值不取決於你能做什麼，你本身就是值得被尊重的個體。如果這種感受持續影響生活，可以尋求心理諮詢協助，重新認識「你是誰」而不只是「你能做什麼」。',
   },
   {
     id: 'avoidance', name: '逃避',
     description: '他選擇不去面對那場車禍後的改變。撕掉報紙、避開人群、不再走進畫室——好像只要不看，那些碎裂的顏色就不會找上他。',
     relatedClues: ['newspaper'], unlockCondition: 'newspaper',
+    realitySupport: '逃避是面對創傷時大腦的本能保護機制——它不是軟弱。但長期逃避會讓傷口在黑暗裡持續發炎。如果你發現自己不斷繞開某段記憶、某個地點或某種感受，可以試著在安全環境中（如諮詢室、支持團體）一小步一小步地靠近它。不需要一次面對全部，只要願意承認「它在那裡」就是很大的勇氣。',
   },
   {
     id: 'unfinished_grief', name: '未完成哀傷',
     description: '他從未真正告別過去的自己。素描本裡的灰階輪廓不是練習，是一次又一次試圖回到「還能看見顏色」的那一天，卻始終走不出去。',
     relatedClues: ['sketchbook'], unlockCondition: 'sketchbook',
+    realitySupport: '哀傷沒有時間表，也沒有標準流程。當你被禁止或來不及好好說再見，那份未完結的痛可能會在生活中各處悄悄浮現。給自己一個告別的儀式——寫一封信、點一盞燈、說出那些來不及說的話。這不是為了忘記，而是為了讓記憶找到一個可以安放的位置。',
   },
   {
     id: 'self_denial', name: '自我否定',
     description: '當所有人都期待他復出，他反而更加確信自己已經不配被期待。那些溫柔的關心，在他耳裡全是「你應該好起來」的責備。',
     relatedClues: ['accident_report'], unlockCondition: 'accident_report',
+    realitySupport: '當外界的期待變成內心苛刻的審判，你會開始覺得自己永遠不夠好。請覺察那些「你應該好起來」的聲音——它們可能來自他人，也可能已經被你內化。試著對自己說：「我正在經歷一段很不容易的時期，我不需要馬上好起來。」如果自我批判的聲音太過強烈，專業心理協助可以幫助你辨識和挑戰這些不合理信念。',
   },
 ];
 
