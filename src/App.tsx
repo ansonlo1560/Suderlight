@@ -41,6 +41,7 @@ export default function App() {
   const forceUnlockInnerWorld = useGameStore(state => state.forceUnlockInnerWorld);
   const addFlagToNpc = useGameStore(state => state.addFlagToNpc);
   const setPlayerPos = useGameStore(state => state.setPlayerPos);
+  const markPlotViewed = useGameStore(state => state.markPlotViewed);
 
   const [screen, setScreen] = useState<Screen>('title');
   const [returnScreen, setReturnScreen] = useState<Screen>('city');
@@ -92,11 +93,7 @@ export default function App() {
       rena?.ending === 'success';
 
     await resetSave();
-
-    // 全部完成 → 重置开场标记，下次进标题会再播放
-    if (allNpcsCompleted) {
-      window.localStorage.setItem('glimmer_city_has_seen_tavern_intro', 'false');
-    }
+    // resetSave 已創建新存檔，hasViewPlot 自動為 false
 
     setReturnScreen('city');
     setScreen('title');
@@ -107,8 +104,7 @@ export default function App() {
       return (
         <TitlePortal
           onStart={() => {
-            const hasSeen = window.localStorage.getItem('glimmer_city_has_seen_tavern_intro') === 'true';
-            if (hasSeen) {
+            if (save.hasViewPlot) {
               setScreen('city');
             } else {
               setScreen('tavernIntro');
@@ -124,11 +120,9 @@ export default function App() {
     if (screen === 'tavernIntro') {
       return (
         <TavernIntro
-          onEnterCity={() => {
-            window.localStorage.setItem('glimmer_city_has_seen_tavern_intro', 'true');
-            setScreen('city');
-          }}
+          onEnterCity={() => setScreen('city')}
           onOpenDictionary={() => { setReturnScreen('city'); setScreen('dictionary'); }}
+          onViewPlot={markPlotViewed}
         />
       );
     }

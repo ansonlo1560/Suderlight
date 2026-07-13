@@ -11,6 +11,7 @@ import lookSeriousImg from '../../images/gameOpenDislogue/lookSerious.png';
 type TavernIntroProps = {
   onEnterCity: () => void;
   onOpenDictionary: () => void;
+  onViewPlot: () => void;
 };
 
 /* ─────── 七张全屏图片 slot ─────── */
@@ -173,7 +174,7 @@ function DialogueOverlay({ beat, onNext }: { beat: Beat; onNext: () => void }) {
 
 /* ══════════════════════════════════════════ */
 
-export default function TavernIntro({ onEnterCity, onOpenDictionary }: TavernIntroProps) {
+export default function TavernIntro({ onEnterCity, onOpenDictionary, onViewPlot }: TavernIntroProps) {
   const [idx, setIdx] = useState(0);
   const [showDict, setShowDict] = useState(false);
 
@@ -191,9 +192,10 @@ export default function TavernIntro({ onEnterCity, onOpenDictionary }: TavernInt
     if (idx < BEATS.length - 1) {
       setIdx(prev => prev + 1);
     } else {
+      onViewPlot();
       setShowDict(true);
     }
-  }, [idx]);
+  }, [idx, onViewPlot]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -244,6 +246,7 @@ export default function TavernIntro({ onEnterCity, onOpenDictionary }: TavernInt
         >
           <button
             onClick={() => {
+              onViewPlot();
               setIdx(BEATS.length - 1);
               setShowDict(true);
             }}

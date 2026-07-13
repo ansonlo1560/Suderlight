@@ -17,6 +17,8 @@ export type GameSave = {
   /** 玩家地圖座標（用於退出對話/心理世界後返回原位） */
   playerX?: number;
   playerY?: number;
+  /** 是否已完整看過酒館開場劇情（同一周目內只看一次） */
+  hasViewPlot?: boolean;
 };
 
 const SAVE_KEY = 'glimmer_city_vertical_slice_save_v1';
@@ -33,6 +35,7 @@ export function createInitialSave(): GameSave {
     },
 
     ghosts: [],
+    hasViewPlot: false,
   };
 }
 
@@ -96,6 +99,11 @@ export function loadSave(): GameSave | null {
       if (!rena.innerWorld) rena.innerWorld = createDefaultInnerWorldSave('rena');
     }
 
+
+    // 旧存档没有 hasViewPlot → 初始化为 false
+    if (typeof parsed.hasViewPlot !== 'boolean') {
+      parsed.hasViewPlot = false;
+    }
 
     // 移除旧的 player 字段（兼容旧存档格式）
     const result = parsed as GameSave;
