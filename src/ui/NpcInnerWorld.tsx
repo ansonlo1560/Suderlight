@@ -485,17 +485,13 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
     for (let l = 1; l <= maxLayer; l++) { if (layers[l]?.completed) count++; }
     return count;
   }
-  const completedCountInit = countCompletedFromSave();
-  const nextLayerInit = completedCountInit + 1;
-  // 基于存档数据决定起始层：已完成层数>0则从下一层开始，否则从第1层开始
-  const initialLayerNum = completedCountInit > 0
-    ? (nextLayerInit <= maxLayer ? nextLayerInit : Math.max(1, completedCountInit))
-    : 1;
+  // 初始層數：以最後真正進入過的層為準（從 visitedLayers 讀取），而非 completedCount+1
+  const lastVisitedLayer = visitedLayers.size > 0 ? Math.max(...visitedLayers) : 1;
+  const initialLayerNum = Math.max(1, lastVisitedLayer);
   const [layerNum, setLayerNum] = useState<number>(initialLayerNum);
-  // 基於 innerWorld.unlockedLayers 決定初始 phase：若該層已訪問過則直接 exploring，否則 entering
+  // 初始 phase：以 visitedLayers 判斷是否曾真正進入過該層
   const [phase, setPhase] = useState<LayerPhase>(() => {
-    const layerEntered = savedInnerWorld?.unlockedLayers?.includes(initialLayerNum) ?? false;
-    return layerEntered ? { type: 'exploring' } : { type: 'entering' };
+    return visitedLayers.has(initialLayerNum) ? { type: 'exploring' } : { type: 'entering' };
   });
 
   const markLayerVisited = useCallback((l: number) => {
@@ -507,11 +503,6 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
       return next;
     });
   }, [VISITED_KEY]);
-
-  useEffect(() => {
-    // 初始化时标记当前层为已访问
-    markLayerVisited(layerNum);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function loadUnderstandingFromSave(): Record<number, UnderstandingState> {
     const result: Record<number, UnderstandingState> = {};
@@ -1008,7 +999,7 @@ export default function NpcInnerWorld({ onReturnToSurface, onAdvanceLayer, arcFa
                     if ((thresholdMet || currentLayerAllCollected) && num === layerNum + 1 && !completedLayers.has(layerNum)) { setPhase({ type:'layer_complete' }); return; }
                     setLayerNum(num as number);
                     markLayerVisited(num);
-                    setPhase({ type: (savedInnerWorld?.unlockedLayers?.includes(num) || visitedLayers.has(num)) ? 'exploring' : 'entering' });
+                    setPhase({ type: visitedLayers.has(num) ? 'exploring' : 'entering' });
                   }} style={{ fontSize:15,padding:'10px 32px',minHeight:44,borderRadius:10,flex:1,maxWidth:160,opacity:isLocked?0.45:1 }}>
                     第{CH[num-1]}層{isLocked?'🔒':''}
                   </GlimmerButton>
